@@ -1,0 +1,1367 @@
+﻿@page "/Admin/Projects/Requests"
+@layout FrontLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>درخواست‌های پروژه | پنل ادمین</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+       REQUESTS PAGE - با پس‌زمینه #13505b
+    ============================================================ */
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #13505b;
+        color: #e8f0f1;
+        line-height: 1.7;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ============================================================
+       GLASS EFFECT
+    ============================================================ */
+    .glass {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .glass:hover {
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 48px rgba(0, 0, 0, 0.12);
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ============================================================
+       ANIMATIONS
+    ============================================================ */
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    .float-anim {
+        animation: float 4s ease-in-out infinite;
+    }
+
+    @@keyframes rotateBorder {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 400% 50%; }
+    }
+    .gradient-border {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid transparent;
+        background-clip: padding-box;
+    }
+    .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        z-index: -1;
+        border-radius: 22px;
+        background: conic-gradient(from 0deg, #e8a838, #52b788, #1a7a8a, #e8a838, #52b788);
+        background-size: 400% 400%;
+        animation: rotateBorder 8s linear infinite;
+        opacity: 0.2;
+        transition: opacity 0.4s;
+    }
+    .gradient-border:hover::before {
+        opacity: 0.5;
+    }
+
+    /* Ripple */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+    @@keyframes rippleAnim {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    /* Fade Up */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1),
+                    transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .stagger-child { transition-delay: 0s; }
+    .stagger-child:nth-child(1) { transition-delay: 0.05s; }
+    .stagger-child:nth-child(2) { transition-delay: 0.1s; }
+    .stagger-child:nth-child(3) { transition-delay: 0.15s; }
+    .stagger-child:nth-child(4) { transition-delay: 0.2s; }
+    .stagger-child:nth-child(5) { transition-delay: 0.25s; }
+    .stagger-child:nth-child(6) { transition-delay: 0.3s; }
+
+    /* Sparkle Particles */
+    .sparkle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(232, 168, 56, 0.2);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: sparkleAnim 10s infinite alternate ease-in-out;
+    }
+    @@keyframes sparkleAnim {
+        0% { transform: translate(0, 0) scale(1); opacity: 0.1; }
+        50% { transform: translate(20px, -30px) scale(1.8); opacity: 0.6; }
+        100% { transform: translate(-10px, 20px) scale(0.6); opacity: 0.05; }
+    }
+    .sparkle:nth-child(1) { left: 5%; top: 20%; animation-duration: 12s; }
+    .sparkle:nth-child(2) { left: 85%; top: 60%; animation-duration: 14s; animation-delay: 2s; width: 6px; height: 6px; }
+    .sparkle:nth-child(3) { left: 30%; top: 70%; animation-duration: 16s; animation-delay: 4s; }
+    .sparkle:nth-child(4) { left: 92%; top: 30%; animation-duration: 11s; animation-delay: 1s; width: 5px; height: 5px; background: rgba(82, 183, 136, 0.15); }
+    .sparkle:nth-child(5) { left: 50%; top: 90%; animation-duration: 18s; animation-delay: 3s; }
+    .sparkle:nth-child(6) { left: 3%; top: 50%; animation-duration: 13s; animation-delay: 5s; background: rgba(232, 168, 56, 0.15); }
+
+    /* ============================================================
+       NAVBAR
+    ============================================================ */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 999;
+        padding: 14px 0;
+        transition: all 0.4s ease;
+        background: rgba(19, 80, 91, 0.75);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .navbar.scrolled {
+        background: rgba(19, 80, 91, 0.92);
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .navbar .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #e8f0f1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .logo span { color: #e8a838; }
+    .logo i { color: #e8a838; font-size: 1.3rem; }
+
+    .nav-links {
+        display: flex;
+        gap: 28px;
+        list-style: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        align-items: center;
+    }
+    .nav-links a {
+        color: rgba(232, 240, 241, 0.6);
+        transition: all 0.35s ease;
+        position: relative;
+        padding: 4px 0;
+    }
+    .nav-links a:hover { color: #ffffff; }
+    .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        right: 0;
+        width: 0;
+        height: 2.5px;
+        background: #e8a838;
+        transition: 0.35s;
+        border-radius: 4px;
+        box-shadow: 0 0 12px rgba(232, 168, 56, 0.15);
+    }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active { color: #ffffff; }
+    .nav-links a.active::after { width: 100%; }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 9px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        color: #e8f0f1;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+    }
+    .btn-outline:hover {
+        border-color: #e8a838;
+        background: rgba(232, 168, 56, 0.04);
+        transform: translateY(-2px);
+    }
+
+    .btn-light {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: #e8f0f1;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-light:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: #e8a838;
+        transform: translateY(-2px);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(82, 183, 136, 0.15);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(220, 53, 69, 0.15);
+    }
+
+    .avatar-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid rgba(232, 168, 56, 0.2);
+        background: rgba(255, 255, 255, 0.03);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e8f0f1;
+        font-size: 1.1rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .avatar-btn:hover {
+        background: rgba(232, 168, 56, 0.04);
+        transform: scale(1.05);
+        border-color: #e8a838;
+    }
+
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+    .hamburger span {
+        display: block;
+        width: 28px;
+        height: 2.5px;
+        background: #e8f0f1;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+    /* ============================================================
+       PAGE HEADER
+    ============================================================ */
+    .page-header {
+        padding-top: 100px;
+        padding-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .page-header h1 i { color: #e8a838; }
+    .page-header .subtitle {
+        color: rgba(232, 240, 241, 0.5);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    .page-header .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       FILTER BAR
+    ============================================================ */
+    .filter-bar {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 32px;
+        padding: 16px 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        align-items: center;
+    }
+
+    .filter-bar .search-box {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 0 16px;
+        transition: all 0.35s ease;
+    }
+    .filter-bar .search-box:focus-within {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+    }
+    .filter-bar .search-box input {
+        background: transparent;
+        border: none;
+        padding: 12px 12px;
+        color: #e8f0f1;
+        font-size: 0.9rem;
+        width: 100%;
+        outline: none;
+    }
+    .filter-bar .search-box input::placeholder {
+        color: rgba(232, 240, 241, 0.3);
+    }
+    .filter-bar .search-box i {
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.9rem;
+    }
+
+    .filter-bar .filter-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .filter-bar .filter-group .filter-btn {
+        padding: 8px 18px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.4);
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .filter-bar .filter-group .filter-btn:hover {
+        border-color: rgba(232, 168, 56, 0.1);
+        color: #e8f0f1;
+    }
+    .filter-bar .filter-group .filter-btn.active {
+        background: rgba(232, 168, 56, 0.08);
+        border-color: rgba(232, 168, 56, 0.1);
+        color: #e8a838;
+    }
+
+    /* ============================================================
+       REQUESTS TABLE / GRID
+    ============================================================ */
+    .requests-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 40px;
+    }
+
+    .request-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto auto auto auto;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .request-row:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(232, 168, 56, 0.06);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .request-row .req-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+        background: rgba(232, 168, 56, 0.04);
+        color: #e8a838;
+    }
+    .request-row .req-icon.website {
+        background: rgba(82, 183, 136, 0.04);
+        color: #52b788;
+    }
+    .request-row .req-icon.shop {
+        background: rgba(232, 168, 56, 0.04);
+        color: #e8a838;
+    }
+    .request-row .req-icon.app {
+        background: rgba(130, 100, 200, 0.04);
+        color: #8264c8;
+    }
+    .request-row .req-icon.api {
+        background: rgba(26, 122, 138, 0.04);
+        color: #1a7a8a;
+    }
+    .request-row .req-icon.dashboard {
+        background: rgba(220, 53, 69, 0.04);
+        color: #dc3545;
+    }
+    .request-row .req-icon.other {
+        background: rgba(127, 140, 141, 0.04);
+        color: #7f8c8d;
+    }
+
+    .request-row .req-info {
+        flex: 1;
+        min-width: 150px;
+    }
+    .request-row .req-info .title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #ffffff;
+    }
+    .request-row .req-info .sub {
+        font-size: 0.8rem;
+        color: rgba(232, 240, 241, 0.3);
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 2px;
+    }
+    .request-row .req-info .sub span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .request-row .req-info .sub i {
+        font-size: 0.7rem;
+        color: rgba(232, 168, 56, 0.3);
+    }
+
+    .request-row .req-budget {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #e8a838;
+        white-space: nowrap;
+    }
+
+    .request-row .req-status {
+        font-size: 0.7rem;
+        padding: 4px 14px;
+        border-radius: 40px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .request-row .req-status.new {
+        background: rgba(232, 168, 56, 0.06);
+        color: #e8a838;
+        border: 1px solid rgba(232, 168, 56, 0.04);
+    }
+    .request-row .req-status.reviewing {
+        background: rgba(26, 122, 138, 0.06);
+        color: #1a7a8a;
+        border: 1px solid rgba(26, 122, 138, 0.04);
+    }
+    .request-row .req-status.approved {
+        background: rgba(82, 183, 136, 0.06);
+        color: #52b788;
+        border: 1px solid rgba(82, 183, 136, 0.04);
+    }
+    .request-row .req-status.rejected {
+        background: rgba(220, 53, 69, 0.04);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.04);
+    }
+
+    .request-row .req-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    .request-row .req-actions button {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.2);
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .request-row .req-actions button:hover {
+        border-color: rgba(232, 168, 56, 0.1);
+        color: #e8f0f1;
+        background: rgba(232, 168, 56, 0.02);
+        transform: scale(1.05);
+    }
+    .request-row .req-actions button.approve:hover {
+        border-color: rgba(82, 183, 136, 0.1);
+        color: #52b788;
+        background: rgba(82, 183, 136, 0.02);
+    }
+    .request-row .req-actions button.reject:hover {
+        border-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        background: rgba(220, 53, 69, 0.02);
+    }
+    .request-row .req-actions button.delete:hover {
+        border-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        background: rgba(220, 53, 69, 0.02);
+    }
+
+    /* Quick action buttons inside row */
+    .request-row .req-action-btns {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
+       EMPTY STATE
+    ============================================================ */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: rgba(232, 168, 56, 0.1);
+        margin-bottom: 16px;
+    }
+    .empty-state h3 {
+        font-size: 1.3rem;
+        color: rgba(232, 240, 241, 0.3);
+        margin-bottom: 8px;
+    }
+    .empty-state p {
+        color: rgba(232, 240, 241, 0.15);
+        font-size: 0.9rem;
+    }
+
+    /* ============================================================
+       PAGINATION
+    ============================================================ */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+        padding: 16px 0;
+    }
+    .pagination button {
+        padding: 8px 16px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.3);
+        font-size: 0.8rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .pagination button:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8f0f1;
+        background: rgba(232, 168, 56, 0.02);
+    }
+    .pagination button.active {
+        background: rgba(232, 168, 56, 0.06);
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8a838;
+    }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+        position: relative;
+        padding: 28px 0 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.02);
+        background: rgba(19, 80, 91, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1;
+        margin-top: 20px;
+    }
+    .footer .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .footer-links {
+        display: flex;
+        gap: 24px;
+        font-size: 0.85rem;
+        color: rgba(232, 240, 241, 0.2);
+    }
+    .footer-links a:hover { color: #e8a838; }
+    .footer-copy {
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.8rem;
+    }
+    .footer-copy i { color: #e8a838; }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @@media (max-width: 1200px) {
+        .request-row {
+            grid-template-columns: auto 1fr auto auto;
+            gap: 12px;
+        }
+        .request-row .req-budget {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .request-row {
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+        }
+        .request-row .req-status {
+            display: none;
+        }
+        .request-row .req-action-btns {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background: rgba(19, 80, 91, 0.95);
+            backdrop-filter: blur(16px);
+            padding: 20px 0;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            margin-top: 12px;
+            border-radius: 20px;
+            align-items: center;
+        }
+        .nav-links.open { display: flex; }
+        .hamburger { display: flex; }
+        .nav-actions .btn-outline { display: none; }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .page-header h1 { font-size: 1.5rem; }
+        .filter-bar {
+            flex-direction: column;
+            padding: 16px;
+        }
+        .filter-bar .search-box { width: 100%; }
+        .page-header .actions { width: 100%; }
+        .page-header .actions .btn-primary { flex: 1; justify-content: center; }
+
+        .request-row {
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            padding: 14px 16px;
+            flex-wrap: wrap;
+        }
+        .request-row .req-info {
+            grid-column: 2;
+        }
+        .request-row .req-icon {
+            grid-row: 1 / 3;
+        }
+        .request-row .req-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-end;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .request-row .req-status {
+            display: inline-block;
+            grid-column: 2;
+            justify-self: start;
+            font-size: 0.65rem;
+            padding: 2px 10px;
+        }
+        .request-row .req-budget {
+            display: inline-block;
+            grid-column: 2;
+            font-size: 0.8rem;
+        }
+        .request-row .req-action-btns {
+            display: flex;
+            grid-column: 1 / -1;
+            justify-content: flex-end;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .request-row .req-actions {
+            display: none;
+        }
+        .request-row .req-info .sub {
+            flex-direction: column;
+            gap: 4px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .request-row .req-budget {
+            font-size: 0.7rem;
+        }
+        .request-row .req-status {
+            font-size: 0.6rem;
+            padding: 2px 8px;
+        }
+        .filter-bar .filter-group {
+            width: 100%;
+            justify-content: center;
+        }
+        .request-row .req-action-btns .btn-success,
+        .request-row .req-action-btns .btn-danger {
+            font-size: 0.65rem;
+            padding: 4px 10px;
+        }
+    }
+</style>
+
+<!-- ============================================================
+     SPARKLE PARTICLES
+============================================================ -->
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<header class="navbar" id="navbar">
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-crown"></i>
+            Admin<span>Panel</span>
+        </div>
+        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
+            <li><a href="/AdminDashboard">داشبورد</a></li>
+            <li><a href="/Projects">پروژه‌ها</a></li>
+            <li><a href="/Users">کاربران</a></li>
+            <li><a href="/Requests" class="active">درخواست‌ها</a></li>
+            <li><a href="/Settings">تنظیمات</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
+            <button class="hamburger" @onclick="ToggleMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ============================================================
+     PAGE CONTENT
+============================================================ -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-clipboard-list"></i>
+                    درخواست‌های پروژه
+                    <span class="badge-admin" style="font-size:0.7rem; background:linear-gradient(135deg,#e8a838,#d4952e); color:#fff; padding:4px 14px; border-radius:40px; font-weight:600;">@totalRequests</span>
+                </h1>
+                <div class="subtitle">مدیریت درخواست‌های پروژه از سوی مشتریان</div>
+            </div>
+            <div class="actions">
+                <button class="btn-light ripple" @onclick="RefreshRequests"><i class="fas fa-sync-alt"></i> بروزرسانی</button>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar fade-up visible">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="جستجوی درخواست..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn @(filterStatus == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>همه</button>
+                <button class="filter-btn @(filterStatus == "new" ? "active" : "")" @onclick='() => SetFilter("new")'>جدید</button>
+                <button class="filter-btn @(filterStatus == "reviewing" ? "active" : "")" @onclick='() => SetFilter("reviewing")'>در بررسی</button>
+                <button class="filter-btn @(filterStatus == "approved" ? "active" : "")" @onclick='() => SetFilter("approved")'>تأیید شده</button>
+                <button class="filter-btn @(filterStatus == "rejected" ? "active" : "")" @onclick='() => SetFilter("rejected")'>رد شده</button>
+            </div>
+            <div class="filter-group" style="margin-right:auto;">
+                <button class="filter-btn @(filterType == "all" ? "active" : "")" @onclick='() => SetType("all")'>همه انواع</button>
+                <button class="filter-btn @(filterType == "website" ? "active" : "")" @onclick='() => SetType("website")'>وب‌سایت</button>
+                <button class="filter-btn @(filterType == "shop" ? "active" : "")" @onclick='() => SetType("shop")'>فروشگاه</button>
+                <button class="filter-btn @(filterType == "app" ? "active" : "")" @onclick='() => SetType("app")'>اپلیکیشن</button>
+                <button class="filter-btn @(filterType == "api" ? "active" : "")" @onclick='() => SetType("api")'>API</button>
+            </div>
+        </div>
+
+        <!-- Requests Grid -->
+        @if (filteredRequests.Any())
+        {
+            <div class="requests-grid">
+                @foreach (var req in filteredRequests)
+                {
+                    <div class="request-row fade-up stagger-child">
+                        <div class="req-icon @req.TypeClass">
+                            <i class="@req.TypeIcon"></i>
+                        </div>
+                        <div class="req-info">
+                            <div class="title">@req.Title</div>
+                            <div class="sub">
+                                <span><i class="fas fa-user"></i> @req.ClientName</span>
+                                <span><i class="far fa-calendar-alt"></i> @req.Date</span>
+                                <span><i class="fas fa-tag"></i> @req.TypeText</span>
+                            </div>
+                        </div>
+                        <div class="req-budget">@req.Budget</div>
+                        <span class="req-status @req.StatusClass">@req.StatusText</span>
+                        <div class="req-action-btns">
+                            @if (req.StatusClass == "new" || req.StatusClass == "reviewing")
+                            {
+                                <button class="btn-success ripple" @onclick='() => ApproveRequest(req.Id)'><i class="fas fa-check"></i> تأیید</button>
+                                <button class="btn-danger ripple" @onclick='() => RejectRequest(req.Id)'><i class="fas fa-times"></i> رد</button>
+                            }
+                        </div>
+                        <div class="req-actions">
+                            <button class="ripple" title="مشاهده" @onclick='() => ViewRequest(req.Id)'><i class="fas fa-eye"></i></button>
+                            <button class="ripple approve" title="تأیید" @onclick='() => ApproveRequest(req.Id)'><i class="fas fa-check-circle"></i></button>
+                            <button class="ripple reject" title="رد" @onclick='() => RejectRequest(req.Id)'><i class="fas fa-times-circle"></i></button>
+                            <button class="ripple delete" title="حذف" @onclick='() => DeleteRequest(req.Id)'><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state fade-up visible">
+                <i class="fas fa-inbox"></i>
+                <h3>هیچ درخواستی یافت نشد</h3>
+                <p>با تغییر فیلترها یا جستجو، نتایج را مشاهده کنید</p>
+            </div>
+        }
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <div class="pagination">
+                <button @onclick='() => ChangePage(currentPage - 1)' disabled="@(currentPage == 1)"><i class="fas fa-chevron-right"></i></button>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <button class="@(i == currentPage ? "active" : "")" @onclick='() => ChangePage(i)'>@i</button>
+                }
+                <button @onclick='() => ChangePage(currentPage + 1)' disabled="@(currentPage == totalPages)"><i class="fas fa-chevron-left"></i></button>
+            </div>
+        }
+
+    </div>
+</main>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> مدیریت درخواست‌ها</div>
+        <div class="footer-links">
+            <a href="/AdminDashboard">داشبورد</a>
+            <a href="/Projects">پروژه‌ها</a>
+            <a href="/Users">کاربران</a>
+            <a href="/Requests">درخواست‌ها</a>
+            <a href="/Settings">تنظیمات</a>
+        </div>
+    </div>
+</footer>
+
+@code {
+    // ============================================================
+    // STATE & DATA
+    // ============================================================
+
+    private bool isMenuOpen = false;
+    private string searchTerm = "";
+    private string filterStatus = "all";
+    private string filterType = "all";
+    private int currentPage = 1;
+    private int pageSize = 6;
+    private int totalPages = 1;
+
+    private List<RequestItem> allRequests = new();
+    private List<RequestItem> filteredRequests = new();
+
+    private int totalRequests => allRequests.Count;
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override void OnInitialized()
+    {
+        LoadRequests();
+        ApplyFilters();
+    }
+
+    private void LoadRequests()
+    {
+        allRequests = new List<RequestItem>
+        {
+            new RequestItem
+            {
+                Id = "REQ-001",
+                Title = "طراحی وب‌سایت شرکتی",
+                ClientName = "شرکت فناوری پیشرو",
+                TypeClass = "website",
+                TypeIcon = "fas fa-globe",
+                TypeText = "وب‌سایت",
+                Budget = "۳۵,۰۰۰,۰۰۰ تومان",
+                Date = "۱۴۰۵/۰۴/۱۵",
+                StatusClass = "new",
+                StatusText = "جدید",
+                Description = "طراحی یک وب‌سایت شرکتی با بخش‌های معرفی، محصولات، وبلاگ و تماس."
+            },
+            new RequestItem
+            {
+                Id = "REQ-002",
+                Title = "فروشگاه اینترنتی لباس",
+                ClientName = "فروشگاه مد روز",
+                TypeClass = "shop",
+                TypeIcon = "fas fa-shopping-cart",
+                TypeText = "فروشگاه",
+                Budget = "۴۸,۰۰۰,۰۰۰ تومان",
+                Date = "۱۴۰۵/۰۴/۱۲",
+                StatusClass = "reviewing",
+                StatusText = "در بررسی",
+                Description = "ایجاد یک فروشگاه اینترنتی کامل با سیستم پرداخت، مدیریت موجودی و ارسال."
+            },
+            new RequestItem
+            {
+                Id = "REQ-003",
+                Title = "اپلیکیشن موبایل آموزشی",
+                ClientName = "آموزشگاه دانش",
+                TypeClass = "app",
+                TypeIcon = "fas fa-mobile-alt",
+                TypeText = "اپلیکیشن",
+                Budget = "۶۲,۰۰۰,۰۰۰ تومان",
+                Date = "۱۴۰۵/۰۴/۰۸",
+                StatusClass = "approved",
+                StatusText = "تأیید شده",
+                Description = "توسعه اپلیکیشن موبایل برای آموزش زبان با قابلیت‌های تعاملی و ویدئو."
+            },
+            new RequestItem
+            {
+                Id = "REQ-004",
+                Title = "API مدیریت مشتریان",
+                ClientName = "سامانه هوشمند",
+                TypeClass = "api",
+                TypeIcon = "fas fa-code",
+                TypeText = "API",
+                Budget = "۲۸,۰۰۰,۰۰۰ تومان",
+                Date = "۱۴۰۵/۰۴/۰۵",
+                StatusClass = "rejected",
+                StatusText = "رد شده",
+                Description = "ساخت API برای مدیریت مشتریان با احراز هویت و مستندات کامل."
+            },
+            new RequestItem
+            {
+                Id = "REQ-005",
+                Title = "داشبورد مدیریتی پیشرفته",
+                ClientName = "سازمان مدیریت داده",
+                TypeClass = "dashboard",
+                TypeIcon = "fas fa-chart-pie",
+                TypeText = "داشبورد",
+                Budget = "۵۵,۰۰۰,۰۰۰ تومان",
+                Date = "۱۴۰۵/۰۴/۰۳",
+                StatusClass = "new",
+                StatusText = "جدید",
+                Description = "طراحی داشبورد مدیریتی با نمودارهای تعاملی و گزارش‌گیری پیشرفته."
+            },
+            new RequestItem
+            {
+                Id = "REQ-006",
+                Title = "سیستم رزرواسیون آنلاین",
+                ClientName = "هتل پنج ستاره",
+                TypeClass = "other",
+                TypeIcon = "fas fa-hotel",
+                TypeText = "سایر",
+                Budget = "۴۲,۰۰۰,۰۰۰ تومان",
+                Date = "۱۴۰۵/۰۳/۲۸",
+                StatusClass = "reviewing",
+                StatusText = "در بررسی",
+                Description = "سیستم رزرواسیون آنلاین برای هتل با تقویم تعاملی و درگاه پرداخت."
+            },
+            new RequestItem
+            {
+                Id = "REQ-007",
+                Title = "سایت خبری تحلیلی",
+                ClientName = "رسانه آگاه",
+                TypeClass = "website",
+                TypeIcon = "fas fa-newspaper",
+                TypeText = "وب‌سایت",
+                Budget = "۳۲,۰۰۰,۰۰۰ تومان",
+                Date = "۱۴۰۵/۰۳/۲۰",
+                StatusClass = "approved",
+                StatusText = "تأیید شده",
+                Description = "ساخت یک سایت خبری با سیستم مدیریت محتوا و امکان ارسال مطلب توسط نویسندگان."
+            },
+            new RequestItem
+            {
+                Id = "REQ-008",
+                Title = "سیستم نظرسنجی پیشرفته",
+                ClientName = "موسسه تحقیقاتی",
+                TypeClass = "api",
+                TypeIcon = "fas fa-poll",
+                TypeText = "API",
+                Budget = "۲۵,۰۰۰,۰۰۰ تومان",
+                Date = "۱۴۰۵/۰۳/۱۵",
+                StatusClass = "new",
+                StatusText = "جدید",
+                Description = "طراحی و پیاده‌سازی سیستم نظرسنجی با قابلیت تحلیل پیشرفته و خروجی‌های متنوع."
+            }
+        };
+    }
+
+    // ============================================================
+    // FILTER & SEARCH
+    // ============================================================
+
+    private void ApplyFilters()
+    {
+        var query = allRequests.AsEnumerable();
+
+        // Filter by status
+        if (!string.IsNullOrEmpty(filterStatus) && filterStatus != "all")
+        {
+            query = query.Where(r => r.StatusClass == filterStatus);
+        }
+
+        // Filter by type
+        if (!string.IsNullOrEmpty(filterType) && filterType != "all")
+        {
+            query = query.Where(r => r.TypeClass == filterType);
+        }
+
+        // Search
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(r =>
+                r.Title.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                r.ClientName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                r.Id.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                r.Description.Contains(term, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        // Pagination
+        var total = query.Count();
+        totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        if (totalPages == 0) totalPages = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        filteredRequests = query
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    private void SetFilter(string status)
+    {
+        filterStatus = status;
+        currentPage = 1;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void SetType(string type)
+    {
+        filterType = type;
+        currentPage = 1;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ChangePage(int page)
+    {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // UI METHODS
+    // ============================================================
+
+    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
+    private void CloseMenu() => isMenuOpen = false;
+
+    private void GoToProfile() => NavigationManager.NavigateTo("/Profile", true);
+    private void RefreshRequests()
+    {
+        LoadRequests();
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ViewRequest(string id) => NavigationManager.NavigateTo($"/Request/{id}", true);
+
+    private void ApproveRequest(string id)
+    {
+        var req = allRequests.FirstOrDefault(r => r.Id == id);
+        if (req != null && (req.StatusClass == "new" || req.StatusClass == "reviewing"))
+        {
+            req.StatusClass = "approved";
+            req.StatusText = "تأیید شده";
+            ApplyFilters();
+            StateHasChanged();
+        }
+    }
+
+    private void RejectRequest(string id)
+    {
+        var req = allRequests.FirstOrDefault(r => r.Id == id);
+        if (req != null && (req.StatusClass == "new" || req.StatusClass == "reviewing"))
+        {
+            req.StatusClass = "rejected";
+            req.StatusText = "رد شده";
+            ApplyFilters();
+            StateHasChanged();
+        }
+    }
+
+    private void DeleteRequest(string id)
+    {
+        allRequests.RemoveAll(r => r.Id == id);
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Navbar scroll
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                navbar?.classList.toggle('scrolled', window.scrollY > 30);
+            });
+
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 300);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASSES
+    // ============================================================
+
+    public class RequestItem
+    {
+        public string Id { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string ClientName { get; set; } = "";
+        public string TypeClass { get; set; } = "";
+        public string TypeIcon { get; set; } = "";
+        public string TypeText { get; set; } = "";
+        public string Budget { get; set; } = "";
+        public string Date { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+        public string StatusText { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+}

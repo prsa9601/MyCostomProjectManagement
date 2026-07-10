@@ -1,0 +1,1577 @@
+﻿@page "/Admin/Settings"
+@layout FrontLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>تنظیمات | پنل ادمین</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+       SETTINGS PAGE - با پس‌زمینه #13505b
+    ============================================================ */
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #13505b;
+        color: #e8f0f1;
+        line-height: 1.7;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ============================================================
+       GLASS EFFECT
+    ============================================================ */
+    .glass {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .glass:hover {
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 48px rgba(0, 0, 0, 0.12);
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ============================================================
+       ANIMATIONS
+    ============================================================ */
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    .float-anim {
+        animation: float 4s ease-in-out infinite;
+    }
+
+    @@keyframes rotateBorder {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 400% 50%; }
+    }
+    .gradient-border {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid transparent;
+        background-clip: padding-box;
+    }
+    .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        z-index: -1;
+        border-radius: 22px;
+        background: conic-gradient(from 0deg, #e8a838, #52b788, #1a7a8a, #e8a838, #52b788);
+        background-size: 400% 400%;
+        animation: rotateBorder 8s linear infinite;
+        opacity: 0.2;
+        transition: opacity 0.4s;
+    }
+    .gradient-border:hover::before {
+        opacity: 0.5;
+    }
+
+    /* Ripple */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+    @@keyframes rippleAnim {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    /* Fade Up */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1),
+                    transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .stagger-child { transition-delay: 0s; }
+    .stagger-child:nth-child(1) { transition-delay: 0.05s; }
+    .stagger-child:nth-child(2) { transition-delay: 0.1s; }
+    .stagger-child:nth-child(3) { transition-delay: 0.15s; }
+    .stagger-child:nth-child(4) { transition-delay: 0.2s; }
+    .stagger-child:nth-child(5) { transition-delay: 0.25s; }
+    .stagger-child:nth-child(6) { transition-delay: 0.3s; }
+
+    /* Sparkle Particles */
+    .sparkle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(232, 168, 56, 0.2);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: sparkleAnim 10s infinite alternate ease-in-out;
+    }
+    @@keyframes sparkleAnim {
+        0% { transform: translate(0, 0) scale(1); opacity: 0.1; }
+        50% { transform: translate(20px, -30px) scale(1.8); opacity: 0.6; }
+        100% { transform: translate(-10px, 20px) scale(0.6); opacity: 0.05; }
+    }
+    .sparkle:nth-child(1) { left: 5%; top: 20%; animation-duration: 12s; }
+    .sparkle:nth-child(2) { left: 85%; top: 60%; animation-duration: 14s; animation-delay: 2s; width: 6px; height: 6px; }
+    .sparkle:nth-child(3) { left: 30%; top: 70%; animation-duration: 16s; animation-delay: 4s; }
+    .sparkle:nth-child(4) { left: 92%; top: 30%; animation-duration: 11s; animation-delay: 1s; width: 5px; height: 5px; background: rgba(82, 183, 136, 0.15); }
+    .sparkle:nth-child(5) { left: 50%; top: 90%; animation-duration: 18s; animation-delay: 3s; }
+    .sparkle:nth-child(6) { left: 3%; top: 50%; animation-duration: 13s; animation-delay: 5s; background: rgba(232, 168, 56, 0.15); }
+
+    /* ============================================================
+       NAVBAR
+    ============================================================ */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 999;
+        padding: 14px 0;
+        transition: all 0.4s ease;
+        background: rgba(19, 80, 91, 0.75);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .navbar.scrolled {
+        background: rgba(19, 80, 91, 0.92);
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .navbar .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #e8f0f1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .logo span { color: #e8a838; }
+    .logo i { color: #e8a838; font-size: 1.3rem; }
+
+    .nav-links {
+        display: flex;
+        gap: 28px;
+        list-style: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        align-items: center;
+    }
+    .nav-links a {
+        color: rgba(232, 240, 241, 0.6);
+        transition: all 0.35s ease;
+        position: relative;
+        padding: 4px 0;
+    }
+    .nav-links a:hover { color: #ffffff; }
+    .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        right: 0;
+        width: 0;
+        height: 2.5px;
+        background: #e8a838;
+        transition: 0.35s;
+        border-radius: 4px;
+        box-shadow: 0 0 12px rgba(232, 168, 56, 0.15);
+    }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active { color: #ffffff; }
+    .nav-links a.active::after { width: 100%; }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 9px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        color: #e8f0f1;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+    }
+    .btn-outline:hover {
+        border-color: #e8a838;
+        background: rgba(232, 168, 56, 0.04);
+        transform: translateY(-2px);
+    }
+
+    .btn-light {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: #e8f0f1;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-light:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: #e8a838;
+        transform: translateY(-2px);
+    }
+
+    .avatar-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid rgba(232, 168, 56, 0.2);
+        background: rgba(255, 255, 255, 0.03);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e8f0f1;
+        font-size: 1.1rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .avatar-btn:hover {
+        background: rgba(232, 168, 56, 0.04);
+        transform: scale(1.05);
+        border-color: #e8a838;
+    }
+
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+    .hamburger span {
+        display: block;
+        width: 28px;
+        height: 2.5px;
+        background: #e8f0f1;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+    /* ============================================================
+       PAGE HEADER
+    ============================================================ */
+    .page-header {
+        padding-top: 100px;
+        padding-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .page-header h1 i { color: #e8a838; }
+    .page-header .subtitle {
+        color: rgba(232, 240, 241, 0.5);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    .page-header .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       SETTINGS TABS
+    ============================================================ */
+    .settings-tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 32px;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+
+    .settings-tabs .tab-btn {
+        padding: 10px 22px;
+        border-radius: 12px;
+        border: none;
+        background: transparent;
+        color: rgba(232, 240, 241, 0.4);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .settings-tabs .tab-btn:hover {
+        color: #e8f0f1;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .settings-tabs .tab-btn.active {
+        background: rgba(232, 168, 56, 0.06);
+        color: #e8a838;
+        border: 1px solid rgba(232, 168, 56, 0.04);
+    }
+
+    .settings-tabs .tab-btn i {
+        font-size: 0.9rem;
+    }
+
+    /* ============================================================
+       SETTINGS SECTIONS
+    ============================================================ */
+    .settings-section {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+
+    .settings-section.active {
+        display: block;
+    }
+
+    @@keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+    }
+
+    .settings-card {
+        padding: 28px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 20px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .settings-card:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(232, 168, 56, 0.06);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .settings-card .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .settings-card .card-header i {
+        font-size: 1.4rem;
+        color: #e8a838;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(232, 168, 56, 0.04);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .settings-card .card-header h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+    }
+    .settings-card .card-header .desc {
+        font-size: 0.8rem;
+        color: rgba(232, 240, 241, 0.3);
+    }
+
+    /* ============================================================
+       FORM ELEMENTS
+    ============================================================ */
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: rgba(232, 240, 241, 0.6);
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        color: #e8f0f1;
+        font-size: 0.9rem;
+        transition: all 0.35s ease;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+        color: rgba(232, 240, 241, 0.2);
+    }
+
+    .form-group select option {
+        background: #13505b;
+        color: #e8f0f1;
+    }
+
+    .form-group textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .form-group .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+    }
+
+    .form-group .toggle-wrapper .toggle-label {
+        font-size: 0.85rem;
+        color: rgba(232, 240, 241, 0.5);
+        flex: 1;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 40px;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+    }
+
+    .toggle-switch.active {
+        background: rgba(232, 168, 56, 0.15);
+        border-color: rgba(232, 168, 56, 0.1);
+    }
+
+    .toggle-switch .toggle-knob {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(232, 240, 241, 0.15);
+        transition: all 0.35s ease;
+    }
+
+    .toggle-switch.active .toggle-knob {
+        right: 24px;
+        background: #e8a838;
+        box-shadow: 0 0 16px rgba(232, 168, 56, 0.15);
+    }
+
+    .btn-save {
+        padding: 10px 28px;
+        border-radius: 40px;
+        border: none;
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.08);
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.15);
+    }
+
+    .btn-save-secondary {
+        padding: 10px 28px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.5);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-save-secondary:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8f0f1;
+        background: rgba(232, 168, 56, 0.02);
+        transform: translateY(-2px);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+        position: relative;
+        padding: 28px 0 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.02);
+        background: rgba(19, 80, 91, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1;
+        margin-top: 40px;
+    }
+
+    .footer .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .footer-links {
+        display: flex;
+        gap: 24px;
+        font-size: 0.85rem;
+        color: rgba(232, 240, 241, 0.2);
+    }
+    .footer-links a:hover { color: #e8a838; }
+    .footer-copy {
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.8rem;
+    }
+    .footer-copy i { color: #e8a838; }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @@media (max-width: 992px) {
+        .settings-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background: rgba(19, 80, 91, 0.95);
+            backdrop-filter: blur(16px);
+            padding: 20px 0;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            margin-top: 12px;
+            border-radius: 20px;
+            align-items: center;
+        }
+        .nav-links.open { display: flex; }
+        .hamburger { display: flex; }
+        .nav-actions .btn-outline { display: none; }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .page-header h1 { font-size: 1.5rem; }
+        .page-header .actions { width: 100%; }
+        .page-header .actions .btn-primary { flex: 1; justify-content: center; }
+
+        .settings-tabs {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 4px;
+            gap: 4px;
+        }
+        .settings-tabs .tab-btn {
+            padding: 8px 14px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        .settings-tabs .tab-btn i { font-size: 0.7rem; }
+
+        .settings-grid {
+            grid-template-columns: 1fr;
+        }
+        .settings-card {
+            padding: 20px;
+        }
+        .form-actions {
+            flex-direction: column;
+        }
+        .form-actions .btn-save,
+        .form-actions .btn-save-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .settings-card .card-header {
+            flex-wrap: wrap;
+        }
+        .settings-card .card-header .desc {
+            font-size: 0.7rem;
+        }
+        .form-group .toggle-wrapper {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+
+<!-- ============================================================
+     SPARKLE PARTICLES
+============================================================ -->
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<header class="navbar" id="navbar">
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-crown"></i>
+            Admin<span>Panel</span>
+        </div>
+        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
+            <li><a href="/AdminDashboard">داشبورد</a></li>
+            <li><a href="/Projects">پروژه‌ها</a></li>
+            <li><a href="/Users">کاربران</a></li>
+            <li><a href="/Settings" class="active">تنظیمات</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
+            <button class="hamburger" @onclick="ToggleMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ============================================================
+     PAGE CONTENT
+============================================================ -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-cog"></i>
+                    تنظیمات
+                </h1>
+                <div class="subtitle">مدیریت تنظیمات سیستم، کاربری و امنیت</div>
+            </div>
+            <div class="actions">
+                <button class="btn-light ripple" @onclick="ResetSettings"><i class="fas fa-undo-alt"></i> بازنشانی</button>
+                <button class="btn-primary ripple" @onclick="SaveAllSettings"><i class="fas fa-save"></i> ذخیره همه</button>
+            </div>
+        </div>
+
+        <!-- Settings Tabs -->
+        <div class="settings-tabs fade-up visible">
+            <button class="tab-btn @(activeTab == "general" ? "active" : "")" @onclick='() => SetTab("general")'>
+                <i class="fas fa-globe"></i> عمومی
+            </button>
+            <button class="tab-btn @(activeTab == "security" ? "active" : "")" @onclick='() => SetTab("security")'>
+                <i class="fas fa-shield-alt"></i> امنیت
+            </button>
+            <button class="tab-btn @(activeTab == "notifications" ? "active" : "")" @onclick='() => SetTab("notifications")'>
+                <i class="fas fa-bell"></i> اعلان‌ها
+            </button>
+            <button class="tab-btn @(activeTab == "appearance" ? "active" : "")" @onclick='() => SetTab("appearance")'>
+                <i class="fas fa-palette"></i> نمایش
+            </button>
+            <button class="tab-btn @(activeTab == "api" ? "active" : "")" @onclick='() => SetTab("api")'>
+                <i class="fas fa-code"></i> API
+            </button>
+            <button class="tab-btn @(activeTab == "backup" ? "active" : "")" @onclick='() => SetTab("backup")'>
+                <i class="fas fa-database"></i> پشتیبان‌گیری
+            </button>
+        </div>
+
+        <!-- ============================================================
+             TAB 1: GENERAL
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "general" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <h3>اطلاعات عمومی</h3>
+                            <div class="desc">تنظیمات اصلی وب‌سایت</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>نام وب‌سایت</label>
+                        <input type="text" @bind="settings.SiteName" placeholder="نام وب‌سایت را وارد کنید" />
+                    </div>
+                    <div class="form-group">
+                        <label>توضیحات کوتاه</label>
+                        <input type="text" @bind="settings.SiteDescription" placeholder="توضیحات کوتاه برای وب‌سایت" />
+                    </div>
+                    <div class="form-group">
+                        <label>زبان پیش‌فرض</label>
+                        <select @bind="settings.DefaultLanguage">
+                            <option value="fa">فارسی</option>
+                            <option value="en">انگلیسی</option>
+                            <option value="ar">عربی</option>
+                            <option value="tr">ترکی</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>منطقه زمانی</label>
+                        <select @bind="settings.Timezone">
+                            <option value="Asia/Tehran">ایران (UTC+3:30)</option>
+                            <option value="UTC">UTC</option>
+                            <option value="Europe/London">لندن</option>
+                            <option value="America/New_York">نیویورک</option>
+                            <option value="Asia/Dubai">دبی</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("general")'><i class="fas fa-save"></i> ذخیره تغییرات</button>
+                    </div>
+                </div>
+
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-image"></i>
+                        <div>
+                            <h3>لوگو و برندینگ</h3>
+                            <div class="desc">تنظیمات ظاهری برند</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>آدرس لوگو</label>
+                        <input type="text" @bind="settings.LogoUrl" placeholder="آدرس تصویر لوگو" />
+                    </div>
+                    <div class="form-group">
+                        <label>آیکون سایت (favicon)</label>
+                        <input type="text" @bind="settings.FaviconUrl" placeholder="آدرس آیکون" />
+                    </div>
+                    <div class="form-group">
+                        <label>رنگ اصلی</label>
+                        <input type="color" @bind="settings.PrimaryColor" style="padding:4px; height:44px; cursor:pointer;" />
+                    </div>
+                    <div class="form-group">
+                        <label>رنگ ثانویه</label>
+                        <input type="color" @bind="settings.SecondaryColor" style="padding:4px; height:44px; cursor:pointer;" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("branding")'><i class="fas fa-save"></i> ذخیره تغییرات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB 2: SECURITY
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "security" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-key"></i>
+                        <div>
+                            <h3>تغییر رمز عبور</h3>
+                            <div class="desc">رمز عبور خود را به‌روزرسانی کنید</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>رمز عبور فعلی</label>
+                        <input type="password" @bind="security.CurrentPassword" placeholder="رمز عبور فعلی را وارد کنید" />
+                    </div>
+                    <div class="form-group">
+                        <label>رمز عبور جدید</label>
+                        <input type="password" @bind="security.NewPassword" placeholder="رمز عبور جدید" />
+                    </div>
+                    <div class="form-group">
+                        <label>تکرار رمز عبور جدید</label>
+                        <input type="password" @bind="security.ConfirmPassword" placeholder="تکرار رمز عبور جدید" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("password")'><i class="fas fa-save"></i> تغییر رمز عبور</button>
+                    </div>
+                </div>
+
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-lock"></i>
+                        <div>
+                            <h3>امنیت پیشرفته</h3>
+                            <div class="desc">تنظیمات امنیتی حساب کاربری</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">احراز هویت دو مرحله‌ای (2FA)</span>
+                            <div class="toggle-switch @(security.TwoFactorAuth ? "active" : "")" @onclick="Toggle2FA">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">ورود با اثر انگشت / چهره</span>
+                            <div class="toggle-switch @(security.BiometricLogin ? "active" : "")" @onclick="ToggleBiometric">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>زمان نشست (دقیقه)</label>
+                        <input type="number" @bind="security.SessionTimeout" min="5" max="1440" />
+                    </div>
+                    <div class="form-group">
+                        <label>حداکثر تلاش برای ورود</label>
+                        <input type="number" @bind="security.MaxLoginAttempts" min="3" max="10" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("security_advanced")'><i class="fas fa-save"></i> ذخیره تنظیمات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB 3: NOTIFICATIONS
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "notifications" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h3>اعلان‌های ایمیل</h3>
+                            <div class="desc">تنظیمات ارسال ایمیل</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">اعلان‌های ایمیل فعال باشد</span>
+                            <div class="toggle-switch @(notifications.EmailEnabled ? "active" : "")" @onclick="ToggleEmail">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>سرور SMTP</label>
+                        <input type="text" @bind="notifications.SmtpServer" placeholder="smtp.example.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>پورت SMTP</label>
+                        <input type="number" @bind="notifications.SmtpPort" placeholder="587" />
+                    </div>
+                    <div class="form-group">
+                        <label>ایمیل فرستنده</label>
+                        <input type="email" @bind="notifications.SenderEmail" placeholder="noreply@example.com" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("email")'><i class="fas fa-save"></i> ذخیره تنظیمات</button>
+                    </div>
+                </div>
+
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-bell"></i>
+                        <div>
+                            <h3>اعلان‌های سیستمی</h3>
+                            <div class="desc">نوع اعلان‌های دریافتی</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">اعلان پروژه‌های جدید</span>
+                            <div class="toggle-switch @(notifications.NewProjects ? "active" : "")" @onclick="ToggleNewProjects">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">اعلان کاربران جدید</span>
+                            <div class="toggle-switch @(notifications.NewUsers ? "active" : "")" @onclick="ToggleNewUsers">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">اعلان خطاهای سیستمی</span>
+                            <div class="toggle-switch @(notifications.SystemErrors ? "active" : "")" @onclick="ToggleSystemErrors">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">گزارش روزانه</span>
+                            <div class="toggle-switch @(notifications.DailyReport ? "active" : "")" @onclick="ToggleDailyReport">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("notifications_system")'><i class="fas fa-save"></i> ذخیره تنظیمات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB 4: APPEARANCE
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "appearance" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-paint-brush"></i>
+                        <div>
+                            <h3>تم و ظاهر</h3>
+                            <div class="desc">تنظیمات ظاهری پنل</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>تم</label>
+                        <select @bind="appearance.Theme">
+                            <option value="dark">تیره (پیش‌فرض)</option>
+                            <option value="light">روشن</option>
+                            <option value="system">سیستم</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>اندازه فونت</label>
+                        <select @bind="appearance.FontSize">
+                            <option value="small">کوچک</option>
+                            <option value="medium">متوسط</option>
+                            <option value="large">بزرگ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>چیدمان</label>
+                        <select @bind="appearance.Layout">
+                            <option value="default">پیش‌فرض</option>
+                            <option value="compact">فشرده</option>
+                            <option value="spacious">گشاد</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("appearance")'><i class="fas fa-save"></i> ذخیره تنظیمات</button>
+                    </div>
+                </div>
+
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-font"></i>
+                        <div>
+                            <h3>فونت و تایپوگرافی</h3>
+                            <div class="desc">تنظیمات فونت</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>فونت فارسی</label>
+                        <select @bind="appearance.PersianFont">
+                            <option value="vazir">وزیر</option>
+                            <option value="iran-sans">ایران‌سنس</option>
+                            <option value="samim">صمیم</option>
+                            <option value="yekan">یکان</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>فونت انگلیسی</label>
+                        <select @bind="appearance.EnglishFont">
+                            <option value="inter">Inter</option>
+                            <option value="poppins">Poppins</option>
+                            <option value="roboto">Roboto</option>
+                            <option value="open-sans">Open Sans</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">نمایش انیمیشن‌ها</span>
+                            <div class="toggle-switch @(appearance.ShowAnimations ? "active" : "")" @onclick="ToggleAnimations">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("typography")'><i class="fas fa-save"></i> ذخیره تنظیمات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB 5: API
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "api" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-key"></i>
+                        <div>
+                            <h3>کلیدهای API</h3>
+                            <div class="desc">مدیریت کلیدهای دسترسی</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>کلید عمومی</label>
+                        <input type="text" @bind="apiKeys.PublicKey" placeholder="public_key_..." readonly />
+                        <small style="color:rgba(232,240,241,0.2); font-size:0.7rem;">کلید عمومی برای دسترسی‌های سطح پایین</small>
+                    </div>
+                    <div class="form-group">
+                        <label>کلید خصوصی</label>
+                        <input type="password" @bind="apiKeys.SecretKey" placeholder="secret_key_..." />
+                        <small style="color:rgba(232,240,241,0.2); font-size:0.7rem;">کلید خصوصی - هرگز به اشتراک گذاشته نشود</small>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("api")'><i class="fas fa-save"></i> ذخیره کلیدها</button>
+                        <button class="btn-save-secondary ripple" @onclick="GenerateNewKeys"><i class="fas fa-sync-alt"></i> تولید مجدد</button>
+                    </div>
+                </div>
+
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-plug"></i>
+                        <div>
+                            <h3>یکپارچه‌سازی</h3>
+                            <div class="desc">اتصال به سرویس‌های خارجی</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Google Analytics</label>
+                        <input type="text" @bind="apiKeys.GoogleAnalytics" placeholder="GA-XXXXX" />
+                    </div>
+                    <div class="form-group">
+                        <label>Telegram Bot Token</label>
+                        <input type="text" @bind="apiKeys.TelegramBot" placeholder="123456:ABC-DEF..." />
+                    </div>
+                    <div class="form-group">
+                        <label>SendGrid API Key</label>
+                        <input type="password" @bind="apiKeys.SendGrid" placeholder="SG.xxxxx..." />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("integrations")'><i class="fas fa-save"></i> ذخیره تنظیمات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB 6: BACKUP
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "backup" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-database"></i>
+                        <div>
+                            <h3>پشتیبان‌گیری خودکار</h3>
+                            <div class="desc">تنظیمات پشتیبان‌گیری از دیتابیس</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">پشتیبان‌گیری خودکار فعال باشد</span>
+                            <div class="toggle-switch @(backup.AutoBackup ? "active" : "")" @onclick="ToggleAutoBackup">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>دفعات پشتیبان‌گیری</label>
+                        <select @bind="backup.BackupFrequency">
+                            <option value="daily">روزانه</option>
+                            <option value="weekly">هفتگی</option>
+                            <option value="monthly">ماهانه</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>تعداد نسخه‌های نگهداری</label>
+                        <input type="number" @bind="backup.KeepVersions" min="1" max="30" />
+                    </div>
+                    <div class="form-group">
+                        <label>مسیر ذخیره‌سازی</label>
+                        <input type="text" @bind="backup.StoragePath" placeholder="/backups/" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("backup")'><i class="fas fa-save"></i> ذخیره تنظیمات</button>
+                    </div>
+                </div>
+
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-download"></i>
+                        <div>
+                            <h3>عملیات پشتیبان‌گیری</h3>
+                            <div class="desc">ایجاد یا بازیابی پشتیبان</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <button class="btn-save ripple" @onclick="CreateBackup" style="width:100%; justify-content:center;">
+                            <i class="fas fa-download"></i> ایجاد پشتیبان جدید
+                        </button>
+                        <button class="btn-save-secondary ripple" @onclick="RestoreBackup" style="width:100%; justify-content:center;">
+                            <i class="fas fa-upload"></i> بازیابی از پشتیبان
+                        </button>
+                        <div style="margin-top:8px; padding:12px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.02);">
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:rgba(232,240,241,0.3);">
+                                <span>آخرین پشتیبان:</span>
+                                <span>@backup.LastBackupDate</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:rgba(232,240,241,0.3); margin-top:4px;">
+                                <span>حجم:</span>
+                                <span>@backup.BackupSize</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> تنظیمات سیستم</div>
+        <div class="footer-links">
+            <a href="/AdminDashboard">داشبورد</a>
+            <a href="/Projects">پروژه‌ها</a>
+            <a href="/Users">کاربران</a>
+            <a href="/Settings">تنظیمات</a>
+        </div>
+    </div>
+</footer>
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private bool isMenuOpen = false;
+    private string activeTab = "general";
+
+    // ============================================================
+    // MODELS
+    // ============================================================
+
+    private GeneralSettings settings = new();
+    private SecuritySettings security = new();
+    private NotificationSettings notifications = new();
+    private AppearanceSettings appearance = new();
+    private ApiKeys apiKeys = new();
+    private BackupSettings backup = new();
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override void OnInitialized()
+    {
+        LoadSettings();
+    }
+
+    private void LoadSettings()
+    {
+        // General
+        settings.SiteName = "پنل مدیریت";
+        settings.SiteDescription = "سیستم مدیریت محتوای پیشرفته";
+        settings.DefaultLanguage = "fa";
+        settings.Timezone = "Asia/Tehran";
+        settings.LogoUrl = "/images/logo.png";
+        settings.FaviconUrl = "/favicon.ico";
+        settings.PrimaryColor = "#13505b";
+        settings.SecondaryColor = "#e8a838";
+
+        // Security
+        security.CurrentPassword = "";
+        security.NewPassword = "";
+        security.ConfirmPassword = "";
+        security.TwoFactorAuth = true;
+        security.BiometricLogin = false;
+        security.SessionTimeout = 60;
+        security.MaxLoginAttempts = 5;
+
+        // Notifications
+        notifications.EmailEnabled = true;
+        notifications.SmtpServer = "smtp.gmail.com";
+        notifications.SmtpPort = 587;
+        notifications.SenderEmail = "noreply@example.com";
+        notifications.NewProjects = true;
+        notifications.NewUsers = true;
+        notifications.SystemErrors = true;
+        notifications.DailyReport = false;
+
+        // Appearance
+        appearance.Theme = "dark";
+        appearance.FontSize = "medium";
+        appearance.Layout = "default";
+        appearance.PersianFont = "vazir";
+        appearance.EnglishFont = "inter";
+        appearance.ShowAnimations = true;
+
+        // API Keys
+        apiKeys.PublicKey = "pk_live_1234567890abcdef";
+        apiKeys.SecretKey = "sk_live_9876543210fedcba";
+        apiKeys.GoogleAnalytics = "UA-12345678-1";
+        apiKeys.TelegramBot = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz";
+        apiKeys.SendGrid = "SG.xxxxx.xxxxxxxxxxxxxxxxxxxxxxxx";
+
+        // Backup
+        backup.AutoBackup = true;
+        backup.BackupFrequency = "daily";
+        backup.KeepVersions = 7;
+        backup.StoragePath = "/backups/";
+        backup.LastBackupDate = "۱۴۰۵/۰۴/۱۰ - ۲۳:۴۵";
+        backup.BackupSize = "۱۲۴ MB";
+    }
+
+    // ============================================================
+    // TAB MANAGEMENT
+    // ============================================================
+
+    private void SetTab(string tab)
+    {
+        activeTab = tab;
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // TOGGLE FUNCTIONS
+    // ============================================================
+
+    private void Toggle2FA() => security.TwoFactorAuth = !security.TwoFactorAuth;
+    private void ToggleBiometric() => security.BiometricLogin = !security.BiometricLogin;
+    private void ToggleEmail() => notifications.EmailEnabled = !notifications.EmailEnabled;
+    private void ToggleNewProjects() => notifications.NewProjects = !notifications.NewProjects;
+    private void ToggleNewUsers() => notifications.NewUsers = !notifications.NewUsers;
+    private void ToggleSystemErrors() => notifications.SystemErrors = !notifications.SystemErrors;
+    private void ToggleDailyReport() => notifications.DailyReport = !notifications.DailyReport;
+    private void ToggleAnimations() => appearance.ShowAnimations = !appearance.ShowAnimations;
+    private void ToggleAutoBackup() => backup.AutoBackup = !backup.AutoBackup;
+
+    // ============================================================
+    // SAVE FUNCTIONS
+    // ============================================================
+
+    private void SaveSection(string section)
+    {
+        // In a real app, save to database
+        Console.WriteLine($"Saving {section} settings...");
+        // Show a toast notification (you can add a real toast service)
+    }
+
+    private void SaveAllSettings()
+    {
+        Console.WriteLine("Saving all settings...");
+        // Save all sections
+    }
+
+    private void ResetSettings()
+    {
+        Console.WriteLine("Resetting all settings to default...");
+        LoadSettings();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // API FUNCTIONS
+    // ============================================================
+
+    private void GenerateNewKeys()
+    {
+        apiKeys.PublicKey = "pk_new_" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 20);
+        apiKeys.SecretKey = "sk_new_" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 32);
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // BACKUP FUNCTIONS
+    // ============================================================
+
+    private void CreateBackup()
+    {
+        backup.LastBackupDate = DateTime.Now.ToString("yyyy/MM/dd HH:mm");
+        backup.BackupSize = (new Random().Next(80, 200)).ToString() + " MB";
+        StateHasChanged();
+    }
+
+    private void RestoreBackup()
+    {
+        // In a real app, show file picker dialog
+    }
+
+    // ============================================================
+    // UI METHODS
+    // ============================================================
+
+    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
+    private void CloseMenu() => isMenuOpen = false;
+    private void GoToProfile() => NavigationManager.NavigateTo("/Profile", true);
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Navbar scroll
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                navbar?.classList.toggle('scrolled', window.scrollY > 30);
+            });
+
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 300);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASSES
+    // ============================================================
+
+    public class GeneralSettings
+    {
+        public string SiteName { get; set; } = "";
+        public string SiteDescription { get; set; } = "";
+        public string DefaultLanguage { get; set; } = "";
+        public string Timezone { get; set; } = "";
+        public string LogoUrl { get; set; } = "";
+        public string FaviconUrl { get; set; } = "";
+        public string PrimaryColor { get; set; } = "";
+        public string SecondaryColor { get; set; } = "";
+    }
+
+    public class SecuritySettings
+    {
+        public string CurrentPassword { get; set; } = "";
+        public string NewPassword { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+        public bool TwoFactorAuth { get; set; }
+        public bool BiometricLogin { get; set; }
+        public int SessionTimeout { get; set; }
+        public int MaxLoginAttempts { get; set; }
+    }
+
+    public class NotificationSettings
+    {
+        public bool EmailEnabled { get; set; }
+        public string SmtpServer { get; set; } = "";
+        public int SmtpPort { get; set; }
+        public string SenderEmail { get; set; } = "";
+        public bool NewProjects { get; set; }
+        public bool NewUsers { get; set; }
+        public bool SystemErrors { get; set; }
+        public bool DailyReport { get; set; }
+    }
+
+    public class AppearanceSettings
+    {
+        public string Theme { get; set; } = "";
+        public string FontSize { get; set; } = "";
+        public string Layout { get; set; } = "";
+        public string PersianFont { get; set; } = "";
+        public string EnglishFont { get; set; } = "";
+        public bool ShowAnimations { get; set; }
+    }
+
+    public class ApiKeys
+    {
+        public string PublicKey { get; set; } = "";
+        public string SecretKey { get; set; } = "";
+        public string GoogleAnalytics { get; set; } = "";
+        public string TelegramBot { get; set; } = "";
+        public string SendGrid { get; set; } = "";
+    }
+
+    public class BackupSettings
+    {
+        public bool AutoBackup { get; set; }
+        public string BackupFrequency { get; set; } = "";
+        public int KeepVersions { get; set; }
+        public string StoragePath { get; set; } = "";
+        public string LastBackupDate { get; set; } = "";
+        public string BackupSize { get; set; } = "";
+    }
+}

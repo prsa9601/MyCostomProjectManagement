@@ -1,0 +1,1762 @@
+﻿@page "/Admin/ApiManagement"
+@layout FrontLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مدیریت APIها | پنل ادمین</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+       API MANAGEMENT PAGE - با پس‌زمینه #13505b
+    ============================================================ */
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #13505b;
+        color: #e8f0f1;
+        line-height: 1.7;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ============================================================
+       GLASS EFFECT
+    ============================================================ */
+    .glass {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .glass:hover {
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 48px rgba(0, 0, 0, 0.12);
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ============================================================
+       ANIMATIONS
+    ============================================================ */
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    .float-anim {
+        animation: float 4s ease-in-out infinite;
+    }
+
+    @@keyframes rotateBorder {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 400% 50%; }
+    }
+    .gradient-border {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid transparent;
+        background-clip: padding-box;
+    }
+    .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        z-index: -1;
+        border-radius: 22px;
+        background: conic-gradient(from 0deg, #e8a838, #52b788, #1a7a8a, #e8a838, #52b788);
+        background-size: 400% 400%;
+        animation: rotateBorder 8s linear infinite;
+        opacity: 0.2;
+        transition: opacity 0.4s;
+    }
+    .gradient-border:hover::before {
+        opacity: 0.5;
+    }
+
+    /* Ripple */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+    @@keyframes rippleAnim {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    /* Fade Up */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1),
+                    transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .stagger-child { transition-delay: 0s; }
+    .stagger-child:nth-child(1) { transition-delay: 0.05s; }
+    .stagger-child:nth-child(2) { transition-delay: 0.1s; }
+    .stagger-child:nth-child(3) { transition-delay: 0.15s; }
+    .stagger-child:nth-child(4) { transition-delay: 0.2s; }
+    .stagger-child:nth-child(5) { transition-delay: 0.25s; }
+    .stagger-child:nth-child(6) { transition-delay: 0.3s; }
+
+    /* Sparkle Particles */
+    .sparkle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(232, 168, 56, 0.2);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: sparkleAnim 10s infinite alternate ease-in-out;
+    }
+    @@keyframes sparkleAnim {
+        0% { transform: translate(0, 0) scale(1); opacity: 0.1; }
+        50% { transform: translate(20px, -30px) scale(1.8); opacity: 0.6; }
+        100% { transform: translate(-10px, 20px) scale(0.6); opacity: 0.05; }
+    }
+    .sparkle:nth-child(1) { left: 5%; top: 20%; animation-duration: 12s; }
+    .sparkle:nth-child(2) { left: 85%; top: 60%; animation-duration: 14s; animation-delay: 2s; width: 6px; height: 6px; }
+    .sparkle:nth-child(3) { left: 30%; top: 70%; animation-duration: 16s; animation-delay: 4s; }
+    .sparkle:nth-child(4) { left: 92%; top: 30%; animation-duration: 11s; animation-delay: 1s; width: 5px; height: 5px; background: rgba(82, 183, 136, 0.15); }
+    .sparkle:nth-child(5) { left: 50%; top: 90%; animation-duration: 18s; animation-delay: 3s; }
+    .sparkle:nth-child(6) { left: 3%; top: 50%; animation-duration: 13s; animation-delay: 5s; background: rgba(232, 168, 56, 0.15); }
+
+    /* ============================================================
+       NAVBAR
+    ============================================================ */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 999;
+        padding: 14px 0;
+        transition: all 0.4s ease;
+        background: rgba(19, 80, 91, 0.75);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .navbar.scrolled {
+        background: rgba(19, 80, 91, 0.92);
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .navbar .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #e8f0f1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .logo span { color: #e8a838; }
+    .logo i { color: #e8a838; font-size: 1.3rem; }
+
+    .nav-links {
+        display: flex;
+        gap: 28px;
+        list-style: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        align-items: center;
+    }
+    .nav-links a {
+        color: rgba(232, 240, 241, 0.6);
+        transition: all 0.35s ease;
+        position: relative;
+        padding: 4px 0;
+    }
+    .nav-links a:hover { color: #ffffff; }
+    .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        right: 0;
+        width: 0;
+        height: 2.5px;
+        background: #e8a838;
+        transition: 0.35s;
+        border-radius: 4px;
+        box-shadow: 0 0 12px rgba(232, 168, 56, 0.15);
+    }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active { color: #ffffff; }
+    .nav-links a.active::after { width: 100%; }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 9px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        color: #e8f0f1;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+    }
+    .btn-outline:hover {
+        border-color: #e8a838;
+        background: rgba(232, 168, 56, 0.04);
+        transform: translateY(-2px);
+    }
+
+    .btn-light {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: #e8f0f1;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-light:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: #e8a838;
+        transform: translateY(-2px);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(82, 183, 136, 0.15);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(220, 53, 69, 0.15);
+    }
+
+    .btn-buy {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.7rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-buy:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(232, 168, 56, 0.15);
+    }
+
+    .btn-subscribe {
+        background: linear-gradient(135deg, #8264c8, #6a4fa8);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.7rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-subscribe:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(130, 100, 200, 0.15);
+    }
+
+    .avatar-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid rgba(232, 168, 56, 0.2);
+        background: rgba(255, 255, 255, 0.03);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e8f0f1;
+        font-size: 1.1rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .avatar-btn:hover {
+        background: rgba(232, 168, 56, 0.04);
+        transform: scale(1.05);
+        border-color: #e8a838;
+    }
+
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+    .hamburger span {
+        display: block;
+        width: 28px;
+        height: 2.5px;
+        background: #e8f0f1;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+    /* ============================================================
+       PAGE HEADER
+    ============================================================ */
+    .page-header {
+        padding-top: 100px;
+        padding-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .page-header h1 i { color: #e8a838; }
+    .page-header .subtitle {
+        color: rgba(232, 240, 241, 0.5);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    .page-header .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       STATS ROW
+    ============================================================ */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-mini {
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.3s ease;
+    }
+    .stat-mini:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(232, 168, 56, 0.06);
+    }
+    .stat-mini i {
+        font-size: 1.6rem;
+        color: #e8a838;
+        opacity: 0.5;
+        width: 40px;
+        text-align: center;
+    }
+    .stat-mini .info .number {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.2;
+    }
+    .stat-mini .info .label {
+        font-size: 0.75rem;
+        color: rgba(232, 240, 241, 0.3);
+    }
+
+    /* ============================================================
+       FILTER BAR
+    ============================================================ */
+    .filter-bar {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 32px;
+        padding: 16px 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        align-items: center;
+    }
+
+    .filter-bar .search-box {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 0 16px;
+        transition: all 0.35s ease;
+    }
+    .filter-bar .search-box:focus-within {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+    }
+    .filter-bar .search-box input {
+        background: transparent;
+        border: none;
+        padding: 12px 12px;
+        color: #e8f0f1;
+        font-size: 0.9rem;
+        width: 100%;
+        outline: none;
+    }
+    .filter-bar .search-box input::placeholder {
+        color: rgba(232, 240, 241, 0.3);
+    }
+    .filter-bar .search-box i {
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.9rem;
+    }
+
+    .filter-bar .filter-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .filter-bar .filter-group .filter-btn {
+        padding: 8px 18px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.4);
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .filter-bar .filter-group .filter-btn:hover {
+        border-color: rgba(232, 168, 56, 0.1);
+        color: #e8f0f1;
+    }
+    .filter-bar .filter-group .filter-btn.active {
+        background: rgba(232, 168, 56, 0.08);
+        border-color: rgba(232, 168, 56, 0.1);
+        color: #e8a838;
+    }
+
+    /* ============================================================
+       ADD API FORM
+    ============================================================ */
+    .add-form {
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        margin-bottom: 32px;
+        transition: all 0.3s ease;
+    }
+    .add-form:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+    }
+    .add-form .form-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .add-form .form-title i { color: #e8a838; }
+    .add-form .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 12px;
+    }
+    .add-form .form-group {
+        margin-bottom: 0;
+    }
+    .add-form .form-group label {
+        display: block;
+        font-size: 0.75rem;
+        color: rgba(232, 240, 241, 0.3);
+        margin-bottom: 4px;
+        font-weight: 500;
+    }
+    .add-form .form-group input,
+    .add-form .form-group select,
+    .add-form .form-group textarea {
+        width: 100%;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        color: #e8f0f1;
+        font-size: 0.9rem;
+        transition: all 0.35s ease;
+        outline: none;
+        font-family: inherit;
+    }
+    .add-form .form-group input:focus,
+    .add-form .form-group select:focus,
+    .add-form .form-group textarea:focus {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+    }
+    .add-form .form-group input::placeholder,
+    .add-form .form-group textarea::placeholder {
+        color: rgba(232, 240, 241, 0.15);
+    }
+    .add-form .form-group select option {
+        background: #13505b;
+        color: #e8f0f1;
+    }
+    .add-form .form-group textarea {
+        min-height: 42px;
+        resize: vertical;
+    }
+
+    .add-form .btn-add {
+        padding: 10px 24px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        height: 42px;
+    }
+    .add-form .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(82, 183, 136, 0.15);
+    }
+
+    /* ============================================================
+       API CARDS GRID
+    ============================================================ */
+    .api-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .api-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 20px;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .api-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 3px;
+        height: 100%;
+        border-radius: 0 3px 3px 0;
+        opacity: 0.4;
+    }
+
+    .api-card.status-active::before { background: #52b788; }
+    .api-card.status-inactive::before { background: #7f8c8d; }
+    .api-card.status-maintenance::before { background: #e8a838; }
+
+    .api-card:hover {
+        transform: translateY(-6px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(232, 168, 56, 0.06);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .api-card .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+    .api-card .card-header .title-group {
+        flex: 1;
+    }
+    .api-card .card-header .title-group .api-name {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #ffffff;
+    }
+    .api-card .card-header .title-group .api-project {
+        font-size: 0.75rem;
+        color: rgba(232, 240, 241, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+    }
+    .api-card .card-header .status-badge {
+        padding: 3px 12px;
+        border-radius: 30px;
+        font-size: 0.6rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .api-card .card-header .status-badge.active {
+        background: rgba(82, 183, 136, 0.08);
+        color: #52b788;
+        border: 1px solid rgba(82, 183, 136, 0.04);
+    }
+    .api-card .card-header .status-badge.inactive {
+        background: rgba(127, 140, 141, 0.06);
+        color: #7f8c8d;
+        border: 1px solid rgba(127, 140, 141, 0.04);
+    }
+    .api-card .card-header .status-badge.maintenance {
+        background: rgba(232, 168, 56, 0.06);
+        color: #e8a838;
+        border: 1px solid rgba(232, 168, 56, 0.04);
+    }
+
+    .api-card .card-body {
+        color: rgba(232, 240, 241, 0.4);
+        font-size: 0.85rem;
+        line-height: 1.6;
+        margin-bottom: 14px;
+        min-height: 40px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .api-card .card-pricing {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 14px;
+        padding: 10px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .api-card .card-pricing .price-item {
+        flex: 1;
+        text-align: center;
+    }
+    .api-card .card-pricing .price-item .amount {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #e8a838;
+    }
+    .api-card .card-pricing .price-item .label {
+        font-size: 0.6rem;
+        color: rgba(232, 240, 241, 0.2);
+        display: block;
+        margin-top: 2px;
+    }
+    .api-card .card-pricing .price-item .amount.subscribe {
+        color: #8264c8;
+    }
+
+    .api-card .card-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .api-card .card-actions .buy-group {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .api-card .card-actions .manage-group {
+        display: flex;
+        gap: 4px;
+    }
+    .api-card .card-actions .manage-group button {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.15);
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+    }
+    .api-card .card-actions .manage-group button:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8f0f1;
+        background: rgba(232, 168, 56, 0.02);
+        transform: scale(1.05);
+    }
+    .api-card .card-actions .manage-group button.edit:hover {
+        border-color: rgba(82, 183, 136, 0.06);
+        color: #52b788;
+        background: rgba(82, 183, 136, 0.02);
+    }
+    .api-card .card-actions .manage-group button.delete:hover {
+        border-color: rgba(220, 53, 69, 0.06);
+        color: #dc3545;
+        background: rgba(220, 53, 69, 0.02);
+    }
+
+    /* Edit mode inside card */
+    .api-card .edit-mode {
+        display: none;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .api-card .edit-mode.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    @@keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .api-card .edit-mode input,
+    .api-card .edit-mode select,
+    .api-card .edit-mode textarea {
+        width: 100%;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        color: #e8f0f1;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        outline: none;
+        font-family: inherit;
+        margin-bottom: 8px;
+    }
+    .api-card .edit-mode input:focus,
+    .api-card .edit-mode select:focus,
+    .api-card .edit-mode textarea:focus {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+    }
+    .api-card .edit-mode input::placeholder,
+    .api-card .edit-mode textarea::placeholder {
+        color: rgba(232, 240, 241, 0.15);
+    }
+    .api-card .edit-mode select option {
+        background: #13505b;
+        color: #e8f0f1;
+    }
+    .api-card .edit-mode textarea {
+        min-height: 50px;
+        resize: vertical;
+    }
+    .api-card .edit-mode .edit-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .api-card .edit-mode .edit-actions button {
+        flex: 1;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: none;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .api-card .edit-mode .edit-actions .save-edit {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+    }
+    .api-card .edit-mode .edit-actions .save-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(82, 183, 136, 0.15);
+    }
+    .api-card .edit-mode .edit-actions .cancel-edit {
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(232, 240, 241, 0.3);
+    }
+    .api-card .edit-mode .edit-actions .cancel-edit:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ============================================================
+       EMPTY STATE
+    ============================================================ */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: rgba(232, 168, 56, 0.1);
+        margin-bottom: 16px;
+    }
+    .empty-state h3 {
+        font-size: 1.3rem;
+        color: rgba(232, 240, 241, 0.3);
+        margin-bottom: 8px;
+    }
+    .empty-state p {
+        color: rgba(232, 240, 241, 0.15);
+        font-size: 0.9rem;
+    }
+
+    /* ============================================================
+       PAGINATION
+    ============================================================ */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+        padding: 16px 0;
+    }
+    .pagination button {
+        padding: 8px 16px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.3);
+        font-size: 0.8rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .pagination button:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8f0f1;
+        background: rgba(232, 168, 56, 0.02);
+    }
+    .pagination button.active {
+        background: rgba(232, 168, 56, 0.06);
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8a838;
+    }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+        position: relative;
+        padding: 28px 0 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.02);
+        background: rgba(19, 80, 91, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1;
+        margin-top: 20px;
+    }
+    .footer .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .footer-links {
+        display: flex;
+        gap: 24px;
+        font-size: 0.85rem;
+        color: rgba(232, 240, 241, 0.2);
+    }
+    .footer-links a:hover { color: #e8a838; }
+    .footer-copy {
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.8rem;
+    }
+    .footer-copy i { color: #e8a838; }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @@media (max-width: 1200px) {
+        .add-form .form-row {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .add-form .form-row .btn-add {
+            grid-column: 1 / -1;
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .add-form .form-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .add-form .form-row .btn-add {
+            grid-column: 1 / -1;
+            justify-content: center;
+        }
+        .api-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background: rgba(19, 80, 91, 0.95);
+            backdrop-filter: blur(16px);
+            padding: 20px 0;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            margin-top: 12px;
+            border-radius: 20px;
+            align-items: center;
+        }
+        .nav-links.open { display: flex; }
+        .hamburger { display: flex; }
+        .nav-actions .btn-outline { display: none; }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .page-header h1 { font-size: 1.5rem; }
+        .filter-bar {
+            flex-direction: column;
+            padding: 16px;
+        }
+        .filter-bar .search-box { width: 100%; }
+        .page-header .actions { width: 100%; }
+        .page-header .actions .btn-primary { flex: 1; justify-content: center; }
+
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .stat-mini .info .number { font-size: 1.1rem; }
+        .stat-mini i { font-size: 1.2rem; width: 30px; }
+
+        .add-form .form-row {
+            grid-template-columns: 1fr;
+        }
+        .add-form .form-row .btn-add {
+            grid-column: 1;
+            justify-content: center;
+        }
+        .api-grid {
+            grid-template-columns: 1fr;
+        }
+        .api-card .card-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .api-card .card-actions .buy-group {
+            justify-content: center;
+        }
+        .api-card .card-actions .manage-group {
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+        .filter-bar .filter-group {
+            width: 100%;
+            justify-content: center;
+        }
+        .add-form .form-row {
+            grid-template-columns: 1fr;
+        }
+        .api-card .card-pricing {
+            flex-direction: column;
+            gap: 8px;
+        }
+    }
+</style>
+
+<!-- ============================================================
+     SPARKLE PARTICLES
+============================================================ -->
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<header class="navbar" id="navbar">
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-crown"></i>
+            Admin<span>Panel</span>
+        </div>
+        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
+            <li><a href="/AdminDashboard">داشبورد</a></li>
+            <li><a href="/Projects">پروژه‌ها</a></li>
+            <li><a href="/Users">کاربران</a></li>
+            <li><a href="/ApiManagement" class="active">APIها</a></li>
+            <li><a href="/Requests">درخواست‌ها</a></li>
+            <li><a href="/Contacts">تماس</a></li>
+            <li><a href="/Skills">مهارت‌ها</a></li>
+            <li><a href="/Portfolio">نمونه کارها</a></li>
+            <li><a href="/Settings">تنظیمات</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
+            <button class="hamburger" @onclick="ToggleMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ============================================================
+     PAGE CONTENT
+============================================================ -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-plug"></i>
+                    مدیریت APIها
+                    <span class="badge-admin" style="font-size:0.7rem; background:linear-gradient(135deg,#e8a838,#d4952e); color:#fff; padding:4px 14px; border-radius:40px; font-weight:600;">@totalApis</span>
+                </h1>
+                <div class="subtitle">مدیریت APIها، قیمت‌گذاری تکی و اشتراکی</div>
+            </div>
+            <div class="actions">
+                <button class="btn-light ripple" @onclick="RefreshApis"><i class="fas fa-sync-alt"></i> بروزرسانی</button>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row fade-up visible">
+            <div class="stat-mini">
+                <i class="fas fa-plug"></i>
+                <div class="info">
+                    <div class="number">@totalApis</div>
+                    <div class="label">کل APIها</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-check-circle" style="color:#52b788;"></i>
+                <div class="info">
+                    <div class="number">@activeCount</div>
+                    <div class="label">فعال</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-tag" style="color:#e8a838;"></i>
+                <div class="info">
+                    <div class="number">@withSinglePriceCount</div>
+                    <div class="label">دارای قیمت تکی</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-calendar-alt" style="color:#8264c8;"></i>
+                <div class="info">
+                    <div class="number">@withSubscriptionCount</div>
+                    <div class="label">دارای اشتراک</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar fade-up visible">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="جستجوی API..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn @(filterStatus == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>همه</button>
+                <button class="filter-btn @(filterStatus == "active" ? "active" : "")" @onclick='() => SetFilter("active")'>فعال</button>
+                <button class="filter-btn @(filterStatus == "inactive" ? "active" : "")" @onclick='() => SetFilter("inactive")'>غیرفعال</button>
+                <button class="filter-btn @(filterStatus == "maintenance" ? "active" : "")" @onclick='() => SetFilter("maintenance")'>در بروزرسانی</button>
+            </div>
+        </div>
+
+        <!-- Add API Form -->
+        <div class="add-form fade-up visible">
+            <div class="form-title">
+                <i class="fas fa-plus-circle"></i>
+                افزودن API جدید
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>نام API</label>
+                    <input type="text" placeholder="مثال: Payment Gateway" @bind="newName" />
+                </div>
+                <div class="form-group">
+                    <label>پروژه مرتبط</label>
+                    <input type="text" placeholder="مثال: پروژه فروشگاهی" @bind="newProject" />
+                </div>
+                <div class="form-group">
+                    <label>وضعیت</label>
+                    <select @bind="newStatus">
+                        <option value="active">فعال</option>
+                        <option value="inactive">غیرفعال</option>
+                        <option value="maintenance">در بروزرسانی</option>
+                    </select>
+                </div>
+                <button class="btn-add ripple" @onclick="AddApi"><i class="fas fa-plus"></i> افزودن</button>
+            </div>
+            <div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr; margin-top:0;">
+                <div class="form-group">
+                    <label>قیمت تکی (تومان)</label>
+                    <input type="number" placeholder="مثال: 250000" @bind="newSinglePrice" />
+                </div>
+                <div class="form-group">
+                    <label>قیمت اشتراک ماهانه (تومان)</label>
+                    <input type="number" placeholder="مثال: 150000" @bind="newSubscriptionPrice" />
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>توضیحات</label>
+                    <input type="text" placeholder="توضیحات کوتاه..." @bind="newDescription" />
+                </div>
+            </div>
+        </div>
+
+        <!-- API Grid -->
+        @if (filteredApis.Any())
+        {
+            <div class="api-grid">
+                @foreach (var api in filteredApis)
+                {
+                    <div class="api-card status-@api.Status fade-up stagger-child">
+                        <div class="card-header">
+                            <div class="title-group">
+                                <div class="api-name">@api.Name</div>
+                                <div class="api-project"><i class="fas fa-folder"></i> @api.Project</div>
+                            </div>
+                            <span class="status-badge @api.Status">
+                                @(api.Status == "active" ? "فعال" : api.Status == "inactive" ? "غیرفعال" : "در بروزرسانی")
+                            </span>
+                        </div>
+
+                        <div class="card-body">
+                            @api.Description
+                        </div>
+
+                        <div class="card-pricing">
+                            <div class="price-item">
+                                <div class="amount">@(api.SinglePrice > 0 ? api.SinglePrice.ToString("N0") + " تومان" : "—")</div>
+                                <span class="label">خرید تکی</span>
+                            </div>
+                            <div class="price-item">
+                                <div class="amount subscribe">@(api.SubscriptionPrice > 0 ? api.SubscriptionPrice.ToString("N0") + " تومان" : "—")</div>
+                                <span class="label">اشتراک ماهانه</span>
+                            </div>
+                        </div>
+
+                        <div class="card-actions">
+                            <div class="buy-group">
+                                @if (api.SinglePrice > 0 && api.Status == "active")
+                                {
+                                    <button class="btn-buy ripple" @onclick='() => BuySingle(api.Id)'><i class="fas fa-shopping-cart"></i> خرید تکی</button>
+                                }
+                                @if (api.SubscriptionPrice > 0 && api.Status == "active")
+                                {
+                                    <button class="btn-subscribe ripple" @onclick='() => Subscribe(api.Id)'><i class="fas fa-calendar-alt"></i> اشتراک</button>
+                                }
+                            </div>
+                            <div class="manage-group">
+                                <button class="edit ripple" title="ویرایش" @onclick='() => ToggleEdit(api.Id)'><i class="fas fa-edit"></i></button>
+                                <button class="delete ripple" title="حذف" @onclick='() => DeleteApi(api.Id)'><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Edit Mode -->
+                        <div class="edit-mode @(editingId == api.Id ? "active" : "")">
+                            <input type="text" @bind="editName" placeholder="نام API" />
+                            <input type="text" @bind="editProject" placeholder="پروژه مرتبط" />
+                            <select @bind="editStatus">
+                                <option value="active">فعال</option>
+                                <option value="inactive">غیرفعال</option>
+                                <option value="maintenance">در بروزرسانی</option>
+                            </select>
+                            <input type="number" @bind="editSinglePrice" placeholder="قیمت تکی" />
+                            <input type="number" @bind="editSubscriptionPrice" placeholder="قیمت اشتراک" />
+                            <input type="text" @bind="editDescription" placeholder="توضیحات" />
+                            <div class="edit-actions">
+                                <button class="save-edit ripple" @onclick='() => SaveEdit(api.Id)'><i class="fas fa-check"></i> ذخیره</button>
+                                <button class="cancel-edit ripple" @onclick='() => CancelEdit()'><i class="fas fa-times"></i> لغو</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state fade-up visible">
+                <i class="fas fa-plug"></i>
+                <h3>هیچ APIای یافت نشد</h3>
+                <p>با تغییر فیلترها یا افزودن API جدید، نتایج را مشاهده کنید</p>
+            </div>
+        }
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <div class="pagination">
+                <button @onclick='() => ChangePage(currentPage - 1)' disabled="@(currentPage == 1)"><i class="fas fa-chevron-right"></i></button>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <button class="@(i == currentPage ? "active" : "")" @onclick='() => ChangePage(i)'>@i</button>
+                }
+                <button @onclick='() => ChangePage(currentPage + 1)' disabled="@(currentPage == totalPages)"><i class="fas fa-chevron-left"></i></button>
+            </div>
+        }
+
+    </div>
+</main>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> مدیریت APIها</div>
+        <div class="footer-links">
+            <a href="/AdminDashboard">داشبورد</a>
+            <a href="/Projects">پروژه‌ها</a>
+            <a href="/Users">کاربران</a>
+            <a href="/ApiManagement">APIها</a>
+            <a href="/Requests">درخواست‌ها</a>
+            <a href="/Contacts">تماس</a>
+            <a href="/Skills">مهارت‌ها</a>
+            <a href="/Portfolio">نمونه کارها</a>
+            <a href="/Settings">تنظیمات</a>
+        </div>
+    </div>
+</footer>
+
+@code {
+    // ============================================================
+    // STATE & DATA
+    // ============================================================
+
+    private bool isMenuOpen = false;
+    private string searchTerm = "";
+    private string filterStatus = "all";
+    private int currentPage = 1;
+    private int pageSize = 6;
+    private int totalPages = 1;
+
+    // New API form
+    private string newName = "";
+    private string newProject = "";
+    private string newStatus = "active";
+    private string newDescription = "";
+    private int newSinglePrice = 0;
+    private int newSubscriptionPrice = 0;
+
+    // Edit mode
+    private string? editingId = null;
+    private string editName = "";
+    private string editProject = "";
+    private string editStatus = "active";
+    private string editDescription = "";
+    private int editSinglePrice = 0;
+    private int editSubscriptionPrice = 0;
+
+    private List<ApiItem> allApis = new();
+    private List<ApiItem> filteredApis = new();
+
+    private int totalApis => allApis.Count;
+    private int activeCount => allApis.Count(a => a.Status == "active");
+    private int withSinglePriceCount => allApis.Count(a => a.SinglePrice > 0);
+    private int withSubscriptionCount => allApis.Count(a => a.SubscriptionPrice > 0);
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override void OnInitialized()
+    {
+        LoadApis();
+        ApplyFilters();
+    }
+
+    private void LoadApis()
+    {
+        allApis = new List<ApiItem>
+        {
+            new ApiItem
+            {
+                Id = "API-001",
+                Name = "درگاه پرداخت زرین‌پال",
+                Project = "پروژه فروشگاهی",
+                Status = "active",
+                Description = "اتصال به درگاه پرداخت زرین‌پال برای انجام تراکنش‌های امن و سریع.",
+                SinglePrice = 350000,
+                SubscriptionPrice = 120000
+            },
+            new ApiItem
+            {
+                Id = "API-002",
+                Name = "ارسال پیامک کاوه‌نگار",
+                Project = "سیستم اطلاع‌رسانی",
+                Status = "active",
+                Description = "ارسال پیامک انبوه و تکی با قابلیت گزارش‌گیری و زمان‌بندی.",
+                SinglePrice = 180000,
+                SubscriptionPrice = 75000
+            },
+            new ApiItem
+            {
+                Id = "API-003",
+                Name = "نقشه و مسیریابی نشان",
+                Project = "اپلیکیشن مسیریابی",
+                Status = "maintenance",
+                Description = "دریافت اطلاعات نقشه، مسیریابی و موقعیت‌یابی با استفاده از سرویس نشان.",
+                SinglePrice = 420000,
+                SubscriptionPrice = 150000
+            },
+            new ApiItem
+            {
+                Id = "API-004",
+                Name = "احراز هویت ملی",
+                Project = "سامانه ثبت‌نام",
+                Status = "active",
+                Description = "استعلام و احراز هویت بر اساس کد ملی و تاریخ تولد با پاسخ‌دهی سریع.",
+                SinglePrice = 280000,
+                SubscriptionPrice = 0
+            },
+            new ApiItem
+            {
+                Id = "API-005",
+                Name = "ارسال ایمیل SMTP",
+                Project = "سیستم اطلاع‌رسانی",
+                Status = "inactive",
+                Description = "ارسال ایمیل با استفاده از پروتکل SMTP با قابلیت شخصی‌سازی و پیوست.",
+                SinglePrice = 0,
+                SubscriptionPrice = 45000
+            },
+            new ApiItem
+            {
+                Id = "API-006",
+                Name = "امضای دیجیتال اسناد",
+                Project = "سیستم مدیریت اسناد",
+                Status = "active",
+                Description = "امضای دیجیتال اسناد با گواهی معتبر و قابلیت استعلام اصالت.",
+                SinglePrice = 550000,
+                SubscriptionPrice = 200000
+            },
+            new ApiItem
+            {
+                Id = "API-007",
+                Name = "اسکنر اسناد هوشمند",
+                Project = "سامانه اداری",
+                Status = "active",
+                Description = "تشخیص و استخراج اطلاعات از اسناد با استفاده از هوش مصنوعی و OCR.",
+                SinglePrice = 680000,
+                SubscriptionPrice = 250000
+            },
+            new ApiItem
+            {
+                Id = "API-008",
+                Name = "تبدیل ویدئو به متن",
+                Project = "پلتفرم آموزش",
+                Status = "maintenance",
+                Description = "تبدیل فایل‌های ویدئویی به متن با دقت بالا و پشتیبانی از چندین زبان.",
+                SinglePrice = 420000,
+                SubscriptionPrice = 180000
+            }
+        };
+    }
+
+    // ============================================================
+    // FILTER & SEARCH
+    // ============================================================
+
+    private void ApplyFilters()
+    {
+        var query = allApis.AsEnumerable();
+
+        // Filter by status
+        if (!string.IsNullOrEmpty(filterStatus) && filterStatus != "all")
+        {
+            query = query.Where(a => a.Status == filterStatus);
+        }
+
+        // Search
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(a =>
+                a.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                a.Project.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                a.Description.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                a.Id.Contains(term, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        // Pagination
+        var total = query.Count();
+        totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        if (totalPages == 0) totalPages = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        filteredApis = query
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    private void SetFilter(string status)
+    {
+        filterStatus = status;
+        currentPage = 1;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ChangePage(int page)
+    {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // CRUD OPERATIONS
+    // ============================================================
+
+    private void AddApi()
+    {
+        if (string.IsNullOrWhiteSpace(newName) || string.IsNullOrWhiteSpace(newProject)) return;
+
+        var newApi = new ApiItem
+        {
+            Id = "API-" + (allApis.Count + 1).ToString("D3"),
+            Name = newName.Trim(),
+            Project = newProject.Trim(),
+            Status = newStatus,
+            Description = string.IsNullOrWhiteSpace(newDescription) ? "بدون توضیحات" : newDescription.Trim(),
+            SinglePrice = newSinglePrice,
+            SubscriptionPrice = newSubscriptionPrice
+        };
+
+        allApis.Add(newApi);
+        newName = "";
+        newProject = "";
+        newDescription = "";
+        newSinglePrice = 0;
+        newSubscriptionPrice = 0;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ToggleEdit(string id)
+    {
+        var api = allApis.FirstOrDefault(a => a.Id == id);
+        if (api == null) return;
+
+        if (editingId == id)
+        {
+            CancelEdit();
+            return;
+        }
+
+        editingId = id;
+        editName = api.Name;
+        editProject = api.Project;
+        editStatus = api.Status;
+        editDescription = api.Description;
+        editSinglePrice = api.SinglePrice;
+        editSubscriptionPrice = api.SubscriptionPrice;
+        StateHasChanged();
+    }
+
+    private void SaveEdit(string id)
+    {
+        var api = allApis.FirstOrDefault(a => a.Id == id);
+        if (api == null) return;
+
+        if (!string.IsNullOrWhiteSpace(editName))
+            api.Name = editName.Trim();
+        if (!string.IsNullOrWhiteSpace(editProject))
+            api.Project = editProject.Trim();
+        api.Status = editStatus;
+        api.Description = string.IsNullOrWhiteSpace(editDescription) ? "بدون توضیحات" : editDescription.Trim();
+        api.SinglePrice = editSinglePrice;
+        api.SubscriptionPrice = editSubscriptionPrice;
+
+        CancelEdit();
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void CancelEdit()
+    {
+        editingId = null;
+        editName = "";
+        editProject = "";
+        editStatus = "active";
+        editDescription = "";
+        editSinglePrice = 0;
+        editSubscriptionPrice = 0;
+        StateHasChanged();
+    }
+
+    private void DeleteApi(string id)
+    {
+        allApis.RemoveAll(a => a.Id == id);
+        if (editingId == id) CancelEdit();
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // PURCHASE ACTIONS
+    // ============================================================
+
+    private void BuySingle(string id)
+    {
+        var api = allApis.FirstOrDefault(a => a.Id == id);
+        if (api == null || api.SinglePrice <= 0) return;
+
+        // In a real app, redirect to payment gateway
+        Console.WriteLine($"خرید تکی API: {api.Name} - قیمت: {api.SinglePrice:N0} تومان");
+        // Show a simple notification (you can add a real toast service)
+    }
+
+    private void Subscribe(string id)
+    {
+        var api = allApis.FirstOrDefault(a => a.Id == id);
+        if (api == null || api.SubscriptionPrice <= 0) return;
+
+        // In a real app, redirect to payment gateway
+        Console.WriteLine($"اشتراک ماهانه API: {api.Name} - قیمت: {api.SubscriptionPrice:N0} تومان");
+        // Show a simple notification
+    }
+
+    // ============================================================
+    // UI METHODS
+    // ============================================================
+
+    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
+    private void CloseMenu() => isMenuOpen = false;
+    private void GoToProfile() => NavigationManager.NavigateTo("/Profile", true);
+    private void RefreshApis()
+    {
+        LoadApis();
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Navbar scroll
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                navbar?.classList.toggle('scrolled', window.scrollY > 30);
+            });
+
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 300);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASSES
+    // ============================================================
+
+    public class ApiItem
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Project { get; set; } = "";
+        public string Status { get; set; } = "active"; // active, inactive, maintenance
+        public string Description { get; set; } = "";
+        public int SinglePrice { get; set; }
+        public int SubscriptionPrice { get; set; }
+    }
+}

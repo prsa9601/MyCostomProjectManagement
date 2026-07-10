@@ -1,0 +1,1325 @@
+﻿@page "/Checkout/{PackageId}"
+@layout FrontLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>تکمیل خرید | محمد رضایی</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+       CHECKOUT PAGE - با پس‌زمینه #0a0e17
+    ============================================================ */
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #0a0e17;
+        color: #eef2f8;
+        line-height: 1.7;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ============================================================
+       PARTICLES BACKGROUND
+    ============================================================ */
+    .bg-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .bg-particles span {
+        position: absolute;
+        display: block;
+        width: 6px;
+        height: 6px;
+        background: rgba(59, 130, 246, 0.2);
+        border-radius: 50%;
+        animation: floatParticle 12s infinite alternate ease-in-out;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
+    }
+
+    .bg-particles span:nth-child(1) {
+        top: 10%;
+        left: 20%;
+        animation-duration: 14s;
+        width: 8px;
+        height: 8px;
+    }
+    .bg-particles span:nth-child(2) {
+        top: 60%;
+        left: 80%;
+        animation-duration: 16s;
+        animation-delay: 2s;
+    }
+    .bg-particles span:nth-child(3) {
+        top: 30%;
+        left: 70%;
+        animation-duration: 18s;
+        animation-delay: 4s;
+        width: 10px;
+        height: 10px;
+    }
+    .bg-particles span:nth-child(4) {
+        top: 80%;
+        left: 10%;
+        animation-duration: 15s;
+        animation-delay: 1s;
+    }
+    .bg-particles span:nth-child(5) {
+        top: 50%;
+        left: 40%;
+        animation-duration: 20s;
+        animation-delay: 3s;
+        width: 12px;
+        height: 12px;
+        background: rgba(59, 130, 246, 0.12);
+    }
+    .bg-particles span:nth-child(6) {
+        top: 15%;
+        left: 90%;
+        animation-duration: 13s;
+        animation-delay: 5s;
+    }
+    .bg-particles span:nth-child(7) {
+        top: 70%;
+        left: 50%;
+        animation-duration: 17s;
+        animation-delay: 2s;
+        width: 7px;
+        height: 7px;
+    }
+    .bg-particles span:nth-child(8) {
+        top: 40%;
+        left: 5%;
+        animation-duration: 19s;
+        animation-delay: 3s;
+    }
+
+    @@keyframes floatParticle {
+        0% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+        50% { transform: translate(30px, -60px) scale(1.6); opacity: 0.7; }
+        100% { transform: translate(-20px, 40px) scale(0.8); opacity: 0.1; }
+    }
+
+    /* ============================================================
+       GLASS EFFECT
+    ============================================================ */
+    .glass {
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border-radius: 24px;
+        transition: all 0.35s ease;
+    }
+
+    .glass:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(59, 130, 246, 0.08);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ============================================================
+       GRADIENT BORDER
+    ============================================================ */
+    .gradient-border {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid transparent;
+        background-clip: padding-box;
+    }
+
+    .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        z-index: -1;
+        border-radius: 26px;
+        background: conic-gradient(from 0deg, #3b82f6, #8b5cf6, #3b82f6, #8b5cf6, #3b82f6);
+        background-size: 400% 400%;
+        animation: rotateBorder 8s linear infinite;
+        opacity: 0.2;
+        transition: opacity 0.4s;
+    }
+
+    .gradient-border:hover::before {
+        opacity: 0.5;
+    }
+
+    @@keyframes rotateBorder {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 400% 50%; }
+    }
+
+    /* ============================================================
+       NAVBAR
+    ============================================================ */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 999;
+        padding: 14px 0;
+        transition: background 0.5s, backdrop-filter 0.5s, box-shadow 0.4s;
+        background: transparent;
+    }
+
+    .navbar.scrolled {
+        background: linear-gradient(135deg, rgba(10, 14, 23, 0.92), rgba(20, 30, 48, 0.92));
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .navbar .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+    }
+    .logo span {
+        color: #3b82f6;
+        text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 24px;
+        list-style: none;
+        font-size: 0.95rem;
+        font-weight: 500;
+        align-items: center;
+    }
+    .nav-links a {
+        color: #b8c4d6;
+        transition: 0.25s;
+        position: relative;
+        padding: 4px 0;
+        cursor: pointer;
+    }
+    .nav-links a:hover { color: #fff; }
+    .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        right: 0;
+        width: 0;
+        height: 2px;
+        background: #3b82f6;
+        transition: 0.35s;
+        box-shadow: 0 0 12px #3b82f6;
+    }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+    }
+    .btn-primary:hover {
+        background: #2563eb;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+    .btn-outline:hover {
+        border-color: #3b82f6;
+        color: #fff;
+        background: rgba(59, 130, 246, 0.08);
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-dashboard {
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-dashboard:hover {
+        background: rgba(59, 130, 246, 0.25);
+        transform: scale(1.04);
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+    }
+
+    .avatar-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid rgba(59, 130, 246, 0.3);
+        background: rgba(59, 130, 246, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3b82f6;
+        font-size: 1.2rem;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+    .avatar-btn:hover {
+        border-color: #3b82f6;
+        transform: scale(1.05);
+    }
+
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+    .hamburger span {
+        display: block;
+        width: 28px;
+        height: 2.5px;
+        background: #eef2f8;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+    /* ============================================================
+       PAGE HEADER
+    ============================================================ */
+    .page-header {
+        padding-top: 100px;
+        padding-bottom: 24px;
+    }
+
+    .page-header .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: 0.3s;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+    }
+    .page-header .back-link:hover {
+        color: #3b82f6;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .page-header h1 i { color: #3b82f6; }
+    .page-header .subtitle {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    /* ============================================================
+       CHECKOUT GRID
+    ============================================================ */
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 32px;
+        margin-bottom: 40px;
+    }
+
+    /* ===== FORM SECTION ===== */
+    .form-section {
+        padding: 32px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: all 0.3s ease;
+    }
+
+    .form-section:hover {
+        border-color: rgba(59, 130, 246, 0.06);
+    }
+
+    .form-section .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #e8edf5;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .form-section .section-title i {
+        color: #3b82f6;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #94a3b8;
+        margin-bottom: 4px;
+    }
+    .form-group label .required {
+        color: #ef4444;
+    }
+
+    .form-group .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .form-group .input-wrapper:focus-within {
+        border-color: #3b82f6;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 24px rgba(59, 130, 246, 0.02);
+    }
+
+    .form-group .input-wrapper .input-icon {
+        padding: 0 0 0 14px;
+        color: #64748b;
+        font-size: 0.9rem;
+        opacity: 0.4;
+        transition: 0.3s;
+    }
+
+    .form-group .input-wrapper:focus-within .input-icon {
+        opacity: 0.8;
+        color: #3b82f6;
+    }
+
+    .form-group .input-wrapper input,
+    .form-group .input-wrapper select {
+        width: 100%;
+        padding: 12px 14px;
+        background: transparent;
+        border: none;
+        color: #eef2f8;
+        font-size: 0.95rem;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .form-group .input-wrapper input::placeholder {
+        color: #64748b;
+    }
+    .form-group .input-wrapper select option {
+        background: #0a0e17;
+        color: #eef2f8;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    /* ===== ORDER SUMMARY ===== */
+    .summary-section {
+        padding: 32px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: all 0.3s ease;
+        position: sticky;
+        top: 100px;
+        align-self: start;
+    }
+
+    .summary-section:hover {
+        border-color: rgba(59, 130, 246, 0.06);
+    }
+
+    .summary-section .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #e8edf5;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .summary-section .section-title i {
+        color: #e8a838;
+    }
+
+    .summary-item {
+        display: flex;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .summary-item .icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(59, 130, 246, 0.04);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3b82f6;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .summary-item .info {
+        flex: 1;
+    }
+    .summary-item .info .name {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #e8edf5;
+    }
+    .summary-item .info .detail {
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+
+    .summary-item .price {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #3b82f6;
+        white-space: nowrap;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        margin-top: 8px;
+    }
+    .summary-total .label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #94a3b8;
+    }
+    .summary-total .amount {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #e8a838;
+        text-shadow: 0 0 30px rgba(232, 168, 56, 0.05);
+    }
+
+    .btn-pay {
+        width: 100%;
+        padding: 14px;
+        border-radius: 40px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-family: inherit;
+        margin-top: 16px;
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #0a0e17;
+        box-shadow: 0 4px 24px rgba(232, 168, 56, 0.12);
+    }
+
+    .btn-pay:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 40px rgba(232, 168, 56, 0.2);
+    }
+
+    .btn-pay:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .btn-pay i {
+        animation: none;
+    }
+
+    .btn-pay.loading i {
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* ============================================================
+       SUCCESS MODAL
+    ============================================================ */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    @@keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+
+    .modal-box {
+        background: #0a0e17;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 28px;
+        padding: 48px 40px;
+        max-width: 480px;
+        width: 100%;
+        margin: 20px;
+        text-align: center;
+        box-shadow: 0 8px 64px rgba(0, 0, 0, 0.5);
+        animation: scaleIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    @@keyframes scaleIn {
+        0% { transform: scale(0.9); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-box .icon {
+        font-size: 4rem;
+        color: #34d399;
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .modal-box h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .modal-box p {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        margin-bottom: 24px;
+        line-height: 1.6;
+    }
+
+    .modal-box .btn-modal {
+        padding: 12px 32px;
+        border-radius: 40px;
+        border: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        font-family: inherit;
+        background: #3b82f6;
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12);
+    }
+
+    .modal-box .btn-modal:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+    }
+
+    /* ============================================================
+       RIPPLE
+    ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+    @@keyframes rippleAnim {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    /* ============================================================
+       FADE UP
+    ============================================================ */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @@media (max-width: 992px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
+        }
+        .summary-section {
+            position: static;
+        }
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background: rgba(10, 14, 23, 0.95);
+            backdrop-filter: blur(12px);
+            padding: 20px 0;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 12px;
+            border-radius: 20px;
+            align-items: center;
+        }
+        .nav-links.open { display: flex; }
+        .hamburger { display: flex; }
+        .nav-actions .btn-dashboard { display: none; }
+
+        .page-header h1 { font-size: 1.5rem; }
+        .form-section {
+            padding: 20px;
+        }
+        .summary-section {
+            padding: 20px;
+        }
+        .modal-box {
+            padding: 32px 24px;
+            margin: 16px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-header h1 { font-size: 1.3rem; }
+        .form-section {
+            padding: 16px;
+        }
+        .summary-section {
+            padding: 16px;
+        }
+        .summary-total .amount {
+            font-size: 1.2rem;
+        }
+        .modal-box {
+            padding: 24px 16px;
+        }
+        .modal-box .icon {
+            font-size: 3rem;
+        }
+        .modal-box h2 {
+            font-size: 1.2rem;
+        }
+    }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+        position: relative;
+        padding: 30px 0 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(8px);
+        z-index: 1;
+        margin-top: 20px;
+    }
+    .footer .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+    .footer-links {
+        display: flex;
+        gap: 24px;
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+    .footer-links a:hover { color: #fff; }
+    .footer-copy {
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+</style>
+
+<!-- ===== PARTICLES ===== -->
+<div class="bg-particles">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<header class="navbar" id="navbar">
+    <div class="container">
+        <div class="logo">Mohammad<span>Dev</span></div>
+        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
+            <li><a href="/">صفحه اصلی</a></li>
+            <li><a href="/Packages">پکیج‌ها</a></li>
+            <li><a href="/ApiManagement">APIها</a></li>
+            <li><a href="/UserDashboard">داشبورد</a></li>
+        </ul>
+        <div class="nav-actions">
+            <button class="btn-dashboard" @onclick="NavigateToDashboard"><i class="fas fa-chart-pie"></i> داشبورد</button>
+            <div class="avatar-btn" @onclick="NavigateToDashboard"><i class="fas fa-user"></i></div>
+            <button class="hamburger" @onclick="ToggleMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ===== PAGE CONTENT ===== -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div class="back-link" @onclick="GoBack">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت به لیست پکیج‌ها
+            </div>
+            <h1>
+                <i class="fas fa-credit-card"></i>
+                تکمیل خرید
+            </h1>
+            <div class="subtitle">اطلاعات خود را وارد کرده و خرید را نهایی کنید</div>
+        </div>
+
+        @if (package != null)
+        {
+            <div class="checkout-grid">
+                <!-- Form Section -->
+                <div class="form-section fade-up visible">
+                    <div class="section-title">
+                        <i class="fas fa-user"></i>
+                        اطلاعات خریدار
+                    </div>
+
+                    <div class="form-group">
+                        <label>نام کامل <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i class="fas fa-user"></i></span>
+                            <input type="text" placeholder="محمد رضایی" @bind="fullName" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>ایمیل <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                                <input type="email" placeholder="example@email.com" @bind="email" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>شماره تلفن <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <span class="input-icon"><i class="fas fa-phone"></i></span>
+                                <input type="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" @bind="phone" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title" style="margin-top:12px;">
+                        <i class="fas fa-credit-card"></i>
+                        روش پرداخت
+                    </div>
+
+                    <div class="form-group">
+                        <label>انتخاب روش پرداخت <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i class="fas fa-money-bill-wave"></i></span>
+                            <select @bind="paymentMethod">
+                                <option value="online">پرداخت آنلاین (زرین‌پال)</option>
+                                <option value="card">کارت به کارت</option>
+                                <option value="wallet">کیف پول</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>توضیحات (اختیاری)</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i class="fas fa-pen"></i></span>
+                            <input type="text" placeholder="توضیحات یا درخواست خاص..." @bind="notes" />
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap;">
+                        <button class="btn-pay @(isLoading ? "loading" : "")" @onclick="ProcessPayment" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <i class="fas fa-spinner"></i>
+                                <span>در حال پردازش...</span>
+                            }
+                            else
+                            {
+                                <span><i class="fas fa-lock"></i> پرداخت امن</span>
+                            }
+                        </button>
+                        <button class="btn-outline ripple" @onclick="GoBack" style="padding:14px 28px; border-radius:40px; font-size:0.95rem;">
+                            <i class="fas fa-times"></i> انصراف
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="summary-section gradient-border fade-up visible">
+                    <div class="section-title">
+                        <i class="fas fa-shopping-bag"></i>
+                        خلاصه سفارش
+                    </div>
+
+                    <div class="summary-item">
+                        <div class="icon"><i class="fas fa-box"></i></div>
+                        <div class="info">
+                            <div class="name">@package.Name</div>
+                            <div class="detail">@package.DurationText (@package.DurationDays روز)</div>
+                        </div>
+                        <div class="price">@(package.Price == 0 ? "رایگان" : package.Price.ToString("N0") + " تومان")</div>
+                    </div>
+
+                    <div class="summary-item">
+                        <div class="icon"><i class="fas fa-tag"></i></div>
+                        <div class="info">
+                            <div class="name">تخفیف</div>
+                            <div class="detail">کد تخفیف اعمال نشده</div>
+                        </div>
+                        <div class="price" style="color:#34d399;">۰ تومان</div>
+                    </div>
+
+                    <div class="summary-total">
+                        <span class="label">مبلغ قابل پرداخت</span>
+                        <span class="amount">@(package.Price == 0 ? "رایگان" : package.Price.ToString("N0") + " تومان")</span>
+                    </div>
+
+                    <div style="margin-top:12px; padding:12px 16px; background:rgba(255,255,255,0.02); border-radius:12px; font-size:0.8rem; color:#64748b; text-align:center; border:1px dashed rgba(255,255,255,0.03);">
+                        <i class="fas fa-shield-alt" style="color:#3b82f6;"></i>
+                        اطلاعات شما با بالاترین سطح امنیت محافظت می‌شود
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div style="text-align:center; padding:60px 20px;">
+                <i class="fas fa-box-open" style="font-size:4rem; color:#64748b; display:block; margin-bottom:16px;"></i>
+                <h3 style="color:#94a3b8;">پکیج مورد نظر یافت نشد</h3>
+                <p style="color:#64748b; margin-top:8px;">لطفاً از لیست پکیج‌ها انتخاب کنید.</p>
+                <button class="btn-primary ripple" @onclick="GoBack" style="margin-top:16px;">
+                    <i class="fas fa-arrow-right"></i> بازگشت به لیست پکیج‌ها
+                </button>
+            </div>
+        }
+
+    </div>
+</main>
+
+<!-- ===== SUCCESS MODAL ===== -->
+<div class="modal-overlay @(showSuccessModal ? "active" : "")" id="successModal">
+    <div class="modal-box">
+        <span class="icon"><i class="fas fa-check-circle"></i></span>
+        <h2>پرداخت با موفقیت انجام شد!</h2>
+        <p>
+            پکیج <strong style="color:#e8a838;">@(package?.Name ?? "")</strong> با موفقیت خریداری شد.
+            <br />
+            کد پیگیری: <strong style="color:#3b82f6;">@trackingCode</strong>
+        </p>
+        <button class="btn-modal ripple" @onclick="GoToDashboard">
+            <i class="fas fa-arrow-left"></i> رفتن به داشبورد
+        </button>
+    </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · تمامی حقوق محفوظ است</div>
+        <div class="footer-links">
+            <a href="/">صفحه اصلی</a>
+            <a href="/Packages">پکیج‌ها</a>
+            <a href="/UserDashboard">داشبورد</a>
+        </div>
+    </div>
+</footer>
+
+@code {
+    // ============================================================
+    // ROUTE PARAMETER
+    // ============================================================
+
+    [Parameter]
+    public string PackageId { get; set; } = "";
+
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private bool isMenuOpen = false;
+    private bool isLoading = false;
+    private bool showSuccessModal = false;
+    private string trackingCode = "";
+
+    // Form fields
+    private string fullName = "";
+    private string email = "";
+    private string phone = "";
+    private string paymentMethod = "online";
+    private string notes = "";
+
+    private PackageItem? package = null;
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override void OnInitialized()
+    {
+        LoadPackage();
+    }
+
+    private void LoadPackage()
+    {
+        var allPackages = GetAllPackages();
+        package = allPackages.FirstOrDefault(p => p.Id == PackageId);
+    }
+
+    private List<PackageItem> GetAllPackages()
+    {
+        return new List<PackageItem>
+        {
+            new PackageItem
+            {
+                Id = "PKG-001",
+                Name = "پایه",
+                DurationText = "ماهانه",
+                DurationDays = 30,
+                Price = 99000,
+                IsPopular = false,
+                Description = "پکیج پایه برای شروع کار با دسترسی به امکانات اصلی.",
+                Features = new List<string>
+                {
+                    "۱۰۰ درخواست API روزانه",
+                    "دسترسی به ۲ API پایه",
+                    "پشتیبانی ایمیل",
+                    "مستندات کامل"
+                }
+            },
+            new PackageItem
+            {
+                Id = "PKG-002",
+                Name = "حرفه‌ای",
+                DurationText = "سه‌ماهه",
+                DurationDays = 90,
+                Price = 249000,
+                IsPopular = true,
+                Description = "پکیج حرفه‌ای با امکانات پیشرفته و پشتیبانی ویژه برای کسب‌وکارهای در حال رشد.",
+                Features = new List<string>
+                {
+                    "۱۰,۰۰۰ درخواست API روزانه",
+                    "دسترسی به ۵ API پیشرفته",
+                    "پشتیبانی اولویت‌دار (۲۴/۷)",
+                    "دسترسی به نسخه Beta",
+                    "گزارش‌گیری پیشرفته",
+                    "وبینار اختصاصی ماهانه"
+                }
+            },
+            new PackageItem
+            {
+                Id = "PKG-003",
+                Name = "سازمانی",
+                DurationText = "سالانه",
+                DurationDays = 365,
+                Price = 890000,
+                IsPopular = false,
+                Description = "پکیج سازمانی با دسترسی کامل و نامحدود به تمام امکانات برای تیم‌های بزرگ.",
+                Features = new List<string>
+                {
+                    "درخواست نامحدود API",
+                    "دسترسی به تمام APIها",
+                    "پشتیبانی اختصاصی ۲۴/۷",
+                    "میزبانی اختصاصی",
+                    "گزارش‌گیری سفارشی",
+                    "امنیت پیشرفته",
+                    "اولویت در توسعه ویژگی‌های جدید"
+                }
+            },
+            new PackageItem
+            {
+                Id = "PKG-004",
+                Name = "طلایی",
+                DurationText = "سالانه",
+                DurationDays = 365,
+                Price = 1250000,
+                IsPopular = false,
+                Description = "پکیج طلایی با بهترین امکانات و تخفیف ویژه برای مشتریان ویژه.",
+                Features = new List<string>
+                {
+                    "درخواست نامحدود API",
+                    "دسترسی به تمام APIها + APIهای اختصاصی",
+                    "پشتیبانی VIP ۲۴/۷",
+                    "میزبانی اختصاصی با بالاترین کیفیت",
+                    "مشاوره رایگان ماهانه",
+                    "توسعه ویژگی‌های سفارشی",
+                    "اولویت اول در پشتیبانی"
+                }
+            }
+        };
+    }
+
+    // ============================================================
+    // PAYMENT
+    // ============================================================
+
+    private async Task ProcessPayment()
+    {
+        // Validate fields
+        if (string.IsNullOrWhiteSpace(fullName))
+        {
+            // In real app, show toast notification
+            Console.WriteLine("لطفاً نام کامل را وارد کنید.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
+        {
+            Console.WriteLine("لطفاً ایمیل معتبر وارد کنید.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(phone) || phone.Length < 10)
+        {
+            Console.WriteLine("لطفاً شماره تلفن معتبر وارد کنید.");
+            return;
+        }
+
+        isLoading = true;
+        StateHasChanged();
+
+        // Simulate payment processing
+        await Task.Delay(2000);
+
+        // Generate tracking code
+        trackingCode = "TRK-" + DateTime.Now.ToString("yyyyMMdd") + "-" + new Random().Next(1000, 9999).ToString();
+
+        isLoading = false;
+        showSuccessModal = true;
+        StateHasChanged();
+
+        // In real app, navigate to success page or show modal
+    }
+
+    // ============================================================
+    // NAVIGATION
+    // ============================================================
+
+    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
+    private void CloseMenu() => isMenuOpen = false;
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/Packages", true);
+    }
+
+    private void NavigateToDashboard()
+    {
+        NavigationManager.NavigateTo("/UserDashboard", true);
+    }
+
+    private void GoToDashboard()
+    {
+        showSuccessModal = false;
+        NavigationManager.NavigateTo("/UserDashboard", true);
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Navbar scroll
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                navbar?.classList.toggle('scrolled', window.scrollY > 50);
+            });
+
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 400);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASSES
+    // ============================================================
+
+    public class PackageItem
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string DurationText { get; set; } = "";
+        public int DurationDays { get; set; }
+        public int Price { get; set; }
+        public bool IsPopular { get; set; }
+        public string Description { get; set; } = "";
+        public List<string> Features { get; set; } = new();
+    }
+}

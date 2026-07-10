@@ -1,0 +1,1291 @@
+﻿@page "/PackageDetail/{PackageId}"
+@layout FrontLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>جزئیات پکیج | محمد رضایی</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+       PACKAGE DETAIL PAGE - با پس‌زمینه #0a0e17
+    ============================================================ */
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #0a0e17;
+        color: #eef2f8;
+        line-height: 1.7;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ============================================================
+       PARTICLES BACKGROUND
+    ============================================================ */
+    .bg-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .bg-particles span {
+        position: absolute;
+        display: block;
+        width: 6px;
+        height: 6px;
+        background: rgba(59, 130, 246, 0.2);
+        border-radius: 50%;
+        animation: floatParticle 12s infinite alternate ease-in-out;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
+    }
+
+    .bg-particles span:nth-child(1) {
+        top: 10%;
+        left: 20%;
+        animation-duration: 14s;
+        width: 8px;
+        height: 8px;
+    }
+    .bg-particles span:nth-child(2) {
+        top: 60%;
+        left: 80%;
+        animation-duration: 16s;
+        animation-delay: 2s;
+    }
+    .bg-particles span:nth-child(3) {
+        top: 30%;
+        left: 70%;
+        animation-duration: 18s;
+        animation-delay: 4s;
+        width: 10px;
+        height: 10px;
+    }
+    .bg-particles span:nth-child(4) {
+        top: 80%;
+        left: 10%;
+        animation-duration: 15s;
+        animation-delay: 1s;
+    }
+    .bg-particles span:nth-child(5) {
+        top: 50%;
+        left: 40%;
+        animation-duration: 20s;
+        animation-delay: 3s;
+        width: 12px;
+        height: 12px;
+        background: rgba(59, 130, 246, 0.12);
+    }
+    .bg-particles span:nth-child(6) {
+        top: 15%;
+        left: 90%;
+        animation-duration: 13s;
+        animation-delay: 5s;
+    }
+    .bg-particles span:nth-child(7) {
+        top: 70%;
+        left: 50%;
+        animation-duration: 17s;
+        animation-delay: 2s;
+        width: 7px;
+        height: 7px;
+    }
+    .bg-particles span:nth-child(8) {
+        top: 40%;
+        left: 5%;
+        animation-duration: 19s;
+        animation-delay: 3s;
+    }
+
+    @@keyframes floatParticle {
+        0% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+        50% { transform: translate(30px, -60px) scale(1.6); opacity: 0.7; }
+        100% { transform: translate(-20px, 40px) scale(0.8); opacity: 0.1; }
+    }
+
+    /* ============================================================
+       GLASS EFFECT
+    ============================================================ */
+    .glass {
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border-radius: 24px;
+        transition: all 0.35s ease;
+    }
+
+    .glass:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(59, 130, 246, 0.08);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ============================================================
+       GLASS + GRADIENT BORDERS
+    ============================================================ */
+    .gradient-border {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid transparent;
+        background-clip: padding-box;
+    }
+
+    .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        z-index: -1;
+        border-radius: 26px;
+        background: conic-gradient(from 0deg, #3b82f6, #8b5cf6, #3b82f6, #8b5cf6, #3b82f6);
+        background-size: 400% 400%;
+        animation: rotateBorder 8s linear infinite;
+        opacity: 0.2;
+        transition: opacity 0.4s;
+    }
+
+    .gradient-border:hover::before {
+        opacity: 0.5;
+    }
+
+    @@keyframes rotateBorder {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 400% 50%; }
+    }
+
+    /* ============================================================
+       NAVBAR
+    ============================================================ */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 999;
+        padding: 14px 0;
+        transition: background 0.5s, backdrop-filter 0.5s, box-shadow 0.4s;
+        background: transparent;
+    }
+
+    .navbar.scrolled {
+        background: linear-gradient(135deg, rgba(10, 14, 23, 0.92), rgba(20, 30, 48, 0.92));
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .navbar .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+    }
+    .logo span {
+        color: #3b82f6;
+        text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 24px;
+        list-style: none;
+        font-size: 0.95rem;
+        font-weight: 500;
+        align-items: center;
+    }
+    .nav-links a {
+        color: #b8c4d6;
+        transition: 0.25s;
+        position: relative;
+        padding: 4px 0;
+        cursor: pointer;
+    }
+    .nav-links a:hover { color: #fff; }
+    .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        right: 0;
+        width: 0;
+        height: 2px;
+        background: #3b82f6;
+        transition: 0.35s;
+        box-shadow: 0 0 12px #3b82f6;
+    }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+    }
+    .btn-primary:hover {
+        background: #2563eb;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-success {
+        background: #34d399;
+        color: #0a0e17;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 0 20px rgba(52, 211, 153, 0.15);
+    }
+    .btn-success:hover {
+        background: #10b981;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 12px 40px rgba(52, 211, 153, 0.3);
+    }
+
+    .btn-gold {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #0a0e17;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 0 20px rgba(232, 168, 56, 0.12);
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 12px 40px rgba(232, 168, 56, 0.2);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+    .btn-outline:hover {
+        border-color: #3b82f6;
+        color: #fff;
+        background: rgba(59, 130, 246, 0.08);
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-dashboard {
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-dashboard:hover {
+        background: rgba(59, 130, 246, 0.25);
+        transform: scale(1.04);
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+    }
+
+    .btn-login {
+        background: rgba(52, 211, 153, 0.12);
+        border: 1px solid rgba(52, 211, 153, 0.15);
+        color: #34d399;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-login:hover {
+        background: rgba(52, 211, 153, 0.2);
+        transform: scale(1.04);
+        box-shadow: 0 0 30px rgba(52, 211, 153, 0.1);
+    }
+
+    .avatar-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid rgba(59, 130, 246, 0.3);
+        background: rgba(59, 130, 246, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3b82f6;
+        font-size: 1.2rem;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+    .avatar-btn:hover {
+        border-color: #3b82f6;
+        transform: scale(1.05);
+    }
+
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+    .hamburger span {
+        display: block;
+        width: 28px;
+        height: 2.5px;
+        background: #eef2f8;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+    /* ============================================================
+       PAGE HEADER
+    ============================================================ */
+    .page-header {
+        padding-top: 100px;
+        padding-bottom: 24px;
+    }
+
+    .page-header .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: 0.3s;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+    }
+    .page-header .back-link:hover {
+        color: #3b82f6;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .page-header h1 i { color: #3b82f6; }
+    .page-header .subtitle {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    /* ============================================================
+       PACKAGE DETAIL
+    ============================================================ */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 32px;
+        margin-bottom: 40px;
+    }
+
+    .detail-main {
+        padding: 32px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: all 0.3s ease;
+    }
+
+    .detail-main:hover {
+        border-color: rgba(59, 130, 246, 0.06);
+    }
+
+    .detail-main .package-badge {
+        display: inline-block;
+        padding: 4px 16px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        background: rgba(59, 130, 246, 0.06);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.04);
+        margin-bottom: 12px;
+    }
+
+    .detail-main .package-badge.popular {
+        background: rgba(232, 168, 56, 0.06);
+        color: #e8a838;
+        border-color: rgba(232, 168, 56, 0.04);
+    }
+
+    .detail-main .package-name {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+    }
+
+    .detail-main .package-duration {
+        font-size: 0.9rem;
+        color: #94a3b8;
+        margin-bottom: 8px;
+    }
+
+    .detail-main .package-duration i {
+        color: #3b82f6;
+        margin-left: 6px;
+    }
+
+    .detail-main .package-price {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: #3b82f6;
+        margin: 8px 0 16px;
+        text-shadow: 0 0 30px rgba(59, 130, 246, 0.05);
+    }
+    .detail-main .package-price .currency {
+        font-size: 1rem;
+        font-weight: 400;
+        color: #94a3b8;
+    }
+
+    .detail-main .package-description {
+        color: #b8c4d6;
+        font-size: 1rem;
+        line-height: 1.8;
+        margin-bottom: 24px;
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .detail-main .features-section {
+        margin-bottom: 24px;
+    }
+    .detail-main .features-section h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #e8edf5;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .detail-main .features-section h3 i {
+        color: #3b82f6;
+    }
+
+    .detail-main .features-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 24px;
+        list-style: none;
+        padding: 0;
+    }
+    .detail-main .features-list li {
+        padding: 8px 0;
+        color: #b8c4d6;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    }
+    .detail-main .features-list li i {
+        color: #34d399;
+        font-size: 0.8rem;
+        width: 20px;
+        text-align: center;
+    }
+    .detail-main .features-list li .highlight {
+        color: #e8a838;
+        font-weight: 500;
+    }
+
+    /* ============================================================
+       SIDEBAR
+    ============================================================ */
+    .detail-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .sidebar-card {
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 20px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: all 0.3s ease;
+    }
+
+    .sidebar-card:hover {
+        border-color: rgba(59, 130, 246, 0.06);
+    }
+
+    .sidebar-card .card-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #94a3b8;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sidebar-card .card-title i {
+        color: #3b82f6;
+    }
+
+    .sidebar-card .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        font-size: 0.85rem;
+    }
+    .sidebar-card .info-row:last-child {
+        border-bottom: none;
+    }
+    .sidebar-card .info-row .label {
+        color: #94a3b8;
+    }
+    .sidebar-card .info-row .value {
+        color: #e8edf5;
+        font-weight: 500;
+    }
+    .sidebar-card .info-row .value.green {
+        color: #34d399;
+    }
+    .sidebar-card .info-row .value.gold {
+        color: #e8a838;
+    }
+
+    .sidebar-card .btn-buy {
+        width: 100%;
+        padding: 14px;
+        border-radius: 40px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: inherit;
+        margin-top: 8px;
+    }
+
+    .sidebar-card .btn-buy.primary {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+    }
+    .sidebar-card .btn-buy.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25);
+    }
+
+    .sidebar-card .btn-buy.gold {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #0a0e17;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+    }
+    .sidebar-card .btn-buy.gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+    }
+
+    .sidebar-card .btn-buy.success {
+        background: linear-gradient(135deg, #34d399, #10b981);
+        color: #0a0e17;
+        box-shadow: 0 4px 20px rgba(52, 211, 153, 0.12);
+    }
+    .sidebar-card .btn-buy.success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(52, 211, 153, 0.2);
+    }
+
+    .sidebar-card .btn-buy.outline {
+        background: transparent;
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+    }
+    .sidebar-card .btn-buy.outline:hover {
+        border-color: #3b82f6;
+        color: #fff;
+        background: rgba(59, 130, 246, 0.04);
+        transform: translateY(-2px);
+    }
+
+    .sidebar-card .btn-buy:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    /* ============================================================
+       RIPPLE
+    ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+    @@keyframes rippleAnim {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    /* ============================================================
+       FADE UP
+    ============================================================ */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @@media (max-width: 992px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+        .detail-main .features-list {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background: rgba(10, 14, 23, 0.95);
+            backdrop-filter: blur(12px);
+            padding: 20px 0;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 12px;
+            border-radius: 20px;
+            align-items: center;
+        }
+        .nav-links.open { display: flex; }
+        .hamburger { display: flex; }
+        .nav-actions .btn-dashboard, .nav-actions .btn-login { display: none; }
+
+        .page-header h1 { font-size: 1.5rem; }
+        .detail-main {
+            padding: 20px;
+        }
+        .detail-main .package-name {
+            font-size: 1.5rem;
+        }
+        .detail-main .package-price {
+            font-size: 1.8rem;
+        }
+        .detail-main .features-list {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-header h1 { font-size: 1.3rem; }
+        .detail-main {
+            padding: 16px;
+        }
+        .detail-main .package-description {
+            padding: 12px 16px;
+        }
+        .sidebar-card {
+            padding: 16px;
+        }
+    }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+        position: relative;
+        padding: 30px 0 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(8px);
+        z-index: 1;
+        margin-top: 20px;
+    }
+    .footer .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .footer-links {
+        display: flex;
+        gap: 24px;
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+    .footer-links a:hover { color: #fff; }
+    .footer-copy {
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+</style>
+
+<!-- ===== PARTICLES ===== -->
+<div class="bg-particles">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<header class="navbar" id="navbar">
+    <div class="container">
+        <div class="logo">Mohammad<span>Dev</span></div>
+        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
+            <li><a href="/">صفحه اصلی</a></li>
+            <li><a href="/Packages">پکیج‌ها</a></li>
+            <li><a href="/ApiManagement">APIها</a></li>
+            <li><a href="/UserDashboard">داشبورد</a></li>
+        </ul>
+        <div class="nav-actions">
+            <button class="btn-login" @onclick="NavigateToLogin"><i class="fas fa-sign-in-alt"></i> ورود</button>
+            <button class="btn-dashboard" @onclick="NavigateToDashboard"><i class="fas fa-chart-pie"></i> داشبورد</button>
+            <div class="avatar-btn" @onclick="NavigateToDashboard"><i class="fas fa-user"></i></div>
+            <button class="hamburger" @onclick="ToggleMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ===== PAGE CONTENT ===== -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div class="back-link" @onclick="GoBack">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت به لیست پکیج‌ها
+            </div>
+            <h1>
+                <i class="fas fa-box"></i>
+                جزئیات پکیج
+            </h1>
+            <div class="subtitle">مشاهده کامل اطلاعات و امکانات پکیج انتخاب شده</div>
+        </div>
+
+        @if (package != null)
+        {
+            <div class="detail-grid">
+                <!-- Main Content -->
+                <div class="detail-main fade-up visible">
+                    <span class="package-badge @(package.IsPopular ? "popular" : "")">
+                        @(package.IsPopular ? "★ محبوب" : "پکیج")
+                    </span>
+
+                    <div class="package-name">@package.Name</div>
+                    <div class="package-duration">
+                        <i class="far fa-clock"></i>
+                        @package.DurationText
+                        @if (package.DurationDays > 0)
+                        {
+                            <span style="color:#94a3b8; font-size:0.85rem;">(@package.DurationDays روز)</span>
+                        }
+                    </div>
+
+                    <div class="package-price">
+                        @if (package.Price == 0)
+                        {
+                            <span>رایگان</span>
+                        }
+                        else
+                        {
+                            <span>@package.Price.ToString("N0") <span class="currency">تومان</span></span>
+                        }
+                    </div>
+
+                    <div class="package-description">
+                        @package.Description
+                    </div>
+
+                    <div class="features-section">
+                        <h3><i class="fas fa-check-circle"></i> امکانات و ویژگی‌ها</h3>
+                        <ul class="features-list">
+                            @foreach (var feature in package.Features)
+                            {
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    @if (feature.Contains("دسترسی") || feature.Contains("API") || feature.Contains("درخواست") || feature.Contains("نامحدود"))
+                                    {
+                                        <span class="highlight">@feature</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@feature</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="detail-sidebar fade-up visible">
+                    <!-- Purchase Card -->
+                    <div class="sidebar-card gradient-border">
+                        <div class="card-title"><i class="fas fa-shopping-cart"></i> خرید اشتراک</div>
+
+                        @if (isActivePackage)
+                        {
+                            <div style="text-align:center; padding:12px 0; color:#34d399; font-weight:500;">
+                                <i class="fas fa-check-circle"></i> در حال استفاده از این پکیج
+                            </div>
+                        }
+                        else if (package.Price == 0)
+                        {
+                            <button class="btn-buy success ripple" @onclick="ActivateFreePackage">
+                                <i class="fas fa-rocket"></i> فعال‌سازی رایگان
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn-buy @(package.IsPopular ? "gold" : "primary") ripple" @onclick="BuyPackage">
+                                <i class="fas fa-shopping-cart"></i>
+                                @(hasActivePackage ? "تغییر به این پکیج" : "خرید اشتراک")
+                            </button>
+                        }
+
+                        <div style="margin-top:12px; text-align:center; font-size:0.75rem; color:#64748b;">
+                            پس از خرید، دسترسی فوری به امکانات فعال می‌شود
+                        </div>
+                    </div>
+
+                    <!-- Information Card -->
+                    <div class="sidebar-card">
+                        <div class="card-title"><i class="fas fa-info-circle"></i> اطلاعات پکیج</div>
+                        <div class="info-row">
+                            <span class="label">مدت زمان</span>
+                            <span class="value">@package.DurationText</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">تعداد روز</span>
+                            <span class="value">@package.DurationDays روز</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">قیمت</span>
+                            <span class="value gold">@(package.Price == 0 ? "رایگان" : package.Price.ToString("N0") + " تومان")</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">تعداد ویژگی‌ها</span>
+                            <span class="value">@package.Features.Count مورد</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">وضعیت</span>
+                            <span class="value green">@(package.IsPopular ? "محبوب" : "عادی")</span>
+                        </div>
+                    </div>
+
+                    <!-- Support Card -->
+                    <div class="sidebar-card">
+                        <div class="card-title"><i class="fas fa-headset"></i> پشتیبانی</div>
+                        <div style="color:#94a3b8; font-size:0.85rem; margin-bottom:8px;">
+                            در صورت نیاز به راهنمایی، با تیم پشتیبانی تماس بگیرید.
+                        </div>
+                        <button class="btn-outline ripple" style="width:100%; padding:10px; border-radius:40px; font-size:0.85rem;" @onclick="ContactSupport">
+                            <i class="fas fa-envelope"></i> تماس با پشتیبانی
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div style="text-align:center; padding:60px 20px;">
+                <i class="fas fa-box-open" style="font-size:4rem; color:#64748b; display:block; margin-bottom:16px;"></i>
+                <h3 style="color:#94a3b8;">پکیج مورد نظر یافت نشد</h3>
+                <p style="color:#64748b; margin-top:8px;">لطفاً از لیست پکیج‌ها انتخاب کنید.</p>
+                <button class="btn-primary ripple" @onclick="GoBack" style="margin-top:16px;">
+                    <i class="fas fa-arrow-right"></i> بازگشت به لیست پکیج‌ها
+                </button>
+            </div>
+        }
+
+    </div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · تمامی حقوق محفوظ است</div>
+        <div class="footer-links">
+            <a href="/">صفحه اصلی</a>
+            <a href="/Packages">پکیج‌ها</a>
+            <a href="/ApiManagement">APIها</a>
+            <a href="/UserDashboard">داشبورد</a>
+        </div>
+    </div>
+</footer>
+
+@code {
+    // ============================================================
+    // ROUTE PARAMETER
+    // ============================================================
+
+    [Parameter]
+    public string PackageId { get; set; } = "";
+
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private bool isMenuOpen = false;
+    private PackageItem? package = null;
+    private bool hasActivePackage = true;
+    private bool isActivePackage = false;
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override void OnInitialized()
+    {
+        LoadPackage();
+    }
+
+    private void LoadPackage()
+    {
+        var allPackages = GetAllPackages();
+        package = allPackages.FirstOrDefault(p => p.Id == PackageId);
+
+        // Check if this is the user's active package
+        if (package != null)
+        {
+            var activePkg = GetActivePackage();
+            isActivePackage = activePkg != null && activePkg.Name == package.Name;
+        }
+    }
+
+    private List<PackageItem> GetAllPackages()
+    {
+        return new List<PackageItem>
+        {
+            new PackageItem
+            {
+                Id = "PKG-001",
+                Name = "پایه",
+                DurationText = "ماهانه",
+                DurationDays = 30,
+                Price = 99000,
+                IsPopular = false,
+                Description = "پکیج پایه برای شروع کار با دسترسی به امکانات اصلی. مناسب برای تست و ارزیابی سیستم.",
+                Features = new List<string>
+                {
+                    "۱۰۰ درخواست API روزانه",
+                    "دسترسی به ۲ API پایه",
+                    "پشتیبانی ایمیل",
+                    "مستندات کامل",
+                    "پشتیبانی ۸ ساعته"
+                }
+            },
+            new PackageItem
+            {
+                Id = "PKG-002",
+                Name = "حرفه‌ای",
+                DurationText = "سه‌ماهه",
+                DurationDays = 90,
+                Price = 249000,
+                IsPopular = true,
+                Description = "پکیج حرفه‌ای با امکانات پیشرفته و پشتیبانی ویژه برای کسب‌وکارهای در حال رشد و حرفه‌ای‌ها.",
+                Features = new List<string>
+                {
+                    "۱۰,۰۰۰ درخواست API روزانه",
+                    "دسترسی به ۵ API پیشرفته",
+                    "پشتیبانی اولویت‌دار (۲۴/۷)",
+                    "دسترسی به نسخه Beta",
+                    "گزارش‌گیری پیشرفته",
+                    "وبینار اختصاصی ماهانه",
+                    "پشتیبانی تلفنی"
+                }
+            },
+            new PackageItem
+            {
+                Id = "PKG-003",
+                Name = "سازمانی",
+                DurationText = "سالانه",
+                DurationDays = 365,
+                Price = 890000,
+                IsPopular = false,
+                Description = "پکیج سازمانی با دسترسی کامل و نامحدود به تمام امکانات برای تیم‌های بزرگ و سازمان‌ها.",
+                Features = new List<string>
+                {
+                    "درخواست نامحدود API",
+                    "دسترسی به تمام APIها",
+                    "پشتیبانی اختصاصی ۲۴/۷",
+                    "میزبانی اختصاصی",
+                    "گزارش‌گیری سفارشی",
+                    "امنیت پیشرفته",
+                    "اولویت در توسعه ویژگی‌های جدید",
+                    "مشاوره رایگان"
+                }
+            },
+            new PackageItem
+            {
+                Id = "PKG-004",
+                Name = "طلایی",
+                DurationText = "سالانه",
+                DurationDays = 365,
+                Price = 1250000,
+                IsPopular = false,
+                Description = "پکیج طلایی با بهترین امکانات و تخفیف ویژه برای مشتریان ویژه و سازمان‌های بزرگ.",
+                Features = new List<string>
+                {
+                    "درخواست نامحدود API",
+                    "دسترسی به تمام APIها + APIهای اختصاصی",
+                    "پشتیبانی VIP ۲۴/۷",
+                    "میزبانی اختصاصی با بالاترین کیفیت",
+                    "مشاوره رایگان ماهانه",
+                    "توسعه ویژگی‌های سفارشی",
+                    "اولویت اول در پشتیبانی",
+                    "گزارش‌گیری پیشرفته و سفارشی"
+                }
+            }
+        };
+    }
+
+    private ActivePackage? GetActivePackage()
+    {
+        // Simulate user's active package
+        return new ActivePackage
+        {
+            Name = "حرفه‌ای",
+            DurationText = "سه‌ماهه",
+            StartDate = "۱۴۰۵/۰۴/۰۱",
+            ExpiryDate = "۱۴۰۵/۰۶/۳۰",
+            IsExpired = false,
+            RemainingDays = 52,
+            DurationDays = 90
+        };
+    }
+
+    // ============================================================
+    // ACTIONS
+    // ============================================================
+
+    private async Task BuyPackage()
+    {
+        if (package == null) return;
+
+        Console.WriteLine($"خرید پکیج: {package.Name} - قیمت: {package.Price:N0} تومان");
+        await Task.Delay(500);
+        // In real app: redirect to payment
+        // NavigationManager.NavigateTo("/Payment", true);
+    }
+
+    private async Task ActivateFreePackage()
+    {
+        if (package == null || package.Price > 0) return;
+
+        Console.WriteLine($"فعال‌سازی پکیج رایگان: {package.Name}");
+        await Task.Delay(500);
+        isActivePackage = true;
+        hasActivePackage = true;
+        StateHasChanged();
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/Packages", true);
+    }
+
+    private void ContactSupport()
+    {
+        NavigationManager.NavigateTo("/Contact", true);
+    }
+
+    // ============================================================
+    // NAVIGATION
+    // ============================================================
+
+    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
+    private void CloseMenu() => isMenuOpen = false;
+    private void NavigateToDashboard() => NavigationManager.NavigateTo("/UserDashboard", true);
+    private void NavigateToLogin() => NavigationManager.NavigateTo("/Auth", true);
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Navbar scroll
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                navbar?.classList.toggle('scrolled', window.scrollY > 50);
+            });
+
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 400);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASSES
+    // ============================================================
+
+    public class ActivePackage
+    {
+        public string Name { get; set; } = "";
+        public string DurationText { get; set; } = "";
+        public string StartDate { get; set; } = "";
+        public string ExpiryDate { get; set; } = "";
+        public bool IsExpired { get; set; }
+        public int RemainingDays { get; set; }
+        public int DurationDays { get; set; }
+    }
+
+    public class PackageItem
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string DurationText { get; set; } = "";
+        public int DurationDays { get; set; }
+        public int Price { get; set; }
+        public bool IsPopular { get; set; }
+        public string Description { get; set; } = "";
+        public List<string> Features { get; set; } = new();
+    }
+}

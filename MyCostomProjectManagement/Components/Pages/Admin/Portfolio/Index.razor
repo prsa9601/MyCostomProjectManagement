@@ -1,0 +1,1645 @@
+﻿@page "/Admin/Portfolio"
+@layout FrontLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مدیریت نمونه کارها | پنل ادمین</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+       PORTFOLIO PAGE - با پس‌زمینه #13505b
+    ============================================================ */
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #13505b;
+        color: #e8f0f1;
+        line-height: 1.7;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ============================================================
+       GLASS EFFECT
+    ============================================================ */
+    .glass {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .glass:hover {
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 48px rgba(0, 0, 0, 0.12);
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ============================================================
+       ANIMATIONS
+    ============================================================ */
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    .float-anim {
+        animation: float 4s ease-in-out infinite;
+    }
+
+    @@keyframes rotateBorder {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 400% 50%; }
+    }
+    .gradient-border {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid transparent;
+        background-clip: padding-box;
+    }
+    .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        z-index: -1;
+        border-radius: 22px;
+        background: conic-gradient(from 0deg, #e8a838, #52b788, #1a7a8a, #e8a838, #52b788);
+        background-size: 400% 400%;
+        animation: rotateBorder 8s linear infinite;
+        opacity: 0.2;
+        transition: opacity 0.4s;
+    }
+    .gradient-border:hover::before {
+        opacity: 0.5;
+    }
+
+    /* Ripple */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+    @@keyframes rippleAnim {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    /* Fade Up */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1),
+                    transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .stagger-child { transition-delay: 0s; }
+    .stagger-child:nth-child(1) { transition-delay: 0.05s; }
+    .stagger-child:nth-child(2) { transition-delay: 0.1s; }
+    .stagger-child:nth-child(3) { transition-delay: 0.15s; }
+    .stagger-child:nth-child(4) { transition-delay: 0.2s; }
+    .stagger-child:nth-child(5) { transition-delay: 0.25s; }
+    .stagger-child:nth-child(6) { transition-delay: 0.3s; }
+
+    /* Sparkle Particles */
+    .sparkle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(232, 168, 56, 0.2);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: sparkleAnim 10s infinite alternate ease-in-out;
+    }
+    @@keyframes sparkleAnim {
+        0% { transform: translate(0, 0) scale(1); opacity: 0.1; }
+        50% { transform: translate(20px, -30px) scale(1.8); opacity: 0.6; }
+        100% { transform: translate(-10px, 20px) scale(0.6); opacity: 0.05; }
+    }
+    .sparkle:nth-child(1) { left: 5%; top: 20%; animation-duration: 12s; }
+    .sparkle:nth-child(2) { left: 85%; top: 60%; animation-duration: 14s; animation-delay: 2s; width: 6px; height: 6px; }
+    .sparkle:nth-child(3) { left: 30%; top: 70%; animation-duration: 16s; animation-delay: 4s; }
+    .sparkle:nth-child(4) { left: 92%; top: 30%; animation-duration: 11s; animation-delay: 1s; width: 5px; height: 5px; background: rgba(82, 183, 136, 0.15); }
+    .sparkle:nth-child(5) { left: 50%; top: 90%; animation-duration: 18s; animation-delay: 3s; }
+    .sparkle:nth-child(6) { left: 3%; top: 50%; animation-duration: 13s; animation-delay: 5s; background: rgba(232, 168, 56, 0.15); }
+
+    /* ============================================================
+       NAVBAR
+    ============================================================ */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 999;
+        padding: 14px 0;
+        transition: all 0.4s ease;
+        background: rgba(19, 80, 91, 0.75);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .navbar.scrolled {
+        background: rgba(19, 80, 91, 0.92);
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .navbar .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #e8f0f1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .logo span { color: #e8a838; }
+    .logo i { color: #e8a838; font-size: 1.3rem; }
+
+    .nav-links {
+        display: flex;
+        gap: 28px;
+        list-style: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        align-items: center;
+    }
+    .nav-links a {
+        color: rgba(232, 240, 241, 0.6);
+        transition: all 0.35s ease;
+        position: relative;
+        padding: 4px 0;
+    }
+    .nav-links a:hover { color: #ffffff; }
+    .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        right: 0;
+        width: 0;
+        height: 2.5px;
+        background: #e8a838;
+        transition: 0.35s;
+        border-radius: 4px;
+        box-shadow: 0 0 12px rgba(232, 168, 56, 0.15);
+    }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active { color: #ffffff; }
+    .nav-links a.active::after { width: 100%; }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 9px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        color: #e8f0f1;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+    }
+    .btn-outline:hover {
+        border-color: #e8a838;
+        background: rgba(232, 168, 56, 0.04);
+        transform: translateY(-2px);
+    }
+
+    .btn-light {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: #e8f0f1;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-light:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: #e8a838;
+        transform: translateY(-2px);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(220, 53, 69, 0.15);
+    }
+
+    .avatar-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid rgba(232, 168, 56, 0.2);
+        background: rgba(255, 255, 255, 0.03);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e8f0f1;
+        font-size: 1.1rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .avatar-btn:hover {
+        background: rgba(232, 168, 56, 0.04);
+        transform: scale(1.05);
+        border-color: #e8a838;
+    }
+
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+    .hamburger span {
+        display: block;
+        width: 28px;
+        height: 2.5px;
+        background: #e8f0f1;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+    /* ============================================================
+       PAGE HEADER
+    ============================================================ */
+    .page-header {
+        padding-top: 100px;
+        padding-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .page-header h1 i { color: #e8a838; }
+    .page-header .subtitle {
+        color: rgba(232, 240, 241, 0.5);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    .page-header .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       STATS ROW
+    ============================================================ */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-mini {
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.3s ease;
+    }
+    .stat-mini:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(232, 168, 56, 0.06);
+    }
+    .stat-mini i {
+        font-size: 1.6rem;
+        color: #e8a838;
+        opacity: 0.5;
+        width: 40px;
+        text-align: center;
+    }
+    .stat-mini .info .number {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.2;
+    }
+    .stat-mini .info .label {
+        font-size: 0.75rem;
+        color: rgba(232, 240, 241, 0.3);
+    }
+
+    /* ============================================================
+       FILTER BAR
+    ============================================================ */
+    .filter-bar {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 32px;
+        padding: 16px 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        align-items: center;
+    }
+
+    .filter-bar .search-box {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 0 16px;
+        transition: all 0.35s ease;
+    }
+    .filter-bar .search-box:focus-within {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+    }
+    .filter-bar .search-box input {
+        background: transparent;
+        border: none;
+        padding: 12px 12px;
+        color: #e8f0f1;
+        font-size: 0.9rem;
+        width: 100%;
+        outline: none;
+    }
+    .filter-bar .search-box input::placeholder {
+        color: rgba(232, 240, 241, 0.3);
+    }
+    .filter-bar .search-box i {
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.9rem;
+    }
+
+    .filter-bar .filter-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .filter-bar .filter-group .filter-btn {
+        padding: 8px 18px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.4);
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .filter-bar .filter-group .filter-btn:hover {
+        border-color: rgba(232, 168, 56, 0.1);
+        color: #e8f0f1;
+    }
+    .filter-bar .filter-group .filter-btn.active {
+        background: rgba(232, 168, 56, 0.08);
+        border-color: rgba(232, 168, 56, 0.1);
+        color: #e8a838;
+    }
+
+    /* ============================================================
+       ADD PORTFOLIO FORM
+    ============================================================ */
+    .add-form {
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        margin-bottom: 32px;
+        transition: all 0.3s ease;
+    }
+    .add-form:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+    }
+    .add-form .form-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .add-form .form-title i { color: #e8a838; }
+    .add-form .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 12px;
+        align-items: end;
+    }
+    .add-form .form-group {
+        margin-bottom: 0;
+    }
+    .add-form .form-group label {
+        display: block;
+        font-size: 0.75rem;
+        color: rgba(232, 240, 241, 0.3);
+        margin-bottom: 4px;
+        font-weight: 500;
+    }
+    .add-form .form-group input,
+    .add-form .form-group select,
+    .add-form .form-group textarea {
+        width: 100%;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        color: #e8f0f1;
+        font-size: 0.9rem;
+        transition: all 0.35s ease;
+        outline: none;
+        font-family: inherit;
+    }
+    .add-form .form-group input:focus,
+    .add-form .form-group select:focus,
+    .add-form .form-group textarea:focus {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+    }
+    .add-form .form-group input::placeholder,
+    .add-form .form-group textarea::placeholder {
+        color: rgba(232, 240, 241, 0.15);
+    }
+    .add-form .form-group select option {
+        background: #13505b;
+        color: #e8f0f1;
+    }
+    .add-form .form-group textarea {
+        min-height: 42px;
+        resize: vertical;
+    }
+
+    .add-form .btn-add {
+        padding: 10px 24px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        height: 42px;
+    }
+    .add-form .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(82, 183, 136, 0.15);
+    }
+
+    /* ============================================================
+       PORTFOLIO GRID
+    ============================================================ */
+    .portfolio-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .portfolio-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .portfolio-card:hover {
+        transform: translateY(-6px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(232, 168, 56, 0.06);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .portfolio-card .card-image {
+        width: 100%;
+        height: 180px;
+        background: rgba(255, 255, 255, 0.02);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .portfolio-card .card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .portfolio-card .card-image .placeholder {
+        color: rgba(232, 240, 241, 0.05);
+        font-size: 4rem;
+    }
+    .portfolio-card .card-image .category-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 500;
+        background: rgba(19, 80, 91, 0.8);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        color: #e8f0f1;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .portfolio-card .card-body {
+        padding: 18px 20px 16px;
+    }
+    .portfolio-card .card-body .title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 4px;
+    }
+    .portfolio-card .card-body .description {
+        font-size: 0.85rem;
+        color: rgba(232, 240, 241, 0.4);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        min-height: 40px;
+    }
+    .portfolio-card .card-body .meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 0.7rem;
+        color: rgba(232, 240, 241, 0.15);
+        margin-bottom: 12px;
+    }
+    .portfolio-card .card-body .meta span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .portfolio-card .card-body .meta i {
+        font-size: 0.6rem;
+        color: rgba(232, 168, 56, 0.2);
+    }
+
+    .portfolio-card .card-actions {
+        display: flex;
+        gap: 6px;
+        padding: 12px 20px 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .portfolio-card .card-actions button {
+        padding: 6px 14px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.75rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .portfolio-card .card-actions button:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8f0f1;
+        background: rgba(232, 168, 56, 0.02);
+        transform: scale(1.02);
+    }
+    .portfolio-card .card-actions button.edit:hover {
+        border-color: rgba(82, 183, 136, 0.06);
+        color: #52b788;
+        background: rgba(82, 183, 136, 0.02);
+    }
+    .portfolio-card .card-actions button.delete:hover {
+        border-color: rgba(220, 53, 69, 0.06);
+        color: #dc3545;
+        background: rgba(220, 53, 69, 0.02);
+    }
+    .portfolio-card .card-actions button.link:hover {
+        border-color: rgba(26, 122, 138, 0.06);
+        color: #1a7a8a;
+        background: rgba(26, 122, 138, 0.02);
+    }
+
+    /* Edit mode inside card */
+    .portfolio-card .edit-mode {
+        display: none;
+        padding: 16px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .portfolio-card .edit-mode.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    @@keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .portfolio-card .edit-mode input,
+    .portfolio-card .edit-mode select,
+    .portfolio-card .edit-mode textarea {
+        width: 100%;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        color: #e8f0f1;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        outline: none;
+        font-family: inherit;
+        margin-bottom: 8px;
+    }
+    .portfolio-card .edit-mode input:focus,
+    .portfolio-card .edit-mode select:focus,
+    .portfolio-card .edit-mode textarea:focus {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+    }
+    .portfolio-card .edit-mode input::placeholder,
+    .portfolio-card .edit-mode textarea::placeholder {
+        color: rgba(232, 240, 241, 0.15);
+    }
+    .portfolio-card .edit-mode select option {
+        background: #13505b;
+        color: #e8f0f1;
+    }
+    .portfolio-card .edit-mode textarea {
+        min-height: 60px;
+        resize: vertical;
+    }
+    .portfolio-card .edit-mode .edit-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .portfolio-card .edit-mode .edit-actions button {
+        flex: 1;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: none;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .portfolio-card .edit-mode .edit-actions .save-edit {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+    }
+    .portfolio-card .edit-mode .edit-actions .save-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(82, 183, 136, 0.15);
+    }
+    .portfolio-card .edit-mode .edit-actions .cancel-edit {
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(232, 240, 241, 0.3);
+    }
+    .portfolio-card .edit-mode .edit-actions .cancel-edit:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ============================================================
+       EMPTY STATE
+    ============================================================ */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: rgba(232, 168, 56, 0.1);
+        margin-bottom: 16px;
+    }
+    .empty-state h3 {
+        font-size: 1.3rem;
+        color: rgba(232, 240, 241, 0.3);
+        margin-bottom: 8px;
+    }
+    .empty-state p {
+        color: rgba(232, 240, 241, 0.15);
+        font-size: 0.9rem;
+    }
+
+    /* ============================================================
+       PAGINATION
+    ============================================================ */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+        padding: 16px 0;
+    }
+    .pagination button {
+        padding: 8px 16px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.3);
+        font-size: 0.8rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+    .pagination button:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8f0f1;
+        background: rgba(232, 168, 56, 0.02);
+    }
+    .pagination button.active {
+        background: rgba(232, 168, 56, 0.06);
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8a838;
+    }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+        position: relative;
+        padding: 28px 0 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.02);
+        background: rgba(19, 80, 91, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1;
+        margin-top: 20px;
+    }
+    .footer .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .footer-links {
+        display: flex;
+        gap: 24px;
+        font-size: 0.85rem;
+        color: rgba(232, 240, 241, 0.2);
+    }
+    .footer-links a:hover { color: #e8a838; }
+    .footer-copy {
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.8rem;
+    }
+    .footer-copy i { color: #e8a838; }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @@media (max-width: 1200px) {
+        .add-form .form-row {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .add-form .form-row .btn-add {
+            grid-column: 1 / -1;
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .add-form .form-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .add-form .form-row .btn-add {
+            grid-column: 1 / -1;
+            justify-content: center;
+        }
+        .portfolio-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background: rgba(19, 80, 91, 0.95);
+            backdrop-filter: blur(16px);
+            padding: 20px 0;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            margin-top: 12px;
+            border-radius: 20px;
+            align-items: center;
+        }
+        .nav-links.open { display: flex; }
+        .hamburger { display: flex; }
+        .nav-actions .btn-outline { display: none; }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .page-header h1 { font-size: 1.5rem; }
+        .filter-bar {
+            flex-direction: column;
+            padding: 16px;
+        }
+        .filter-bar .search-box { width: 100%; }
+        .page-header .actions { width: 100%; }
+        .page-header .actions .btn-primary { flex: 1; justify-content: center; }
+
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .stat-mini .info .number { font-size: 1.1rem; }
+        .stat-mini i { font-size: 1.2rem; width: 30px; }
+
+        .add-form .form-row {
+            grid-template-columns: 1fr;
+        }
+        .add-form .form-row .btn-add {
+            grid-column: 1;
+            justify-content: center;
+        }
+        .portfolio-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+        .filter-bar .filter-group {
+            width: 100%;
+            justify-content: center;
+        }
+        .add-form .form-row {
+            grid-template-columns: 1fr;
+        }
+        .portfolio-card .card-image {
+            height: 140px;
+        }
+    }
+</style>
+
+<!-- ============================================================
+     SPARKLE PARTICLES
+============================================================ -->
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<header class="navbar" id="navbar">
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-crown"></i>
+            Admin<span>Panel</span>
+        </div>
+        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
+            <li><a href="/AdminDashboard">داشبورد</a></li>
+            <li><a href="/Projects">پروژه‌ها</a></li>
+            <li><a href="/Users">کاربران</a></li>
+            <li><a href="/Requests">درخواست‌ها</a></li>
+            <li><a href="/Contacts">تماس</a></li>
+            <li><a href="/Skills">مهارت‌ها</a></li>
+            <li><a href="/Portfolio" class="active">نمونه کارها</a></li>
+            <li><a href="/Settings">تنظیمات</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
+            <button class="hamburger" @onclick="ToggleMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ============================================================
+     PAGE CONTENT
+============================================================ -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-images"></i>
+                    نمونه کارها
+                    <span class="badge-admin" style="font-size:0.7rem; background:linear-gradient(135deg,#e8a838,#d4952e); color:#fff; padding:4px 14px; border-radius:40px; font-weight:600;">@totalItems</span>
+                </h1>
+                <div class="subtitle">مدیریت نمونه کارهای انجام شده</div>
+            </div>
+            <div class="actions">
+                <button class="btn-light ripple" @onclick="RefreshItems"><i class="fas fa-sync-alt"></i> بروزرسانی</button>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row fade-up visible">
+            <div class="stat-mini">
+                <i class="fas fa-images"></i>
+                <div class="info">
+                    <div class="number">@totalItems</div>
+                    <div class="label">کل نمونه کارها</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-tag" style="color:#52b788;"></i>
+                <div class="info">
+                    <div class="number">@categoryCount</div>
+                    <div class="label">دسته‌بندی‌ها</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-link" style="color:#e8a838;"></i>
+                <div class="info">
+                    <div class="number">@withLinkCount</div>
+                    <div class="label">دارای لینک</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-calendar-check" style="color:#8264c8;"></i>
+                <div class="info">
+                    <div class="number">@thisYearCount</div>
+                    <div class="label">امسال</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar fade-up visible">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="جستجوی نمونه کار..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn @(filterCategory == "all" ? "active" : "")" @onclick='() => SetCategory("all")'>همه</button>
+                <button class="filter-btn @(filterCategory == "website" ? "active" : "")" @onclick='() => SetCategory("website")'>وب‌سایت</button>
+                <button class="filter-btn @(filterCategory == "shop" ? "active" : "")" @onclick='() => SetCategory("shop")'>فروشگاه</button>
+                <button class="filter-btn @(filterCategory == "app" ? "active" : "")" @onclick='() => SetCategory("app")'>اپلیکیشن</button>
+                <button class="filter-btn @(filterCategory == "dashboard" ? "active" : "")" @onclick='() => SetCategory("dashboard")'>داشبورد</button>
+                <button class="filter-btn @(filterCategory == "api" ? "active" : "")" @onclick='() => SetCategory("api")'>API</button>
+                <button class="filter-btn @(filterCategory == "other" ? "active" : "")" @onclick='() => SetCategory("other")'>سایر</button>
+            </div>
+        </div>
+
+        <!-- Add Form -->
+        <div class="add-form fade-up visible">
+            <div class="form-title">
+                <i class="fas fa-plus-circle"></i>
+                افزودن نمونه کار جدید
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>عنوان</label>
+                    <input type="text" placeholder="مثال: فروشگاه اینترنتی" @bind="newTitle" />
+                </div>
+                <div class="form-group">
+                    <label>دسته‌بندی</label>
+                    <select @bind="newCategory">
+                        <option value="website">وب‌سایت</option>
+                        <option value="shop">فروشگاه</option>
+                        <option value="app">اپلیکیشن</option>
+                        <option value="dashboard">داشبورد</option>
+                        <option value="api">API</option>
+                        <option value="other">سایر</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>لینک (اختیاری)</label>
+                    <input type="text" placeholder="https://example.com" @bind="newLink" />
+                </div>
+                <button class="btn-add ripple" @onclick="AddItem"><i class="fas fa-plus"></i> افزودن</button>
+            </div>
+            <div class="form-row" style="margin-top:10px; grid-template-columns:1fr 1fr;">
+                <div class="form-group">
+                    <label>توضیحات</label>
+                    <textarea placeholder="توضیحات کوتاه..." @bind="newDescription" style="min-height:42px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>آدرس تصویر (اختیاری)</label>
+                    <input type="text" placeholder="https://example.com/image.jpg" @bind="newImage" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Grid -->
+        @if (filteredItems.Any())
+        {
+            <div class="portfolio-grid">
+                @foreach (var item in filteredItems)
+                {
+                    <div class="portfolio-card fade-up stagger-child">
+                        <div class="card-image">
+                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" alt="@item.Title" />
+                            }
+                            else
+                            {
+                                <div class="placeholder"><i class="fas fa-image"></i></div>
+                            }
+                            <span class="category-badge">@item.CategoryText</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="title">@item.Title</div>
+                            <div class="description">@item.Description</div>
+                            <div class="meta">
+                                <span><i class="fas fa-tag"></i> @item.CategoryText</span>
+                                <span><i class="far fa-calendar-alt"></i> @item.Date</span>
+                                @if (!string.IsNullOrEmpty(item.Link))
+                                {
+                                    <span><i class="fas fa-link"></i> دارد</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            @if (!string.IsNullOrEmpty(item.Link))
+                            {
+                                <button class="link ripple" title="مشاهده لینک" @onclick='() => OpenLink(item.Link)'><i class="fas fa-external-link-alt"></i> لینک</button>
+                            }
+                            <button class="edit ripple" title="ویرایش" @onclick='() => ToggleEdit(item.Id)'><i class="fas fa-edit"></i> ویرایش</button>
+                            <button class="delete ripple" title="حذف" @onclick='() => DeleteItem(item.Id)'><i class="fas fa-trash-alt"></i> حذف</button>
+                        </div>
+
+                        <!-- Edit Mode -->
+                        <div class="edit-mode @(editingId == item.Id ? "active" : "")">
+                            <input type="text" @bind="editTitle" placeholder="عنوان" />
+                            <select @bind="editCategory">
+                                <option value="website">وب‌سایت</option>
+                                <option value="shop">فروشگاه</option>
+                                <option value="app">اپلیکیشن</option>
+                                <option value="dashboard">داشبورد</option>
+                                <option value="api">API</option>
+                                <option value="other">سایر</option>
+                            </select>
+                            <textarea @bind="editDescription" placeholder="توضیحات"></textarea>
+                            <input type="text" @bind="editLink" placeholder="لینک" />
+                            <input type="text" @bind="editImage" placeholder="آدرس تصویر" />
+                            <div class="edit-actions">
+                                <button class="save-edit ripple" @onclick='() => SaveEdit(item.Id)'><i class="fas fa-check"></i> ذخیره</button>
+                                <button class="cancel-edit ripple" @onclick='() => CancelEdit()'><i class="fas fa-times"></i> لغو</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state fade-up visible">
+                <i class="fas fa-images"></i>
+                <h3>هیچ نمونه کاری یافت نشد</h3>
+                <p>با تغییر فیلترها یا افزودن نمونه کار جدید، نتایج را مشاهده کنید</p>
+            </div>
+        }
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <div class="pagination">
+                <button @onclick='() => ChangePage(currentPage - 1)' disabled="@(currentPage == 1)"><i class="fas fa-chevron-right"></i></button>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <button class="@(i == currentPage ? "active" : "")" @onclick='() => ChangePage(i)'>@i</button>
+                }
+                <button @onclick='() => ChangePage(currentPage + 1)' disabled="@(currentPage == totalPages)"><i class="fas fa-chevron-left"></i></button>
+            </div>
+        }
+
+    </div>
+</main>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> مدیریت نمونه کارها</div>
+        <div class="footer-links">
+            <a href="/AdminDashboard">داشبورد</a>
+            <a href="/Projects">پروژه‌ها</a>
+            <a href="/Users">کاربران</a>
+            <a href="/Requests">درخواست‌ها</a>
+            <a href="/Contacts">تماس</a>
+            <a href="/Skills">مهارت‌ها</a>
+            <a href="/Portfolio">نمونه کارها</a>
+            <a href="/Settings">تنظیمات</a>
+        </div>
+    </div>
+</footer>
+
+@code {
+    // ============================================================
+    // STATE & DATA
+    // ============================================================
+
+    private bool isMenuOpen = false;
+    private string searchTerm = "";
+    private string filterCategory = "all";
+    private int currentPage = 1;
+    private int pageSize = 6;
+    private int totalPages = 1;
+
+    // New item form
+    private string newTitle = "";
+    private string newCategory = "website";
+    private string newDescription = "";
+    private string newLink = "";
+    private string newImage = "";
+
+    // Edit mode
+    private string? editingId = null;
+    private string editTitle = "";
+    private string editCategory = "website";
+    private string editDescription = "";
+    private string editLink = "";
+    private string editImage = "";
+
+    private List<PortfolioItem> allItems = new();
+    private List<PortfolioItem> filteredItems = new();
+
+    private int totalItems => allItems.Count;
+    private int categoryCount => allItems.Select(i => i.Category).Distinct().Count();
+    private int withLinkCount => allItems.Count(i => !string.IsNullOrEmpty(i.Link));
+    private int thisYearCount => allItems.Count(i => i.Date.Contains("۱۴۰۵"));
+
+    private Dictionary<string, string> categoryTexts = new()
+    {
+        { "website", "وب‌سایت" },
+        { "shop", "فروشگاه" },
+        { "app", "اپلیکیشن" },
+        { "dashboard", "داشبورد" },
+        { "api", "API" },
+        { "other", "سایر" }
+    };
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override void OnInitialized()
+    {
+        LoadItems();
+        ApplyFilters();
+    }
+
+    private void LoadItems()
+    {
+        allItems = new List<PortfolioItem>
+        {
+            new PortfolioItem
+            {
+                Id = "PF-001",
+                Title = "فروشگاه اینترنتی مدرن",
+                Category = "shop",
+                Description = "طراحی و توسعه یک فروشگاه اینترنتی کامل با سیستم پرداخت آنلاین، مدیریت محصولات و پنل ادمین پیشرفته.",
+                Link = "https://shop-example.com",
+                ImageUrl = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=200&fit=crop",
+                Date = "۱۴۰۵/۰۴/۱۲"
+            },
+            new PortfolioItem
+            {
+                Id = "PF-002",
+                Title = "وب‌سایت شرکتی پیشرو",
+                Category = "website",
+                Description = "طراحی وب‌سایت شرکتی با بخش‌های معرفی، خدمات، وبلاگ و فرم تماس با طراحی مدرن و واکنش‌گرا.",
+                Link = "https://company-example.com",
+                ImageUrl = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop",
+                Date = "۱۴۰۵/۰۴/۰۸"
+            },
+            new PortfolioItem
+            {
+                Id = "PF-003",
+                Title = "داشبورد مدیریتی هوشمند",
+                Category = "dashboard",
+                Description = "طراحی داشبورد مدیریتی با نمودارهای تعاملی، فیلترهای پیشرفته و قابلیت گزارش‌گیری لحظه‌ای.",
+                Link = "",
+                ImageUrl = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=200&fit=crop",
+                Date = "۱۴۰۵/۰۴/۰۵"
+            },
+            new PortfolioItem
+            {
+                Id = "PF-004",
+                Title = "API مدیریت محتوا",
+                Category = "api",
+                Description = "توسعه RESTful API برای مدیریت محتوای سازمانی با احراز هویت JWT، مستندات Swagger و کش Redis.",
+                Link = "https://api-example.com/docs",
+                ImageUrl = "",
+                Date = "۱۴۰۵/۰۴/۰۲"
+            },
+            new PortfolioItem
+            {
+                Id = "PF-005",
+                Title = "اپلیکیشن موبایل آموزشی",
+                Category = "app",
+                Description = "طراحی و توسعه اپلیکیشن موبایل برای آموزش زبان با قابلیت‌های تعاملی، ویدئو، و آزمون‌های آنلاین.",
+                Link = "",
+                ImageUrl = "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=200&fit=crop",
+                Date = "۱۴۰۵/۰۳/۲۸"
+            },
+            new PortfolioItem
+            {
+                Id = "PF-006",
+                Title = "سامانه رزرواسیون هتل",
+                Category = "other",
+                Description = "سیستم رزرواسیون آنلاین برای هتل‌ها با تقویم تعاملی، انتخاب اتاق، و درگاه پرداخت امن.",
+                Link = "https://hotel-reservation-example.com",
+                ImageUrl = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=200&fit=crop",
+                Date = "۱۴۰۵/۰۳/۲۰"
+            },
+            new PortfolioItem
+            {
+                Id = "PF-007",
+                Title = "سایت خبری تحلیلی",
+                Category = "website",
+                Description = "سایت خبری با سیستم مدیریت محتوا، دسته‌بندی پیشرفته، امکان ارسال مطلب توسط نویسندگان و نظرات.",
+                Link = "https://news-example.com",
+                ImageUrl = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=200&fit=crop",
+                Date = "۱۴۰۵/۰۳/۱۵"
+            },
+            new PortfolioItem
+            {
+                Id = "PF-008",
+                Title = "سیستم نظرسنجی پیشرفته",
+                Category = "api",
+                Description = "API برای سیستم نظرسنجی با قابلیت ایجاد نظرسنجی‌های پویا، تحلیل داده‌ها و خروجی CSV.",
+                Link = "",
+                ImageUrl = "",
+                Date = "۱۴۰۵/۰۳/۱۰"
+            }
+        };
+
+        // Set category text for each item
+        foreach (var item in allItems)
+        {
+            item.CategoryText = categoryTexts.GetValueOrDefault(item.Category, "سایر");
+        }
+    }
+
+    // ============================================================
+    // FILTER & SEARCH
+    // ============================================================
+
+    private void ApplyFilters()
+    {
+        var query = allItems.AsEnumerable();
+
+        // Filter by category
+        if (!string.IsNullOrEmpty(filterCategory) && filterCategory != "all")
+        {
+            query = query.Where(i => i.Category == filterCategory);
+        }
+
+        // Search
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(i =>
+                i.Title.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                i.Description.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                i.CategoryText.Contains(term, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        // Pagination
+        var total = query.Count();
+        totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        if (totalPages == 0) totalPages = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        filteredItems = query
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    private void SetCategory(string category)
+    {
+        filterCategory = category;
+        currentPage = 1;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ChangePage(int page)
+    {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // CRUD OPERATIONS
+    // ============================================================
+
+    private void AddItem()
+    {
+        if (string.IsNullOrWhiteSpace(newTitle)) return;
+
+        var newItem = new PortfolioItem
+        {
+            Id = "PF-" + (allItems.Count + 1).ToString("D3"),
+            Title = newTitle.Trim(),
+            Category = newCategory,
+            Description = string.IsNullOrWhiteSpace(newDescription) ? "بدون توضیحات" : newDescription.Trim(),
+            Link = newLink?.Trim() ?? "",
+            ImageUrl = newImage?.Trim() ?? "",
+            Date = DateTime.Now.ToString("۱۴۰۵/MM/dd").Replace("۱۴۰۵/", "۱۴۰۵/"),
+            CategoryText = categoryTexts.GetValueOrDefault(newCategory, "سایر")
+        };
+
+        allItems.Add(newItem);
+        newTitle = "";
+        newDescription = "";
+        newLink = "";
+        newImage = "";
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ToggleEdit(string id)
+    {
+        var item = allItems.FirstOrDefault(i => i.Id == id);
+        if (item == null) return;
+
+        if (editingId == id)
+        {
+            CancelEdit();
+            return;
+        }
+
+        editingId = id;
+        editTitle = item.Title;
+        editCategory = item.Category;
+        editDescription = item.Description;
+        editLink = item.Link ?? "";
+        editImage = item.ImageUrl ?? "";
+        StateHasChanged();
+    }
+
+    private void SaveEdit(string id)
+    {
+        var item = allItems.FirstOrDefault(i => i.Id == id);
+        if (item == null) return;
+
+        if (!string.IsNullOrWhiteSpace(editTitle))
+            item.Title = editTitle.Trim();
+        item.Category = editCategory;
+        item.Description = string.IsNullOrWhiteSpace(editDescription) ? "بدون توضیحات" : editDescription.Trim();
+        item.Link = editLink?.Trim() ?? "";
+        item.ImageUrl = editImage?.Trim() ?? "";
+        item.CategoryText = categoryTexts.GetValueOrDefault(editCategory, "سایر");
+
+        CancelEdit();
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void CancelEdit()
+    {
+        editingId = null;
+        editTitle = "";
+        editCategory = "website";
+        editDescription = "";
+        editLink = "";
+        editImage = "";
+        StateHasChanged();
+    }
+
+    private void DeleteItem(string id)
+    {
+        allItems.RemoveAll(i => i.Id == id);
+        if (editingId == id) CancelEdit();
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void OpenLink(string link)
+    {
+        if (!string.IsNullOrEmpty(link))
+        {
+            NavigationManager.NavigateTo(link, true);
+        }
+    }
+
+    // ============================================================
+    // UI METHODS
+    // ============================================================
+
+    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
+    private void CloseMenu() => isMenuOpen = false;
+    private void GoToProfile() => NavigationManager.NavigateTo("/Profile", true);
+    private void RefreshItems()
+    {
+        LoadItems();
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Navbar scroll
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                navbar?.classList.toggle('scrolled', window.scrollY > 30);
+            });
+
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 300);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASSES
+    // ============================================================
+
+    public class PortfolioItem
+    {
+        public string Id { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string CategoryText { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Link { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public string Date { get; set; } = "";
+    }
+}
