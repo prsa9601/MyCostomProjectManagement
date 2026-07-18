@@ -1,0 +1,1427 @@
+﻿@page "/Admin/Roles"
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مدیریت نقش‌ها و دسترسی‌ها | پنل ادمین</title>
+
+<style>
+    /* ============================================================
+               ROLES & PERMISSIONS PAGE
+            ============================================================ */
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 32px;
+        padding-top: 20px;
+    }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-header h1 i {
+                color: #e8a838;
+            }
+
+        .page-header .subtitle {
+            color: rgba(232, 240, 241, 0.5);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .page-header .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 9px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+        }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-success:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(220, 53, 69, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-danger:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(220, 53, 69, 0.2);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: 0.3s;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+    }
+
+        .btn-outline:hover {
+            border-color: #e8a838;
+            color: #fff;
+            background: rgba(232, 168, 56, 0.04);
+            transform: translateY(-2px);
+        }
+
+    .btn-sm {
+        padding: 4px 14px;
+        font-size: 0.75rem;
+        border-radius: 30px;
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.2);
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-icon:hover {
+            border-color: rgba(232, 168, 56, 0.06);
+            color: #e8f0f1;
+            background: rgba(232, 168, 56, 0.02);
+            transform: scale(1.05);
+        }
+
+        .btn-icon.edit:hover {
+            border-color: rgba(82, 183, 136, 0.06);
+            color: #52b788;
+            background: rgba(82, 183, 136, 0.02);
+        }
+
+        .btn-icon.delete:hover {
+            border-color: rgba(220, 53, 69, 0.06);
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.02);
+        }
+
+        .btn-icon.users:hover {
+            border-color: rgba(59, 130, 246, 0.06);
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.02);
+        }
+
+    /* ============================================================
+               STATS ROW
+            ============================================================ */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-mini {
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.3s ease;
+    }
+
+        .stat-mini:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(232, 168, 56, 0.06);
+        }
+
+        .stat-mini i {
+            font-size: 1.6rem;
+            color: #e8a838;
+            opacity: 0.5;
+            width: 40px;
+            text-align: center;
+        }
+
+        .stat-mini .info .number {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .stat-mini .info .label {
+            font-size: 0.75rem;
+            color: rgba(232, 240, 241, 0.3);
+        }
+
+    /* ============================================================
+               ROLES LIST
+            ============================================================ */
+    .roles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .role-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 20px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 24px;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 3px;
+            height: 100%;
+            border-radius: 0 3px 3px 0;
+            opacity: 0.3;
+            background: linear-gradient(180deg, #e8a838, #3b82f6);
+        }
+
+        .role-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(232, 168, 56, 0.06);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        .role-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+            .role-card .card-header .role-info {
+                flex: 1;
+            }
+
+                .role-card .card-header .role-info .role-name {
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    color: #ffffff;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                    .role-card .card-header .role-info .role-name .badge-count {
+                        font-size: 0.65rem;
+                        background: rgba(59, 130, 246, 0.06);
+                        color: #3b82f6;
+                        padding: 2px 10px;
+                        border-radius: 30px;
+                        font-weight: 500;
+                    }
+
+                .role-card .card-header .role-info .role-desc {
+                    font-size: 0.85rem;
+                    color: #94a3b8;
+                    margin-top: 2px;
+                }
+
+            .role-card .card-header .role-actions {
+                display: flex;
+                gap: 4px;
+            }
+
+        .role-card .card-body {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+            .role-card .card-body .permissions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-bottom: 10px;
+            }
+
+                .role-card .card-body .permissions .perm-tag {
+                    padding: 3px 12px;
+                    border-radius: 30px;
+                    font-size: 0.65rem;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.04);
+                    color: #94a3b8;
+                    transition: 0.3s;
+                }
+
+                    .role-card .card-body .permissions .perm-tag:hover {
+                        border-color: rgba(232, 168, 56, 0.06);
+                        color: #e8f0f1;
+                    }
+
+            .role-card .card-body .users-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                margin-top: 8px;
+            }
+
+                .role-card .card-body .users-list .user-tag {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    padding: 3px 10px 3px 6px;
+                    border-radius: 30px;
+                    font-size: 0.7rem;
+                    background: rgba(255, 255, 255, 0.02);
+                    border: 1px solid rgba(255, 255, 255, 0.03);
+                    color: #94a3b8;
+                }
+
+                    .role-card .card-body .users-list .user-tag .avatar-mini {
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, #e8a838, #3b82f6);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 0.5rem;
+                        color: #fff;
+                        font-weight: 600;
+                    }
+
+                        .role-card .card-body .users-list .user-tag .avatar-mini.gold {
+                            background: linear-gradient(135deg, #e8a838, #d4952e);
+                        }
+
+                        .role-card .card-body .users-list .user-tag .avatar-mini.blue {
+                            background: linear-gradient(135deg, #3b82f6, #2563eb);
+                        }
+
+                        .role-card .card-body .users-list .user-tag .avatar-mini.green {
+                            background: linear-gradient(135deg, #52b788, #409f73);
+                        }
+
+                        .role-card .card-body .users-list .user-tag .avatar-mini.purple {
+                            background: linear-gradient(135deg, #8264c8, #6a4fa8);
+                        }
+
+    /* ============================================================
+               MODAL
+            ============================================================ */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+    @@keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .modal-box {
+        background: #0a0e17;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 28px;
+        padding: 40px 36px;
+        max-width: 540px;
+        width: 100%;
+        margin: 20px;
+        box-shadow: 0 8px 64px rgba(0, 0, 0, 0.5);
+        animation: scaleIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    @@keyframes scaleIn {
+        0% {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .modal-box .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .modal-box .modal-title i {
+            color: #e8a838;
+        }
+
+    .modal-box .modal-subtitle {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+
+    .modal-box .form-group {
+        margin-bottom: 18px;
+    }
+
+        .modal-box .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .modal-box .form-group input,
+        .modal-box .form-group textarea,
+        .modal-box .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            color: #eef2f8;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.35s ease;
+            font-family: inherit;
+        }
+
+            .modal-box .form-group input:focus,
+            .modal-box .form-group textarea:focus,
+            .modal-box .form-group select:focus {
+                border-color: #e8a838;
+                background: rgba(255, 255, 255, 0.04);
+                box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
+            }
+
+            .modal-box .form-group input::placeholder,
+            .modal-box .form-group textarea::placeholder {
+                color: #64748b;
+            }
+
+            .modal-box .form-group select option {
+                background: #0a0e17;
+                color: #eef2f8;
+            }
+
+        .modal-box .form-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+    .modal-box .permissions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 16px;
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 4px;
+    }
+
+        .modal-box .permissions-grid .perm-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+            .modal-box .permissions-grid .perm-item:hover {
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .modal-box .permissions-grid .perm-item input[type="checkbox"] {
+                accent-color: #e8a838;
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+
+            .modal-box .permissions-grid .perm-item label {
+                font-size: 0.8rem;
+                color: #b8c4d6;
+                cursor: pointer;
+                margin: 0;
+            }
+
+    .modal-box .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        flex-wrap: wrap;
+    }
+
+        .modal-box .modal-actions .btn-modal-primary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            font-family: inherit;
+            background: linear-gradient(135deg, #e8a838, #d4952e);
+            color: #0a0e17;
+            box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+        }
+
+            .modal-box .modal-actions .btn-modal-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+            }
+
+        .modal-box .modal-actions .btn-modal-secondary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            font-family: inherit;
+        }
+
+            .modal-box .modal-actions .btn-modal-secondary:hover {
+                background: rgba(255, 255, 255, 0.04);
+                border-color: rgba(255, 255, 255, 0.1);
+                color: #eef2f8;
+                transform: translateY(-2px);
+            }
+
+    /* ============================================================
+               EMPTY STATE
+            ============================================================ */
+    .empty-state-mini {
+        text-align: center;
+        padding: 50px 20px;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+        .empty-state-mini i {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 12px;
+            color: rgba(59, 130, 246, 0.05);
+        }
+
+        .empty-state-mini h3 {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+    /* ============================================================
+               RIPPLE
+            ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+
+    @@keyframes rippleAnim {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    /* ============================================================
+               FADE UP
+            ============================================================ */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    .stagger-child {
+        transition-delay: 0s;
+    }
+
+        .stagger-child:nth-child(1) {
+            transition-delay: 0.05s;
+        }
+
+        .stagger-child:nth-child(2) {
+            transition-delay: 0.1s;
+        }
+
+        .stagger-child:nth-child(3) {
+            transition-delay: 0.15s;
+        }
+
+        .stagger-child:nth-child(4) {
+            transition-delay: 0.2s;
+        }
+
+    /* ============================================================
+               RESPONSIVE
+            ============================================================ */
+    @@media (max-width: 992px) {
+        .roles-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .page-header .actions {
+                width: 100%;
+            }
+
+                .page-header .actions .btn-primary {
+                    flex: 1;
+                    justify-content: center;
+                }
+
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .stat-mini .info .number {
+            font-size: 1.1rem;
+        }
+
+        .stat-mini i {
+            font-size: 1.2rem;
+            width: 30px;
+        }
+
+        .modal-box {
+            padding: 28px 20px;
+            margin: 12px;
+        }
+
+            .modal-box .permissions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-box .modal-actions {
+                flex-direction: column;
+            }
+
+                .modal-box .modal-actions .btn-modal-primary,
+                .modal-box .modal-actions .btn-modal-secondary {
+                    width: 100%;
+                }
+
+        .role-card .card-header {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+            .role-card .card-header .role-actions {
+                align-self: flex-start;
+            }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header h1 {
+            font-size: 1.2rem;
+        }
+
+        .roles-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-box {
+            padding: 20px 16px;
+        }
+    }
+
+    /* ============================================================
+               SCROLLBAR
+            ============================================================ */
+    .modal-box::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .modal-box::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .modal-box::-webkit-scrollbar-thumb {
+        background: rgba(232, 168, 56, 0.2);
+        border-radius: 10px;
+    }
+
+        .modal-box::-webkit-scrollbar-thumb:hover {
+            background: rgba(232, 168, 56, 0.3);
+        }
+</style>
+
+<!-- ===== PAGE CONTENT ===== -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-user-shield"></i>
+                    نقش‌ها و دسترسی‌ها
+                </h1>
+                <div class="subtitle">مدیریت نقش‌های کاربران و سطح دسترسی‌های سیستم</div>
+            </div>
+            <div class="actions">
+                <button class="btn-primary ripple" @onclick="OpenAddModal">
+                    <i class="fas fa-plus"></i> نقش جدید
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row fade-up visible">
+            <div class="stat-mini">
+                <i class="fas fa-users-cog"></i>
+                <div class="info">
+                    <div class="number">@roles.Count</div>
+                    <div class="label">نقش‌ها</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-lock" style="color:#52b788;"></i>
+                <div class="info">
+                    <div class="number">@totalPermissions</div>
+                    <div class="label">مجوزهای تعریف شده</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-user-tag" style="color:#e8a838;"></i>
+                <div class="info">
+                    <div class="number">@totalUsersWithRoles</div>
+                    <div class="label">کاربران دارای نقش</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-star" style="color:#8264c8;"></i>
+                <div class="info">
+                    <div class="number">@defaultRolesCount</div>
+                    <div class="label">نقش‌های پیش‌فرض</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles Grid -->
+        <div class="roles-grid">
+            @foreach (var role in roles)
+            {
+                <div class="role-card fade-up stagger-child">
+                    <div class="card-header">
+                        <div class="role-info">
+                            <div class="role-name">
+                                <i class="fas @(role.Icon)" style="color:@role.IconColor;"></i>
+                                @role.Name
+                                <span class="badge-count">@role.Users.Count کاربر</span>
+                            </div>
+                            <div class="role-desc">@role.Description</div>
+                        </div>
+                        <div class="role-actions">
+                            <button class="btn-icon users" title="مشاهده کاربران" @onclick='() => ShowRoleUsers(role.Id)'>
+                                <i class="fas fa-users"></i>
+                            </button>
+                            <button class="btn-icon edit" title="ویرایش نقش" @onclick='() => OpenEditModal(role.Id)'>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon delete" title="حذف نقش" @onclick='() => DeleteRole(role.Id)'>
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="permissions">
+                            @foreach (var perm in role.Permissions.Take(6))
+                            {
+                                <span class="perm-tag">@perm</span>
+                            }
+                            @if (role.Permissions.Count > 6)
+                            {
+                                <span class="perm-tag" style="color:#e8a838;">+@(role.Permissions.Count - 6) مورد</span>
+                            }
+                        </div>
+                        <div class="users-list">
+                            @foreach (var user in role.Users.Take(3))
+                            {
+                                <span class="user-tag">
+                                    <span class="avatar-mini @user.AvatarClass">@user.Initials</span>
+                                    @user.Name
+                                </span>
+                            }
+                            @if (role.Users.Count > 3)
+                            {
+                                <span class="user-tag" style="color:#e8a838;">+@(role.Users.Count - 3) نفر</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (!roles.Any())
+        {
+            <div class="empty-state-mini">
+                <i class="fas fa-user-shield"></i>
+                <h3>هیچ نقشی تعریف نشده است</h3>
+                <p>برای شروع، یک نقش جدید ایجاد کنید.</p>
+            </div>
+        }
+
+    </div>
+</main>
+
+<!-- ============================================================
+     MODAL (Add/Edit Role) - کاملاً مجزا
+============================================================ -->
+<div class="modal-overlay @(isModalOpen ? "active" : "")" @onclick="CloseModal">
+    <div class="modal-box" @onclick:stopPropagation="true">
+        <div class="modal-title">
+            <i class="fas @(isEditing ? "fa-edit" : "fa-plus-circle")"></i>
+            @(isEditing ? "ویرایش نقش" : "نقش جدید")
+        </div>
+        <div class="modal-subtitle">
+            @(isEditing ? "اطلاعات نقش را ویرایش کنید." : "اطلاعات نقش جدید را وارد کنید.")
+        </div>
+
+        <div class="form-group">
+            <label>نام نقش <span style="color:#dc3545;">*</span></label>
+            <input type="text" placeholder="مثال: ادمین, مدیر پروژه, کاربر" @bind="modalRoleName" />
+        </div>
+
+        <div class="form-group">
+            <label>توضیحات</label>
+            <textarea placeholder="توضیحات مختصر درباره این نقش..." @bind="modalRoleDescription"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>آیکون</label>
+            <select @bind="modalRoleIcon">
+                <option value="fa-user-shield">🛡️ کاربر شیلد</option>
+                <option value="fa-user-cog">⚙️ کاربر تنظیمات</option>
+                <option value="fa-user-tie">👔 کاربر حرفه‌ای</option>
+                <option value="fa-user-graduate">🎓 کاربر دانشجو</option>
+                <option value="fa-user-astronaut">🚀 کاربر فضایی</option>
+                <option value="fa-user-ninja">🥷 کاربر نینجا</option>
+                <option value="fa-user-secret">🕵️ کاربر مخفی</option>
+                <option value="fa-user-plus">➕ کاربر جدید</option>
+                <option value="fa-users-cog">👥 مدیر گروه</option>
+                <option value="fa-crown">👑 مدیر ارشد</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>رنگ آیکون</label>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                @foreach (var color in iconColors)
+                {
+                    <div style="width:32px; height:32px; border-radius:50%; background:@color; cursor:pointer; border:2px solid @(modalRoleIconColor == color ? "#e8a838" : "transparent"); transition:0.3s;" @onclick='() => modalRoleIconColor = color'></div>
+                }
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>دسترسی‌ها (Permissions)</label>
+            <div class="permissions-grid">
+                @foreach (var perm in allPermissions)
+                {
+                    <div class="perm-item">
+                        <input type="checkbox" @bind="modalPermissions[perm]" />
+                        <label>@perm</label>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal-primary ripple" @onclick="SaveRole">
+                <i class="fas fa-save"></i> @(isEditing ? "ذخیره تغییرات" : "ایجاد نقش")
+            </button>
+            <button class="btn-modal-secondary ripple" @onclick="CloseModal">
+                <i class="fas fa-times"></i> لغو
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     USERS MODAL - کاملاً مجزا
+============================================================ -->
+<div class="modal-overlay @(isUsersModalOpen ? "active" : "")" @onclick="CloseUsersModal">
+    <div class="modal-box" @onclick:stopPropagation="true" style="max-width:480px;">
+        <div class="modal-title">
+            <i class="fas fa-users"></i>
+            کاربران نقش: <span style="color:#e8a838;">@selectedRoleName</span>
+        </div>
+        <div class="modal-subtitle">
+            لیست کاربرانی که این نقش را دارند.
+        </div>
+
+        @if (selectedRoleUsers.Any())
+        {
+            <div style="display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto; padding:4px;">
+                @foreach (var user in selectedRoleUsers)
+                {
+                    <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.02); transition:0.3s;">
+                        <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, #e8a838, #3b82f6); display:flex; align-items:center; justify-content:center; font-weight:600; color:#fff; font-size:0.8rem; flex-shrink:0;">
+                            @user.Initials
+                        </div>
+                        <div style="flex:1;">
+                            <div style="color:#e8edf5; font-weight:500; font-size:0.9rem;">@user.Name</div>
+                            <div style="color:#94a3b8; font-size:0.75rem;">@user.Email</div>
+                        </div>
+                        <a href="/Admin/UserDetail/@user.Id" class="btn-outline" style="padding:4px 14px; font-size:0.7rem; border-radius:30px;">
+                            <i class="fas fa-eye"></i> مشاهده
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state-mini" style="padding:30px 20px;">
+                <i class="fas fa-user-slash" style="font-size:2rem;"></i>
+                <p style="color:#94a3b8;">هیچ کاربری با این نقش یافت نشد.</p>
+            </div>
+        }
+
+        <div class="modal-actions" style="margin-top:16px;">
+            <button class="btn-modal-secondary ripple" @onclick="CloseUsersModal" style="width:100%;">
+                <i class="fas fa-times"></i> بستن
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private bool isModalOpen = false;
+    private bool isEditing = false;
+    private string editingRoleId = "";
+    private string modalRoleName = "";
+    private string modalRoleDescription = "";
+    private string modalRoleIcon = "fa-user-shield";
+    private string modalRoleIconColor = "#e8a838";
+    private Dictionary<string, bool> modalPermissions = new();
+
+    private bool isUsersModalOpen = false;
+    private string selectedRoleName = "";
+    private List<RoleUser> selectedRoleUsers = new();
+
+    // Data
+    private List<Role> roles = new();
+    private List<string> allPermissions = new();
+
+    private int totalPermissions => allPermissions.Count;
+    private int totalUsersWithRoles => roles.Sum(r => r.Users.Count);
+    private int defaultRolesCount => roles.Count(r => r.IsDefault);
+
+    private List<string> iconColors = new()
+    {
+        "#e8a838", "#3b82f6", "#52b788", "#dc3545", "#8264c8",
+        "#1a7a8a", "#fb923c", "#ef4444", "#34d399", "#8b5cf6"
+    };
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override void OnInitialized()
+    {
+        LoadMockData();
+        // مقداردهی اولیه دیکشنری برای جلوگیری از KeyNotFoundException
+        modalPermissions = allPermissions.ToDictionary(p => p, p => false);
+    }
+
+    private void LoadMockData()
+    {
+        allPermissions = new List<string>
+        {
+            "مشاهده داشبورد",
+            "مدیریت کاربران",
+            "مشاهده کاربران",
+            "ویرایش کاربران",
+            "حذف کاربران",
+            "مدیریت نقش‌ها",
+            "مدیریت پروژه‌ها",
+            "مشاهده پروژه‌ها",
+            "ایجاد پروژه",
+            "ویرایش پروژه",
+            "حذف پروژه",
+            "مدیریت APIها",
+            "مشاهده APIها",
+            "ایجاد API",
+            "ویرایش API",
+            "حذف API",
+            "مدیریت پکیج‌ها",
+            "مشاهده پکیج‌ها",
+            "ایجاد پکیج",
+            "ویرایش پکیج",
+            "حذف پکیج",
+            "مدیریت درخواست‌ها",
+            "مشاهده درخواست‌ها",
+            "تایید درخواست",
+            "رد درخواست",
+            "مدیریت پیام‌ها",
+            "مشاهده پیام‌ها",
+            "پاسخ به پیام",
+            "حذف پیام",
+            "مدیریت مهارت‌ها",
+            "مشاهده مهارت‌ها",
+            "ایجاد مهارت",
+            "ویرایش مهارت",
+            "حذف مهارت",
+            "مدیریت نمونه کارها",
+            "مشاهده نمونه کارها",
+            "ایجاد نمونه کار",
+            "ویرایش نمونه کار",
+            "حذف نمونه کار",
+            "مدیریت تنظیمات",
+            "مشاهده تنظیمات",
+            "ویرایش تنظیمات"
+        };
+
+        roles = new List<Role>
+        {
+            new Role
+            {
+                Id = "ROL-001",
+                Name = "مدیر ارشد",
+                Description = "دسترسی کامل به تمام بخش‌های سیستم",
+                Icon = "fa-crown",
+                IconColor = "#e8a838",
+                IsDefault = true,
+                Permissions = allPermissions.Take(20).ToList(),
+                Users = new List<RoleUser>
+                {
+                    new RoleUser { Id = "USR-001", Name = "علی رضایی", Email = "ali@example.com", Initials = "ع", AvatarClass = "gold" }
+                }
+            },
+            new Role
+            {
+                Id = "ROL-002",
+                Name = "مدیر پروژه",
+                Description = "دسترسی به مدیریت پروژه‌ها و کاربران",
+                Icon = "fa-users-cog",
+                IconColor = "#3b82f6",
+                IsDefault = true,
+                Permissions = new List<string>
+                {
+                    "مشاهده داشبورد",
+                    "مشاهده کاربران",
+                    "مدیریت پروژه‌ها",
+                    "مشاهده پروژه‌ها",
+                    "ایجاد پروژه",
+                    "ویرایش پروژه",
+                    "مدیریت درخواست‌ها",
+                    "مشاهده درخواست‌ها",
+                    "تایید درخواست"
+                },
+                Users = new List<RoleUser>
+                {
+                    new RoleUser { Id = "USR-002", Name = "سارا حسینی", Email = "sara@example.com", Initials = "س", AvatarClass = "blue" },
+                    new RoleUser { Id = "USR-003", Name = "رضا کریمی", Email = "reza@example.com", Initials = "ر", AvatarClass = "green" }
+                }
+            },
+            new Role
+            {
+                Id = "ROL-003",
+                Name = "توسعه‌دهنده",
+                Description = "دسترسی به بخش‌های فنی و APIها",
+                Icon = "fa-code",
+                IconColor = "#52b788",
+                IsDefault = false,
+                Permissions = new List<string>
+                {
+                    "مشاهده داشبورد",
+                    "مشاهده پروژه‌ها",
+                    "مدیریت APIها",
+                    "مشاهده APIها",
+                    "ایجاد API",
+                    "ویرایش API",
+                    "مدیریت مهارت‌ها",
+                    "مشاهده مهارت‌ها",
+                    "ایجاد مهارت",
+                    "ویرایش مهارت"
+                },
+                Users = new List<RoleUser>
+                {
+                    new RoleUser { Id = "USR-004", Name = "مریم نادری", Email = "maryam@example.com", Initials = "م", AvatarClass = "purple" }
+                }
+            },
+            new Role
+            {
+                Id = "ROL-004",
+                Name = "کاربر عادی",
+                Description = "دسترسی پایه به سیستم",
+                Icon = "fa-user",
+                IconColor = "#94a3b8",
+                IsDefault = true,
+                Permissions = new List<string>
+                {
+                    "مشاهده داشبورد",
+                    "مشاهده پروژه‌ها",
+                    "مشاهده APIها"
+                },
+                Users = new List<RoleUser>
+                {
+                    new RoleUser { Id = "USR-005", Name = "احمد رضایی", Email = "ahmad@example.com", Initials = "ا", AvatarClass = "" },
+                    new RoleUser { Id = "USR-006", Name = "زهرا محمدی", Email = "zahra@example.com", Initials = "ز", AvatarClass = "" },
+                    new RoleUser { Id = "USR-007", Name = "نرگس احمدی", Email = "narges@example.com", Initials = "ن", AvatarClass = "" }
+                }
+            }
+        };
+    }
+
+    // ============================================================
+    // MODAL OPERATIONS
+    // ============================================================
+
+    private void OpenAddModal()
+    {
+        isEditing = false;
+        editingRoleId = "";
+        modalRoleName = "";
+        modalRoleDescription = "";
+        modalRoleIcon = "fa-user-shield";
+        modalRoleIconColor = "#e8a838";
+        modalPermissions = allPermissions.ToDictionary(p => p, p => false);
+        isModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void OpenEditModal(string roleId)
+    {
+        var role = roles.FirstOrDefault(r => r.Id == roleId);
+        if (role == null) return;
+
+        isEditing = true;
+        editingRoleId = roleId;
+        modalRoleName = role.Name;
+        modalRoleDescription = role.Description;
+        modalRoleIcon = role.Icon;
+        modalRoleIconColor = role.IconColor;
+        modalPermissions = allPermissions.ToDictionary(p => p, p => role.Permissions.Contains(p));
+        isModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        isModalOpen = false;
+        StateHasChanged();
+    }
+
+    private void SaveRole()
+    {
+        if (string.IsNullOrWhiteSpace(modalRoleName))
+        {
+            // در برنامه واقعی، پیام خطا نمایش دهید
+            Console.WriteLine("لطفاً نام نقش را وارد کنید.");
+            return;
+        }
+
+        var selectedPermissions = modalPermissions.Where(p => p.Value).Select(p => p.Key).ToList();
+
+        if (isEditing)
+        {
+            var role = roles.FirstOrDefault(r => r.Id == editingRoleId);
+            if (role != null)
+            {
+                role.Name = modalRoleName.Trim();
+                role.Description = modalRoleDescription.Trim();
+                role.Icon = modalRoleIcon;
+                role.IconColor = modalRoleIconColor;
+                role.Permissions = selectedPermissions;
+            }
+        }
+        else
+        {
+            var newRole = new Role
+            {
+                Id = "ROL-" + (roles.Count + 1).ToString("D3"),
+                Name = modalRoleName.Trim(),
+                Description = modalRoleDescription.Trim(),
+                Icon = modalRoleIcon,
+                IconColor = modalRoleIconColor,
+                IsDefault = false,
+                Permissions = selectedPermissions,
+                Users = new List<RoleUser>()
+            };
+            roles.Add(newRole);
+        }
+
+        CloseModal();
+        StateHasChanged();
+    }
+
+    private void DeleteRole(string roleId)
+    {
+        var role = roles.FirstOrDefault(r => r.Id == roleId);
+        if (role == null) return;
+
+        if (role.IsDefault)
+        {
+            Console.WriteLine("نقش‌های پیش‌فرض قابل حذف نیستند.");
+            return;
+        }
+
+        if (role.Users.Any())
+        {
+            Console.WriteLine($"نقش {role.Name} دارای کاربر است و قابل حذف نیست.");
+            return;
+        }
+
+        roles.RemoveAll(r => r.Id == roleId);
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // USERS MODAL
+    // ============================================================
+
+    private void ShowRoleUsers(string roleId)
+    {
+        var role = roles.FirstOrDefault(r => r.Id == roleId);
+        if (role == null) return;
+
+        selectedRoleName = role.Name;
+        selectedRoleUsers = role.Users;
+        isUsersModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseUsersModal()
+    {
+        isUsersModalOpen = false;
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // JS INTEROP (فقط برای ریپل و fade-up)
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 400);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASSES
+    // ============================================================
+
+    public class Role
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "fa-user-shield";
+        public string IconColor { get; set; } = "#e8a838";
+        public bool IsDefault { get; set; }
+        public List<string> Permissions { get; set; } = new();
+        public List<RoleUser> Users { get; set; } = new();
+    }
+
+    public class RoleUser
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Initials { get; set; } = "";
+        public string AvatarClass { get; set; } = "";
+    }
+}

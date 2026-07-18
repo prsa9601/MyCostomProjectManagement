@@ -1,5 +1,5 @@
 ﻿@page "/Admin/Portfolio"
-@layout FrontLayout
+@layout AdminLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
@@ -1004,44 +1004,6 @@
 </style>
 
 <!-- ============================================================
-     SPARKLE PARTICLES
-============================================================ -->
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-
-<!-- ============================================================
-     NAVBAR
-============================================================ -->
-<header class="navbar" id="navbar">
-    <div class="container">
-        <div class="logo">
-            <i class="fas fa-crown"></i>
-            Admin<span>Panel</span>
-        </div>
-        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
-            <li><a href="/AdminDashboard">داشبورد</a></li>
-            <li><a href="/Projects">پروژه‌ها</a></li>
-            <li><a href="/Users">کاربران</a></li>
-            <li><a href="/Requests">درخواست‌ها</a></li>
-            <li><a href="/Contacts">تماس</a></li>
-            <li><a href="/Skills">مهارت‌ها</a></li>
-            <li><a href="/Portfolio" class="active">نمونه کارها</a></li>
-            <li><a href="/Settings">تنظیمات</a></li>
-        </ul>
-        <div class="nav-actions">
-            <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
-            <button class="hamburger" @onclick="ToggleMenu">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </div>
-</header>
-
-<!-- ============================================================
      PAGE CONTENT
 ============================================================ -->
 <main class="dashboard">
@@ -1238,24 +1200,6 @@
     </div>
 </main>
 
-<!-- ============================================================
-     FOOTER
-============================================================ -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> مدیریت نمونه کارها</div>
-        <div class="footer-links">
-            <a href="/AdminDashboard">داشبورد</a>
-            <a href="/Projects">پروژه‌ها</a>
-            <a href="/Users">کاربران</a>
-            <a href="/Requests">درخواست‌ها</a>
-            <a href="/Contacts">تماس</a>
-            <a href="/Skills">مهارت‌ها</a>
-            <a href="/Portfolio">نمونه کارها</a>
-            <a href="/Settings">تنظیمات</a>
-        </div>
-    </div>
-</footer>
 
 @code {
     // ============================================================

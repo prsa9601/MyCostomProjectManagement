@@ -1,5 +1,5 @@
 ﻿@page "/Admin/Projects"
-@layout FrontLayout
+@layout AdminLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
@@ -771,41 +771,6 @@
     }
 </style>
 
-<!-- ============================================================
-     SPARKLE PARTICLES
-============================================================ -->
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-
-<!-- ============================================================
-     NAVBAR
-============================================================ -->
-<header class="navbar" id="navbar">
-    <div class="container">
-        <div class="logo">
-            <i class="fas fa-crown"></i>
-            Admin<span>Panel</span>
-        </div>
-        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
-            <li><a href="/AdminDashboard">داشبورد</a></li>
-            <li><a href="/Projects" class="active">پروژه‌ها</a></li>
-            <li><a href="#">کاربران</a></li>
-            <li><a href="#">گزارشات</a></li>
-            <li><a href="#">تنظیمات</a></li>
-        </ul>
-        <div class="nav-actions">
-            <a href="#" class="btn-primary ripple" @onclick="CreateNewProject"><i class="fas fa-plus"></i> پروژه جدید</a>
-            <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
-            <button class="hamburger" @onclick="ToggleMenu">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </div>
-</header>
 
 <!-- ============================================================
      PAGE CONTENT
@@ -903,21 +868,6 @@
     </div>
 </main>
 
-<!-- ============================================================
-     FOOTER
-============================================================ -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> مدیریت پروژه‌ها</div>
-        <div class="footer-links">
-            <a href="/AdminDashboard">داشبورد</a>
-            <a href="/Projects">پروژه‌ها</a>
-            <a href="#">تنظیمات</a>
-            <a href="#"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-        </div>
-    </div>
-</footer>
 
 @code {
     // ============================================================

@@ -1,3 +1,12 @@
 <Solution>
+  <Folder Name="/Document/">
+    <File Path="../../../Desktop/Untitled .png" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/BackEnd/BackEnd.csproj" Id="a83564a5-a6d5-4bea-a64b-89e5fcab3abd" />
+  </Folder>
+  <Folder Name="/_TSQL-Query/">
+    <File Path="SQLQuery1.sql" />
+  </Folder>
   <Project Path="MyCostomProjectManagement/MyCostomProjectManagement.csproj" />
 </Solution>

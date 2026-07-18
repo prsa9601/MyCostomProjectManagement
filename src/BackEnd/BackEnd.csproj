@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Core\Auth\Queries\DTOs\" />
+    <Folder Include="Core\Auth\Queries\Mappers\" />
+    <Folder Include="Core\ContactUs\Commands\" />
+    <Folder Include="Core\ContactUs\Queries\Mappers\" />
+    <Folder Include="Core\Package\Commands\" />
+    <Folder Include="Core\Package\Queries\Mappers\" />
+    <Folder Include="Core\Portfolio\Commands\" />
+    <Folder Include="Core\Portfolio\Queries\Mappers\" />
+    <Folder Include="Core\Project\Commands\" />
+    <Folder Include="Core\Project\Queries\DTOs\" />
+    <Folder Include="Core\Project\Queries\Mappers\" />
+    <Folder Include="Core\Role\Queries\Mappers\" />
+    <Folder Include="Core\SiteSetting\Commands\" />
+    <Folder Include="Core\SiteSetting\Queries\Mappers\" />
+    <Folder Include="Core\Skills\Commands\" />
+    <Folder Include="Core\Skills\Queries\Mappers\" />
+    <Folder Include="Core\User\Commands\Edit\" />
+    <Folder Include="Core\User\Queries\Mappers\" />
+    <Folder Include="Data\DB\Migrations\" />
+    <Folder Include="Data\Entities\ApiProducts\Repository\" />
+    <Folder Include="Data\Entities\Blogs\" />
+    <Folder Include="Data\Entities\ContactUs\Repository\" />
+    <Folder Include="Data\Entities\NewFolder\" />
+    <Folder Include="Data\Entities\Package\Repository\" />
+    <Folder Include="Data\Entities\Portfolio\Repository\" />
+    <Folder Include="Data\Entities\Projects\Repository\" />
+    <Folder Include="Data\Entities\Project\" />
+    <Folder Include="Data\Entities\SiteSettings\Repository\" />
+    <Folder Include="Data\Entities\Skills\Repository\" />
+    <Folder Include="Infrastructure\InternalAPIs\" />
+    <Folder Include="Infrastructure\Repositories\ContactUs\" />
+    <Folder Include="Infrastructure\Repositories\ApiProduct\" />
+    <Folder Include="Infrastructure\Repositories\Project\" />
+    <Folder Include="Infrastructure\Repositories\Portfolio\" />
+    <Folder Include="Infrastructure\Repositories\SiteSettings\" />
+    <Folder Include="Infrastructure\Repositories\Skills\" />
+    <Folder Include="Infrastructure\Repositories\Package\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.2.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
+    <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
+    <PackageReference Include="MediatR" Version="14.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Nanoid" Version="3.1.0" />
+  </ItemGroup>
+
+</Project>

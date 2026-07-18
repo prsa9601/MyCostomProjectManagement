@@ -1,19 +1,20 @@
 ﻿@page "/Auth"
+@using MyCostomProjectManagement.Facade.Auth
 @layout FrontLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
-@implements IDisposable
+@inject IAuthFacade _authFacade
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ورود و ثبت‌نام | محمد رضایی</title>
+<title>ورود با شماره تلفن | محمد رضایی</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
 <style>
     /* ============================================================
-       AUTH PAGE - با پس‌زمینه #0a0e17
-    ============================================================ */
+                                   PHONE AUTH PAGE - با پس‌زمینه #0a0e17
+                                ============================================================ */
 
     * {
         margin: 0;
@@ -40,8 +41,8 @@
     }
 
     /* ============================================================
-       PARTICLES BACKGROUND
-    ============================================================ */
+                                   PARTICLES BACKGROUND
+                                ============================================================ */
     .bg-particles {
         position: fixed;
         top: 0;
@@ -53,83 +54,92 @@
         pointer-events: none;
     }
 
-    .bg-particles span {
-        position: absolute;
-        display: block;
-        width: 6px;
-        height: 6px;
-        background: rgba(59, 130, 246, 0.2);
-        border-radius: 50%;
-        animation: floatParticle 12s infinite alternate ease-in-out;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
-    }
+        .bg-particles span {
+            position: absolute;
+            display: block;
+            width: 6px;
+            height: 6px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            animation: floatParticle 12s infinite alternate ease-in-out;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
+        }
 
-    .bg-particles span:nth-child(1) {
-        top: 10%;
-        left: 20%;
-        animation-duration: 14s;
-        width: 8px;
-        height: 8px;
-    }
-    .bg-particles span:nth-child(2) {
-        top: 60%;
-        left: 80%;
-        animation-duration: 16s;
-        animation-delay: 2s;
-    }
-    .bg-particles span:nth-child(3) {
-        top: 30%;
-        left: 70%;
-        animation-duration: 18s;
-        animation-delay: 4s;
-        width: 10px;
-        height: 10px;
-    }
-    .bg-particles span:nth-child(4) {
-        top: 80%;
-        left: 10%;
-        animation-duration: 15s;
-        animation-delay: 1s;
-    }
-    .bg-particles span:nth-child(5) {
-        top: 50%;
-        left: 40%;
-        animation-duration: 20s;
-        animation-delay: 3s;
-        width: 12px;
-        height: 12px;
-        background: rgba(59, 130, 246, 0.12);
-    }
-    .bg-particles span:nth-child(6) {
-        top: 15%;
-        left: 90%;
-        animation-duration: 13s;
-        animation-delay: 5s;
-    }
-    .bg-particles span:nth-child(7) {
-        top: 70%;
-        left: 50%;
-        animation-duration: 17s;
-        animation-delay: 2s;
-        width: 7px;
-        height: 7px;
-    }
-    .bg-particles span:nth-child(8) {
-        top: 40%;
-        left: 5%;
-        animation-duration: 19s;
-        animation-delay: 3s;
-    }
+            .bg-particles span:nth-child(1) {
+                top: 10%;
+                left: 20%;
+                animation-duration: 14s;
+                width: 8px;
+                height: 8px;
+            }
+
+            .bg-particles span:nth-child(2) {
+                top: 60%;
+                left: 80%;
+                animation-duration: 16s;
+                animation-delay: 2s;
+            }
+
+            .bg-particles span:nth-child(3) {
+                top: 30%;
+                left: 70%;
+                animation-duration: 18s;
+                animation-delay: 4s;
+                width: 10px;
+                height: 10px;
+            }
+
+            .bg-particles span:nth-child(4) {
+                top: 80%;
+                left: 10%;
+                animation-duration: 15s;
+                animation-delay: 1s;
+            }
+
+            .bg-particles span:nth-child(5) {
+                top: 50%;
+                left: 40%;
+                animation-duration: 20s;
+                animation-delay: 3s;
+                width: 12px;
+                height: 12px;
+                background: rgba(59, 130, 246, 0.12);
+            }
+
+            .bg-particles span:nth-child(6) {
+                top: 15%;
+                left: 90%;
+                animation-duration: 13s;
+                animation-delay: 5s;
+            }
+
+            .bg-particles span:nth-child(7) {
+                top: 70%;
+                left: 50%;
+                animation-duration: 17s;
+                animation-delay: 2s;
+                width: 7px;
+                height: 7px;
+            }
+
+            .bg-particles span:nth-child(8) {
+                top: 40%;
+                left: 5%;
+                animation-duration: 19s;
+                animation-delay: 3s;
+            }
 
     @@keyframes floatParticle {
         0% {
             transform: translate(0, 0) scale(1);
             opacity: 0.2;
         }
+
         50% {
             transform: translate(30px, -60px) scale(1.6);
             opacity: 0.7;
         }
+
         100% {
             transform: translate(-20px, 40px) scale(0.8);
             opacity: 0.1;
@@ -137,8 +147,8 @@
     }
 
     /* ============================================================
-       GLASS CONTAINER
-    ============================================================ */
+                                   GLASS CONTAINER
+                                ============================================================ */
     .auth-container {
         position: relative;
         z-index: 1;
@@ -159,48 +169,48 @@
         transition: all 0.3s ease;
     }
 
-    .auth-box:hover {
-        border-color: rgba(59, 130, 246, 0.08);
-        box-shadow: 0 8px 64px rgba(0, 0, 0, 0.5);
-    }
+        .auth-box:hover {
+            border-color: rgba(59, 130, 246, 0.08);
+            box-shadow: 0 8px 64px rgba(0, 0, 0, 0.5);
+        }
 
     /* ============================================================
-       LOGO
-    ============================================================ */
+                                   LOGO
+                                ============================================================ */
     .auth-logo {
         text-align: center;
         margin-bottom: 28px;
     }
 
-    .auth-logo .icon {
-        font-size: 2.8rem;
-        color: #3b82f6;
-        display: block;
-        margin-bottom: 6px;
-        text-shadow: 0 0 40px rgba(59, 130, 246, 0.1);
-    }
+        .auth-logo .icon {
+            font-size: 2.8rem;
+            color: #3b82f6;
+            display: block;
+            margin-bottom: 6px;
+            text-shadow: 0 0 40px rgba(59, 130, 246, 0.1);
+        }
 
-    .auth-logo h1 {
-        font-size: 1.6rem;
-        font-weight: 800;
-        color: #fff;
-        letter-spacing: -0.5px;
-    }
+        .auth-logo h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
 
-    .auth-logo h1 span {
-        color: #3b82f6;
-        text-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
-    }
+            .auth-logo h1 span {
+                color: #3b82f6;
+                text-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+            }
 
-    .auth-logo p {
-        font-size: 0.85rem;
-        color: #94a3b8;
-        margin-top: 2px;
-    }
+        .auth-logo p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
 
     /* ============================================================
-       TABS
-    ============================================================ */
+                                   TABS (Phone / Email)
+                                ============================================================ */
     .auth-tabs {
         display: flex;
         gap: 4px;
@@ -211,118 +221,125 @@
         border: 1px solid rgba(255, 255, 255, 0.03);
     }
 
-    .auth-tabs button {
-        flex: 1;
-        padding: 10px 16px;
-        border: none;
-        border-radius: 12px;
-        background: transparent;
-        color: #94a3b8;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-family: inherit;
-    }
+        .auth-tabs button {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 12px;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
 
-    .auth-tabs button:hover {
-        color: #eef2f8;
-    }
+            .auth-tabs button:hover {
+                color: #eef2f8;
+            }
 
-    .auth-tabs button.active {
-        background: rgba(59, 130, 246, 0.08);
-        color: #3b82f6;
-        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.04);
-    }
+            .auth-tabs button.active {
+                background: rgba(59, 130, 246, 0.08);
+                color: #3b82f6;
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.04);
+            }
 
     /* ============================================================
-       FORMS
-    ============================================================ */
+                                   FORMS
+                                ============================================================ */
     .auth-form {
         display: none;
         animation: fadeSlide 0.35s ease;
     }
 
-    .auth-form.active {
-        display: block;
-    }
+        .auth-form.active {
+            display: block;
+        }
 
     @@keyframes fadeSlide {
-        0% { opacity: 0; transform: translateY(12px); }
-        100% { opacity: 1; transform: translateY(0); }
+        0% {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .auth-form .form-group {
         margin-bottom: 18px;
     }
 
-    .auth-form .form-group label {
-        display: block;
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: #94a3b8;
-        margin-bottom: 4px;
-    }
+        .auth-form .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
 
-    .auth-form .form-group .input-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
+        .auth-form .form-group .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
 
-    .auth-form .form-group .input-wrapper:focus-within {
-        border-color: #3b82f6;
-        background: rgba(255, 255, 255, 0.04);
-        box-shadow: 0 0 24px rgba(59, 130, 246, 0.02);
-    }
+            .auth-form .form-group .input-wrapper:focus-within {
+                border-color: #3b82f6;
+                background: rgba(255, 255, 255, 0.04);
+                box-shadow: 0 0 24px rgba(59, 130, 246, 0.02);
+            }
 
-    .auth-form .form-group .input-wrapper .input-icon {
-        padding: 0 0 0 14px;
-        color: #64748b;
-        font-size: 0.9rem;
-        opacity: 0.4;
-        transition: 0.3s;
-    }
+            .auth-form .form-group .input-wrapper .input-icon {
+                padding: 0 0 0 14px;
+                color: #64748b;
+                font-size: 0.9rem;
+                opacity: 0.4;
+                transition: 0.3s;
+            }
 
-    .auth-form .form-group .input-wrapper:focus-within .input-icon {
-        opacity: 0.8;
-        color: #3b82f6;
-    }
+            .auth-form .form-group .input-wrapper:focus-within .input-icon {
+                opacity: 0.8;
+                color: #3b82f6;
+            }
 
-    .auth-form .form-group .input-wrapper input {
-        width: 100%;
-        padding: 12px 14px;
-        background: transparent;
-        border: none;
-        color: #eef2f8;
-        font-size: 0.95rem;
-        outline: none;
-        font-family: inherit;
-    }
+            .auth-form .form-group .input-wrapper input {
+                width: 100%;
+                padding: 12px 14px;
+                background: transparent;
+                border: none;
+                color: #eef2f8;
+                font-size: 0.95rem;
+                outline: none;
+                font-family: inherit;
+            }
 
-    .auth-form .form-group .input-wrapper input::placeholder {
-        color: #64748b;
-    }
+                .auth-form .form-group .input-wrapper input::placeholder {
+                    color: #64748b;
+                }
 
-    .auth-form .form-group .input-wrapper .toggle-password {
-        padding: 0 14px 0 8px;
-        color: #64748b;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: 0.3s;
-        opacity: 0.3;
-        background: none;
-        border: none;
-    }
+            .auth-form .form-group .input-wrapper .toggle-password {
+                padding: 0 14px 0 8px;
+                color: #64748b;
+                font-size: 0.85rem;
+                cursor: pointer;
+                transition: 0.3s;
+                opacity: 0.3;
+                background: none;
+                border: none;
+            }
 
-    .auth-form .form-group .input-wrapper .toggle-password:hover {
-        opacity: 0.8;
-        color: #eef2f8;
-    }
+                .auth-form .form-group .input-wrapper .toggle-password:hover {
+                    opacity: 0.8;
+                    color: #eef2f8;
+                }
 
     .auth-form .form-options {
         display: flex;
@@ -332,40 +349,40 @@
         font-size: 0.8rem;
     }
 
-    .auth-form .form-options label {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        color: #94a3b8;
-        cursor: pointer;
-    }
+        .auth-form .form-options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #94a3b8;
+            cursor: pointer;
+        }
 
-    .auth-form .form-options label input[type="checkbox"] {
-        accent-color: #3b82f6;
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: 4px;
-    }
+            .auth-form .form-options label input[type="checkbox"] {
+                accent-color: #3b82f6;
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                border-radius: 4px;
+            }
 
-    .auth-form .form-options .forgot-link {
-        color: #3b82f6;
-        transition: 0.3s;
-        font-weight: 500;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: inherit;
-        font-family: inherit;
-        padding: 0;
-    }
+        .auth-form .form-options .forgot-link {
+            color: #3b82f6;
+            transition: 0.3s;
+            font-weight: 500;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: inherit;
+            font-family: inherit;
+            padding: 0;
+        }
 
-    .auth-form .form-options .forgot-link:hover {
-        color: #2563eb;
-        text-decoration: underline;
-    }
+            .auth-form .form-options .forgot-link:hover {
+                color: #2563eb;
+                text-decoration: underline;
+            }
 
     .auth-form .btn-submit {
         width: 100%;
@@ -386,16 +403,16 @@
         font-family: inherit;
     }
 
-    .auth-form .btn-submit:hover {
-        transform: translateY(-2px) scale(1.01);
-        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
-    }
+        .auth-form .btn-submit:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+        }
 
-    .auth-form .btn-submit:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none !important;
-    }
+        .auth-form .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
 
     .auth-form .btn-submit-secondary {
         width: 100%;
@@ -416,20 +433,20 @@
         margin-top: 10px;
     }
 
-    .auth-form .btn-submit-secondary:hover {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.08);
-        color: #eef2f8;
-    }
+        .auth-form .btn-submit-secondary:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+            color: #eef2f8;
+        }
 
-    .auth-form .btn-submit-secondary i {
-        color: #3b82f6;
-        opacity: 0.4;
-    }
+        .auth-form .btn-submit-secondary i {
+            color: #3b82f6;
+            opacity: 0.4;
+        }
 
     /* ============================================================
-       OTP INPUT
-    ============================================================ */
+                                   OTP INPUT
+                                ============================================================ */
     .otp-input-group {
         display: flex;
         gap: 10px;
@@ -437,32 +454,32 @@
         margin: 20px 0;
     }
 
-    .otp-input-group input {
-        width: 48px;
-        height: 54px;
-        text-align: center;
-        font-size: 1.4rem;
-        font-weight: 600;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: 12px;
-        color: #eef2f8;
-        outline: none;
-        transition: all 0.3s ease;
-        font-family: inherit;
-    }
+        .otp-input-group input {
+            width: 48px;
+            height: 54px;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            color: #eef2f8;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
 
-    .otp-input-group input:focus {
-        border-color: #3b82f6;
-        background: rgba(255, 255, 255, 0.04);
-        box-shadow: 0 0 24px rgba(59, 130, 246, 0.02);
-    }
+            .otp-input-group input:focus {
+                border-color: #3b82f6;
+                background: rgba(255, 255, 255, 0.04);
+                box-shadow: 0 0 24px rgba(59, 130, 246, 0.02);
+            }
 
-    .otp-input-group input::placeholder {
-        color: #64748b;
-        font-weight: 300;
-        font-size: 0.9rem;
-    }
+            .otp-input-group input::placeholder {
+                color: #64748b;
+                font-weight: 300;
+                font-size: 0.9rem;
+            }
 
     .otp-timer {
         text-align: center;
@@ -471,29 +488,29 @@
         margin: 12px 0 16px;
     }
 
-    .otp-timer .resend-btn {
-        color: #3b82f6;
-        cursor: pointer;
-        font-weight: 500;
-        transition: 0.3s;
-        background: none;
-        border: none;
-        font-family: inherit;
-        font-size: inherit;
-    }
+        .otp-timer .resend-btn {
+            color: #3b82f6;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.3s;
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: inherit;
+        }
 
-    .otp-timer .resend-btn:hover {
-        color: #2563eb;
-    }
+            .otp-timer .resend-btn:hover {
+                color: #2563eb;
+            }
 
-    .otp-timer .resend-btn:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-    }
+            .otp-timer .resend-btn:disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
+            }
 
     /* ============================================================
-       DIVIDER
-    ============================================================ */
+                                   DIVIDER
+                                ============================================================ */
     .divider {
         display: flex;
         align-items: center;
@@ -501,23 +518,23 @@
         margin: 20px 0;
     }
 
-    .divider::before,
-    .divider::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.04);
-    }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.04);
+        }
 
-    .divider span {
-        font-size: 0.75rem;
-        color: #64748b;
-        white-space: nowrap;
-    }
+        .divider span {
+            font-size: 0.75rem;
+            color: #64748b;
+            white-space: nowrap;
+        }
 
     /* ============================================================
-       MESSAGES
-    ============================================================ */
+                                   MESSAGES
+                                ============================================================ */
     .alert {
         padding: 12px 16px;
         border-radius: 12px;
@@ -528,9 +545,9 @@
         gap: 8px;
     }
 
-    .alert i {
-        font-size: 1rem;
-    }
+        .alert i {
+            font-size: 1rem;
+        }
 
     .alert-error {
         background: rgba(239, 68, 68, 0.04);
@@ -551,8 +568,8 @@
     }
 
     /* ============================================================
-       RESPONSIVE
-    ============================================================ */
+                                   RESPONSIVE
+                                ============================================================ */
     @@media (max-width: 480px) {
         .auth-box {
             padding: 28px 20px;
@@ -590,11 +607,11 @@
             gap: 6px;
         }
 
-        .otp-input-group input {
-            width: 34px;
-            height: 40px;
-            font-size: 1rem;
-        }
+            .otp-input-group input {
+                width: 34px;
+                height: 40px;
+                font-size: 1rem;
+            }
     }
 </style>
 
@@ -610,183 +627,22 @@
 
         <!-- Logo -->
         <div class="auth-logo">
-            <span class="icon"><i class="fas fa-crown"></i></span>
+            <span class="icon"><i class="fas fa-phone-alt"></i></span>
             <h1>Mohammad<span>Dev</span></h1>
-            <p>ورود و مدیریت حساب کاربری</p>
+            <p>ورود و ثبت‌نام با شماره تلفن</p>
         </div>
 
         <!-- Tabs -->
         <div class="auth-tabs">
-            <button class="@(activeTab == "login" ? "active" : "")" @onclick='() => SetTab("login")'>
-                <i class="fas fa-sign-in-alt"></i> ورود
+            <button class="@(activeTab == "phone" ? "active" : "")" @onclick='() => SetTab("phone")'>
+                <i class="fas fa-phone"></i> شماره تلفن
             </button>
-            <button class="@(activeTab == "register" ? "active" : "")" @onclick='() => SetTab("register")'>
-                <i class="fas fa-user-plus"></i> ثبت‌نام
-            </button>
-        </div>
-
-        <!-- ============================================================
-             LOGIN FORM
-        ============================================================ -->
-        <div class="auth-form @(activeTab == "login" ? "active" : "")">
-
-            @if (!string.IsNullOrEmpty(loginError))
-            {
-                <div class="alert alert-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    @loginError
-                </div>
-            }
-
-            @if (!string.IsNullOrEmpty(loginSuccess))
-            {
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    @loginSuccess
-                </div>
-            }
-
-            <div class="form-group">
-                <label>ایمیل یا شماره تماس</label>
-                <div class="input-wrapper">
-                    <span class="input-icon"><i class="fas fa-envelope"></i></span>
-                    <input type="text" placeholder="example@email.com" @bind="loginEmail" />
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>رمز عبور</label>
-                <div class="input-wrapper">
-                    <span class="input-icon"><i class="fas fa-lock"></i></span>
-                    <input type="@(showLoginPassword ? "text" : "password")" placeholder="••••••••" @bind="loginPassword" />
-                    <button type="button" class="toggle-password" @onclick='() => showLoginPassword = !showLoginPassword'>
-                        <i class="fas @(showLoginPassword ? "fa-eye" : "fa-eye-slash")"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="form-options">
-                <label>
-                    <input type="checkbox" @bind="rememberMe" />
-                    مرا به خاطر بسپار
-                </label>
-                <button type="button" class="forgot-link" @onclick='() => SetTab("forgot")'>رمز عبور را فراموش کرده‌اید؟</button>
-            </div>
-
-            <button class="btn-submit ripple" @onclick="HandleLogin" disabled="@isLoading">
-                @if (isLoading)
-                {
-                    <span><i class="fas fa-spinner fa-spin"></i> در حال ورود...</span>
-                }
-                else
-                {
-                    <span><i class="fas fa-sign-in-alt"></i> ورود به حساب کاربری</span>
-                }
-            </button>
-
-            <div class="divider">
-                <span>یا</span>
-            </div>
-
-            <button class="btn-submit-secondary" @onclick='() => SetTab("phone")'>
-                <i class="fas fa-phone"></i> ورود با شماره تلفن
+            <button class="@(activeTab == "email" ? "active" : "")" @onclick='() => SetTab("email")'>
+                <i class="fas fa-envelope"></i> ایمیل و رمز
             </button>
         </div>
 
-        <!-- ============================================================
-             REGISTER FORM
-        ============================================================ -->
-        <div class="auth-form @(activeTab == "register" ? "active" : "")">
-
-            @if (!string.IsNullOrEmpty(registerError))
-            {
-                <div class="alert alert-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    @registerError
-                </div>
-            }
-
-            @if (!string.IsNullOrEmpty(registerSuccess))
-            {
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    @registerSuccess
-                </div>
-            }
-
-            <div class="form-group">
-                <label>نام کامل</label>
-                <div class="input-wrapper">
-                    <span class="input-icon"><i class="fas fa-user"></i></span>
-                    <input type="text" placeholder="محمد رضایی" @bind="registerFullName" />
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>ایمیل</label>
-                <div class="input-wrapper">
-                    <span class="input-icon"><i class="fas fa-envelope"></i></span>
-                    <input type="email" placeholder="example@email.com" @bind="registerEmail" />
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>شماره تلفن</label>
-                <div class="input-wrapper">
-                    <span class="input-icon"><i class="fas fa-phone"></i></span>
-                    <input type="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" @bind="registerPhone" />
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>رمز عبور</label>
-                <div class="input-wrapper">
-                    <span class="input-icon"><i class="fas fa-lock"></i></span>
-                    <input type="@(showRegisterPassword ? "text" : "password")" placeholder="••••••••" @bind="registerPassword" />
-                    <button type="button" class="toggle-password" @onclick='() => showRegisterPassword = !showRegisterPassword'>
-                        <i class="fas @(showRegisterPassword ? "fa-eye" : "fa-eye-slash")"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>تکرار رمز عبور</label>
-                <div class="input-wrapper">
-                    <span class="input-icon"><i class="fas fa-lock"></i></span>
-                    <input type="@(showRegisterPassword ? "text" : "password")" placeholder="••••••••" @bind="registerConfirmPassword" />
-                </div>
-            </div>
-
-            <div class="form-options">
-                <label>
-                    <input type="checkbox" @bind="acceptTerms" />
-                    <span>شرایط و قوانین را می‌پذیرم</span>
-                </label>
-            </div>
-
-            <button class="btn-submit ripple" @onclick="HandleRegister" disabled="@isLoading">
-                @if (isLoading)
-                {
-                    <span><i class="fas fa-spinner fa-spin"></i> در حال ثبت‌نام...</span>
-                }
-                else
-                {
-                    <span><i class="fas fa-user-plus"></i> ایجاد حساب کاربری</span>
-                }
-            </button>
-
-            <div class="divider">
-                <span>قبلاً حساب دارید؟</span>
-            </div>
-
-            <button class="btn-submit-secondary" @onclick='() => SetTab("login")'>
-                <i class="fas fa-sign-in-alt"></i> وارد شوید
-            </button>
-        </div>
-
-        <!-- ============================================================
-             PHONE LOGIN / OTP FORM
-        ============================================================ -->
+        <!-- ===== PHONE / OTP FLOW ===== -->
         <div class="auth-form @(activeTab == "phone" ? "active" : "")">
 
             @if (!string.IsNullOrEmpty(phoneError))
@@ -812,7 +668,7 @@
                     <label>شماره تلفن</label>
                     <div class="input-wrapper">
                         <span class="input-icon"><i class="fas fa-phone"></i></span>
-                        <input type="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" @bind="phoneNumber" />
+                        <input type="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" maxlength="11" @bind="phoneNumber" />
                     </div>
                     <div style="font-size:0.75rem; color:#64748b; margin-top:4px;">
                         کد تایید به این شماره ارسال خواهد شد
@@ -829,14 +685,6 @@
                         <span><i class="fas fa-paper-plane"></i> ارسال کد تایید</span>
                     }
                 </button>
-
-                <div class="divider">
-                    <span>یا</span>
-                </div>
-
-                <button class="btn-submit-secondary" @onclick='() => SetTab("login")'>
-                    <i class="fas fa-sign-in-alt"></i> ورود با ایمیل و رمز عبور
-                </button>
             }
             else
             {
@@ -848,10 +696,16 @@
 
                 <div class="form-group">
                     <label>کد تایید (OTP)</label>
-                    <div class="otp-input-group">
+                    <div class="otp-input-group" id="otp-container">
                         @for (int i = 0; i < 6; i++)
                         {
-                            <input type="text" maxlength="1" placeholder="۰" @bind="otpCode[i]" @oninput='() => OnOtpInput(i)' />
+                            int index = i;
+                            <input type="text"
+                                   maxlength="1"
+                                   placeholder="۰"
+                                   value="@otpCode[index]"
+                                   @oninput='(e) => OnOtpInput(index, e)'
+                                   @onkeydown='(e) => OnOtpKeyDown(index, e)' />
                         }
                     </div>
                     <div style="text-align:center; font-size:0.75rem; color:#64748b;">
@@ -877,34 +731,32 @@
                     }
                     else
                     {
-                        <span><i class="fas fa-check-circle"></i> تایید و ورود</span>
+                        <span><i class="fas fa-check-circle"></i> تایید و ادامه</span>
                     }
                 </button>
 
-                <button class="btn-submit-secondary" @onclick='() => { isOtpSent = false; otpCode = new string[6]; }'>
+                <button class="btn-submit-secondary" @onclick='() => { isOtpSent = false; otpCode = new string[6]; phoneError = ""; phoneSuccess = ""; isFirst = false; }'>
                     <i class="fas fa-arrow-right"></i> تغییر شماره
                 </button>
             }
         </div>
 
-        <!-- ============================================================
-             FORGOT PASSWORD
-        ============================================================ -->
-        <div class="auth-form @(activeTab == "forgot" ? "active" : "")">
+        <!-- ===== EMAIL / PASSWORD LOGIN ===== -->
+        <div class="auth-form @(activeTab == "email" ? "active" : "")">
 
-            @if (!string.IsNullOrEmpty(forgotError))
+            @if (!string.IsNullOrEmpty(emailError))
             {
                 <div class="alert alert-error">
                     <i class="fas fa-exclamation-circle"></i>
-                    @forgotError
+                    @emailError
                 </div>
             }
 
-            @if (!string.IsNullOrEmpty(forgotSuccess))
+            @if (!string.IsNullOrEmpty(emailSuccess))
             {
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle"></i>
-                    @forgotSuccess
+                    @emailSuccess
                 </div>
             }
 
@@ -912,21 +764,37 @@
                 <label>ایمیل</label>
                 <div class="input-wrapper">
                     <span class="input-icon"><i class="fas fa-envelope"></i></span>
-                    <input type="email" placeholder="example@email.com" @bind="forgotEmail" />
-                </div>
-                <div style="font-size:0.75rem; color:#64748b; margin-top:4px;">
-                    لینک بازیابی رمز عبور به ایمیل شما ارسال خواهد شد
+                    <input type="email" placeholder="example@email.com" @bind="emailLogin" />
                 </div>
             </div>
 
-            <button class="btn-submit ripple" @onclick="HandleForgotPassword" disabled="@isLoading">
+            <div class="form-group">
+                <label>رمز عبور</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fas fa-lock"></i></span>
+                    <input type="@(showEmailPassword ? "text" : "password")" placeholder="••••••••" @bind="emailPassword" />
+                    <button type="button" class="toggle-password" @onclick='() => showEmailPassword = !showEmailPassword'>
+                        <i class="fas @(showEmailPassword ? "fa-eye" : "fa-eye-slash")"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-options">
+                <label>
+                    <input type="checkbox" @bind="rememberMe" />
+                    مرا به خاطر بسپار
+                </label>
+                <button type="button" class="forgot-link" @onclick="ForgotPassword">رمز عبور را فراموش کرده‌اید؟</button>
+            </div>
+
+            <button class="btn-submit ripple" @onclick="HandleEmailLogin" disabled="@isLoading">
                 @if (isLoading)
                 {
-                    <span><i class="fas fa-spinner fa-spin"></i> در حال ارسال...</span>
+                    <span><i class="fas fa-spinner fa-spin"></i> در حال ورود...</span>
                 }
                 else
                 {
-                    <span><i class="fas fa-paper-plane"></i> ارسال لینک بازیابی</span>
+                    <span><i class="fas fa-sign-in-alt"></i> ورود با ایمیل</span>
                 }
             </button>
 
@@ -934,8 +802,8 @@
                 <span>یا</span>
             </div>
 
-            <button class="btn-submit-secondary" @onclick='() => SetTab("login")'>
-                <i class="fas fa-sign-in-alt"></i> بازگشت به ورود
+            <button class="btn-submit-secondary" @onclick='() => SetTab("phone")'>
+                <i class="fas fa-phone"></i> ورود با شماره تلفن
             </button>
         </div>
 
@@ -943,11 +811,12 @@
 </div>
 
 <style>
-    /* Ripple Effect (inline for auth) */
+    /* Ripple Effect */
     .ripple {
         position: relative;
         overflow: hidden;
     }
+
     .ripple-effect {
         position: absolute;
         border-radius: 50%;
@@ -956,8 +825,12 @@
         animation: rippleAnim 0.6s linear;
         pointer-events: none;
     }
+
     @@keyframes rippleAnim {
-        to { transform: scale(4); opacity: 0; }
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
     }
 </style>
 
@@ -966,27 +839,9 @@
     // STATE
     // ============================================================
 
-    private string activeTab = "login";
+    private string activeTab = "phone";
     private bool isLoading = false;
     private bool rememberMe = false;
-
-    // ---- Login ----
-    private string loginEmail = "";
-    private string loginPassword = "";
-    private bool showLoginPassword = false;
-    private string loginError = "";
-    private string loginSuccess = "";
-
-    // ---- Register ----
-    private string registerFullName = "";
-    private string registerEmail = "";
-    private string registerPhone = "";
-    private string registerPassword = "";
-    private string registerConfirmPassword = "";
-    private bool showRegisterPassword = false;
-    private bool acceptTerms = false;
-    private string registerError = "";
-    private string registerSuccess = "";
 
     // ---- Phone / OTP ----
     private string phoneNumber = "";
@@ -997,10 +852,14 @@
     private string phoneError = "";
     private string phoneSuccess = "";
 
-    // ---- Forgot Password ----
-    private string forgotEmail = "";
-    private string forgotError = "";
-    private string forgotSuccess = "";
+    // ---- Email login ----
+    private string emailLogin = "";
+    private string emailPassword = "";
+    private bool showEmailPassword = false;
+    private string emailError = "";
+    private string emailSuccess = "";
+
+    private bool isFirst = false;
 
     // ============================================================
     // TAB MANAGEMENT
@@ -1009,118 +868,15 @@
     private void SetTab(string tab)
     {
         activeTab = tab;
-        // Clear errors when switching tabs
-        loginError = "";
-        loginSuccess = "";
-        registerError = "";
-        registerSuccess = "";
         phoneError = "";
         phoneSuccess = "";
-        forgotError = "";
-        forgotSuccess = "";
+        emailError = "";
+        emailSuccess = "";
         StateHasChanged();
     }
 
     // ============================================================
-    // LOGIN
-    // ============================================================
-
-    private async Task HandleLogin()
-    {
-        if (string.IsNullOrWhiteSpace(loginEmail) || string.IsNullOrWhiteSpace(loginPassword))
-        {
-            loginError = "لطفاً ایمیل و رمز عبور را وارد کنید.";
-            return;
-        }
-
-        isLoading = true;
-        loginError = "";
-        loginSuccess = "";
-
-        // Simulate API call
-        await Task.Delay(1500);
-
-        // Demo: Accept any non-empty email/password (mock)
-        if (loginEmail.Contains("@") && loginPassword.Length >= 6)
-        {
-            loginSuccess = "ورود موفق! در حال انتقال به داشبورد...";
-            await Task.Delay(500);
-            NavigationManager.NavigateTo("/UserDashboard", true);
-        }
-        else
-        {
-            loginError = "ایمیل یا رمز عبور اشتباه است.";
-        }
-
-        isLoading = false;
-        StateHasChanged();
-    }
-
-    // ============================================================
-    // REGISTER
-    // ============================================================
-
-    private async Task HandleRegister()
-    {
-        if (string.IsNullOrWhiteSpace(registerFullName) ||
-            string.IsNullOrWhiteSpace(registerEmail) ||
-            string.IsNullOrWhiteSpace(registerPhone) ||
-            string.IsNullOrWhiteSpace(registerPassword))
-        {
-            registerError = "لطفاً تمام فیلدها را پر کنید.";
-            return;
-        }
-
-        if (!registerEmail.Contains("@"))
-        {
-            registerError = "ایمیل وارد شده معتبر نیست.";
-            return;
-        }
-
-        if (registerPassword.Length < 6)
-        {
-            registerError = "رمز عبور باید حداقل ۶ کاراکتر باشد.";
-            return;
-        }
-
-        if (registerPassword != registerConfirmPassword)
-        {
-            registerError = "رمز عبور و تکرار آن مطابقت ندارند.";
-            return;
-        }
-
-        if (!acceptTerms)
-        {
-            registerError = "لطفاً شرایط و قوانین را بپذیرید.";
-            return;
-        }
-
-        isLoading = true;
-        registerError = "";
-        registerSuccess = "";
-
-        // Simulate API call
-        await Task.Delay(1500);
-
-        registerSuccess = "ثبت‌نام با موفقیت انجام شد! لطفاً وارد شوید.";
-        await Task.Delay(800);
-
-        // Switch to login
-        SetTab("login");
-        loginEmail = registerEmail;
-        registerFullName = "";
-        registerEmail = "";
-        registerPhone = "";
-        registerPassword = "";
-        registerConfirmPassword = "";
-        acceptTerms = false;
-
-        isLoading = false;
-        StateHasChanged();
-    }
-
-    // ============================================================
-    // PHONE / OTP
+    // PHONE / OTP FLOW
     // ============================================================
 
     private async Task SendOtp()
@@ -1134,9 +890,17 @@
         isLoading = true;
         phoneError = "";
         phoneSuccess = "";
+        var sendOtpCodeResult = await _authFacade.SendOtpCode(new BackEnd.Core.Auth.Commands.SendOtpCode.SendOtpCodeCommand
+        {
+            PhoneNumber = phoneNumber
+        });
+        if (sendOtpCodeResult.Status != BackEnd.Shared.CoreShared.OperationResultStatus.Success)
+        {
+            phoneError = sendOtpCodeResult.Message;
+            return;
+        }
 
-        // Simulate API call
-        await Task.Delay(1200);
+        // await Task.Delay(1200);
 
         isOtpSent = true;
         phoneSuccess = "کد تایید به شماره شما ارسال شد.";
@@ -1146,21 +910,74 @@
         StateHasChanged();
     }
 
-    private void OnOtpInput(int index)
+    // ============================================================
+    // ✅ OTP INPUT HANDLERS (اصلاح‌شده)
+    // ============================================================
+
+    private async Task OnOtpInput(int index, ChangeEventArgs e)
     {
-        // Auto-advance to next input using JS
-        if (!string.IsNullOrEmpty(otpCode[index]) && index < 5)
+        // بررسی محدوده
+        if (index < 0 || index >= otpCode.Length)
+            return;
+
+        string previous = otpCode[index];
+        string value = e.Value?.ToString() ?? "";
+        // فقط اولین رقم عددی را نگه دار
+        string digit = new string(value.Where(char.IsDigit).Take(1).ToArray());
+
+        // مقدار جدید را ذخیره کن
+        otpCode[index] = digit;
+
+        // اگر عدد وارد شد، به خانه بعدی برو
+        if (!string.IsNullOrEmpty(digit) && index < otpCode.Length + 1)
         {
-            JSRuntime.InvokeVoidAsync("eval", $@"
-                const inputs = document.querySelectorAll('.otp-input-group input');
-                if (inputs[{index + 1}]) inputs[{index + 1}].focus();
-            ");
+            await FocusInput(index - 1);
+        }
+        // اگر عدد پاک شد (یعنی کاربر دکمه Backspace یا Delete زده و مقدار قبلی وجود داشته)
+        else if (string.IsNullOrEmpty(digit) && !string.IsNullOrEmpty(previous) && index >= 0)
+        {
+            await FocusInput(index + 1);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task OnOtpKeyDown(int index, KeyboardEventArgs e)
+    {
+        // بررسی محدوده
+        if (index < 0 || index >= otpCode.Length)
+            return;
+
+        // اگر Backspace زده شد و خانه خالی است، به قبلی برو
+        if (e.Key == "Backspace" && string.IsNullOrEmpty(otpCode[index]) && index >= 0)
+        {
+            await FocusInput(index + 1);
         }
     }
 
+    private async Task FocusInput(int index)
+    {
+        await JSRuntime.InvokeVoidAsync("eval", $@"
+            const inputs = document.querySelectorAll('.otp-input-group input');
+            if (inputs && inputs[{index}]) {{
+                inputs[{index}].focus();
+                inputs[{index}].select();
+            }}
+        ");
+    }
+
+    // ============================================================
+    // VERIFY OTP
+    // ============================================================
+
     private async Task VerifyOtp()
     {
-        var code = string.Join("", otpCode);
+        string code = null;/*  = string.Join("", otpCode); */
+
+        for (int i = 5; i >= 0; i--)
+        {
+            code = $"{code}{otpCode[i]}";
+        }
 
         if (code.Length < 6)
         {
@@ -1172,22 +989,36 @@
         phoneError = "";
         phoneSuccess = "";
 
-        // Simulate API call
-        await Task.Delay(1200);
+        var verifyOtpCodeResult = await _authFacade.VerifyOtpCode(new BackEnd.Core.Auth.Commands.VerifyOtpCode.VerifyOtpCodeCommand
+        {
+            PhoneNumber = phoneNumber,
+            Token = code,
+        });
 
-        // Demo: Accept any 6-digit code
-        if (code.All(char.IsDigit))
+        if (verifyOtpCodeResult.Status != BackEnd.Shared.CoreShared.OperationResultStatus.Success)
         {
-            phoneSuccess = "تایید شد! در حال انتقال به داشبورد...";
-            await Task.Delay(500);
-            NavigationManager.NavigateTo("/UserDashboard", true);
+            phoneError = verifyOtpCodeResult.Message;
+            return;
         }
-        else
-        {
-            phoneError = "کد وارد شده اشتباه است. لطفاً مجدداً تلاش کنید.";
-        }
+        // await Task.Delay(1500);
+
+        // Mock: اگر شماره شامل "1" باشد، کاربر وجود دارد
+        // bool userExists = phoneNumber.Contains("1");
+
+        // if (userExists)
+        // {
+        //     phoneSuccess = "ورود موفق! در حال انتقال به داشبورد...";
+        //     await Task.Delay(500);
+        //     NavigationManager.NavigateTo("/Dashboard", true);
+        // }
+        // else
+        // {
+        //     NavigationManager.NavigateTo($"/Register?phone={Uri.EscapeDataString(phoneNumber)}", true);
+        // }
+
 
         isLoading = false;
+        NavigationManager.NavigateTo($"/", true);
         StateHasChanged();
     }
 
@@ -1198,7 +1029,6 @@
         phoneError = "";
         phoneSuccess = "";
 
-        // Simulate resend
         await Task.Delay(800);
         StartOtpTimer();
         phoneSuccess = "کد جدید به شماره شما ارسال شد.";
@@ -1207,7 +1037,7 @@
 
     private void StartOtpTimer()
     {
-        otpTimer = 60;
+        otpTimer = 120;
         otpTimerRef?.Dispose();
         otpTimerRef = new System.Timers.Timer(1000);
         otpTimerRef.Elapsed += (sender, e) =>
@@ -1226,34 +1056,45 @@
     }
 
     // ============================================================
-    // FORGOT PASSWORD
+    // EMAIL LOGIN
     // ============================================================
 
-    private async Task HandleForgotPassword()
+    private async Task HandleEmailLogin()
     {
-        if (string.IsNullOrWhiteSpace(forgotEmail) || !forgotEmail.Contains("@"))
+        if (string.IsNullOrWhiteSpace(emailLogin) || string.IsNullOrWhiteSpace(emailPassword))
         {
-            forgotError = "لطفاً ایمیل معتبر وارد کنید.";
+            emailError = "لطفاً ایمیل و رمز عبور را وارد کنید.";
             return;
         }
 
         isLoading = true;
-        forgotError = "";
-        forgotSuccess = "";
+        emailError = "";
+        emailSuccess = "";
 
-        // Simulate API call
         await Task.Delay(1500);
 
-        forgotSuccess = "لینک بازیابی رمز عبور به ایمیل شما ارسال شد.";
-        await Task.Delay(1000);
-        SetTab("login");
+        if (emailLogin.Contains("@") && emailPassword.Length >= 6)
+        {
+            emailSuccess = "ورود موفق! در حال انتقال به داشبورد...";
+            await Task.Delay(500);
+            NavigationManager.NavigateTo("/Dashboard", true);
+        }
+        else
+        {
+            emailError = "ایمیل یا رمز عبور اشتباه است.";
+        }
 
         isLoading = false;
         StateHasChanged();
     }
 
+    private void ForgotPassword()
+    {
+        NavigationManager.NavigateTo("/ForgotPassword", true);
+    }
+
     // ============================================================
-    // JS INTEROP
+    // JS INTEROP & FOCUS MANAGEMENT (اصلاح‌شده)
     // ============================================================
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -1261,6 +1102,14 @@
         if (firstRender)
         {
             await InitializeJsInterop();
+        }
+
+        // هر بار که OTP نمایش داده شد، روی اولین خانه فوکوس کن
+        if (isOtpSent && !isFirst)
+        {
+            await Task.Delay(100); // تأخیر برای اطمینان از رندر کامل
+            await FocusInput(5);   // خانه اول (سمت چپ)
+            isFirst = true;
         }
     }
 
@@ -1283,27 +1132,6 @@
                     setTimeout(() => ripple.remove(), 600);
                 });
             });
-
-            // Auto-focus first input in OTP
-            document.querySelectorAll('.otp-input-group input').forEach((input, index) => {
-                input.addEventListener('input', function(e) {
-                    // Only allow digits
-                    this.value = this.value.replace(/[^0-9]/g, '');
-                    if (this.value.length === 1 && index < 5) {
-                        const next = document.querySelectorAll('.otp-input-group input')[index + 1];
-                        if (next) next.focus();
-                    }
-                });
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
-                        const prev = document.querySelectorAll('.otp-input-group input')[index - 1];
-                        if (prev) prev.focus();
-                    }
-                });
-            });
-
-            // Ensure OTP inputs receive focus properly
-            document.querySelectorAll('.otp-input-group input')[0]?.focus();
         ");
     }
 
@@ -1311,8 +1139,8 @@
     // DISPOSE
     // ============================================================
 
-    public void Dispose()
-    {
-        otpTimerRef?.Dispose();
-    }
+    // public void Dispose()
+    // {
+    //     otpTimerRef?.Dispose();
+    // }
 }

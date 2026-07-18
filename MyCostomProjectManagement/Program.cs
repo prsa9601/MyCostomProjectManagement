@@ -1,10 +1,15 @@
 using MyCostomProjectManagement.Components;
+using MyCostomProjectManagement.Facade;
+using BackEnd.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.FacadeConfig();
+builder.Services.CoreConfig(builder.Configuration);
 
 var app = builder.Build();
 

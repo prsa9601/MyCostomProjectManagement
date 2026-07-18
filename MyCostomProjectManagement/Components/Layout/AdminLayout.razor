@@ -1,0 +1,434 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>پنل مدیریت</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+           ADMIN LAYOUT - با پس‌زمینه #13505b
+        ============================================================ */
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #13505b;
+        color: #e8f0f1;
+        line-height: 1.7;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ============================================================
+           GLASS EFFECT
+        ============================================================ */
+    .glass {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 48px rgba(0, 0, 0, 0.12);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+
+    /* ============================================================
+           ANIMATIONS
+        ============================================================ */
+    @@keyframes rotateBorder {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        100% {
+            background-position: 400% 50%;
+        }
+    }
+
+    /* ============================================================
+           NAVBAR
+        ============================================================ */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 999;
+        padding: 14px 0;
+        transition: all 0.4s ease;
+        background: rgba(19, 80, 91, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+        .navbar.scrolled {
+            background: rgba(19, 80, 91, 0.95);
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #e8f0f1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .logo span {
+            color: #e8a838;
+        }
+
+        .logo i {
+            color: #e8a838;
+            font-size: 1.3rem;
+        }
+
+    .nav-links {
+        display: flex;
+        gap: 28px;
+        list-style: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+        .nav-links a {
+            color: rgba(232, 240, 241, 0.6);
+            transition: all 0.35s ease;
+            position: relative;
+            padding: 4px 0;
+            white-space: nowrap;
+        }
+
+            .nav-links a:hover {
+                color: #ffffff;
+            }
+
+            .nav-links a::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                right: 0;
+                width: 0;
+                height: 2.5px;
+                background: #e8a838;
+                transition: 0.35s;
+                border-radius: 4px;
+                box-shadow: 0 0 12px rgba(232, 168, 56, 0.15);
+            }
+
+            .nav-links a:hover::after {
+                width: 100%;
+            }
+
+            .nav-links a.active {
+                color: #ffffff;
+            }
+
+                .nav-links a.active::after {
+                    width: 100%;
+                }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .avatar-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid rgba(232, 168, 56, 0.2);
+        background: rgba(255, 255, 255, 0.03);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e8f0f1;
+        font-size: 1.1rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+
+        .avatar-btn:hover {
+            background: rgba(232, 168, 56, 0.04);
+            transform: scale(1.05);
+            border-color: #e8a838;
+        }
+
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+
+        .hamburger span {
+            display: block;
+            width: 28px;
+            height: 2.5px;
+            background: #e8f0f1;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+    /* ============================================================
+           PAGE CONTENT
+        ============================================================ */
+    .page-wrapper {
+        padding-top: 90px;
+        padding-bottom: 40px;
+        min-height: 100vh;
+    }
+
+    /* ============================================================
+           FOOTER
+        ============================================================ */
+    .footer {
+        position: relative;
+        padding: 28px 0 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.02);
+        background: rgba(19, 80, 91, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1;
+        margin-top: 20px;
+    }
+
+        .footer .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+    .footer-links {
+        display: flex;
+        gap: 24px;
+        font-size: 0.85rem;
+        color: rgba(232, 240, 241, 0.2);
+    }
+
+        .footer-links a:hover {
+            color: #e8a838;
+        }
+
+    .footer-copy {
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.8rem;
+    }
+
+        .footer-copy i {
+            color: #e8a838;
+        }
+
+    /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+    @@media (max-width: 992px) {
+        .nav-links {
+            gap: 16px;
+            font-size: 0.8rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background: rgba(19, 80, 91, 0.95);
+            backdrop-filter: blur(16px);
+            padding: 20px 0;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            margin-top: 12px;
+            border-radius: 20px;
+            align-items: center;
+        }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+        .hamburger {
+            display: flex;
+        }
+
+        .nav-actions .btn-outline {
+            display: none;
+        }
+
+        .page-wrapper {
+            padding-top: 80px;
+        }
+
+        .footer .container {
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .nav-links a {
+            font-size: 0.8rem;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+        }
+    }
+</style>
+
+<!-- ============================================================
+     SPARKLE PARTICLES (optional, can be removed)
+============================================================ -->
+<div class="sparkle" style="display:none;"></div>
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<header class="navbar" id="navbar">
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-crown"></i>
+            Admin<span>Panel</span>
+        </div>
+
+        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
+            <li><a class="@(IsActive("/Admin") ? "active" : "")" href="/Admin">داشبورد</a></li>
+            <li><a class="@(IsActive("/Admin/Projects") ? "active" : "")" href="/Admin/Projects">پروژه‌ها</a></li>
+            <li><a class="@(IsActive("/Admin/Users") ? "active" : "")" href="/Admin/Users">کاربران</a></li>
+            <li><a class="@(IsActive("/Admin/Roles") ? "active" : "")" href="/Admin/Roles">نقش ها</a></li>
+            <li><a class="@(IsActive("/Admin/ApiManagement") ? "active" : "")" href="/Admin/ApiManagement">APIها</a></li>
+            <li><a class="@(IsActive("/Admin/Packages") ? "active" : "")" href="/Admin/Packages">پکیج‌ها</a></li>
+            <li><a class="@(IsActive("/Admin/PackageApiAccess") ? "active" : "")" href="/Admin/PackageApiAccess">دسترسی API</a></li>
+            <li><a class="@(IsActive("/Admin/Projects/Requests") ? "active" : "")" href="/Admin/Projects/Requests">درخواست‌ها</a></li>
+            <li><a class="@(IsActive("/Admin/Contacts") ? "active" : "")" href="/Admin/Contacts">تماس</a></li>
+            <li><a class="@(IsActive("/Admin/Skills") ? "active" : "")" href="/Admin/Skills">مهارت‌ها</a></li>
+            <li><a class="@(IsActive("/Admin/Portfolio") ? "active" : "")" href="/Admin/Portfolio">نمونه کارها</a></li>
+            <li><a class="@(IsActive("/Admin/Settings") ? "active" : "")" href="/Admin/Settings">تنظیمات</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
+            <button class="hamburger" @onclick="ToggleMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ============================================================
+     PAGE CONTENT
+============================================================ -->
+<div class="page-wrapper">
+    <div class="container">
+        @Body
+    </div>
+</div>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> پنل مدیریت</div>
+        <div class="footer-links">
+            <a href="/Admin">داشبورد</a>
+            <a href="/Admin/Settings">تنظیمات</a>
+            <a href="/">خروج</a>
+        </div>
+    </div>
+</footer>
+
+@code {
+    // ---- متغیرهای وضعیت ----
+    private bool isMenuOpen = false;
+
+    // ---- متدهای چرخه زندگی ----
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    // ---- متدهای JS Interop ----
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                navbar?.classList.toggle('scrolled', window.scrollY > 30);
+            });
+        ");
+    }
+
+    // ---- تشخیص مسیر فعال ----
+    private bool IsActive(string path)
+    {
+        var currentUri = Navigation.Uri;
+        var baseUri = Navigation.BaseUri.TrimEnd('/');
+        var relativePath = currentUri.Replace(baseUri, "").TrimStart('/');
+
+        // حذف اسلش انتهایی
+        if (relativePath.EndsWith("/"))
+            relativePath = relativePath[..^1];
+
+        var targetPath = path.TrimStart('/');
+
+        // برای مسیر اصلی Admin
+        if (targetPath == "admin" && (relativePath == "admin" || relativePath == ""))
+            return true;
+
+        return relativePath.Equals(targetPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // ---- متدهای UI ----
+    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
+    private void GoToProfile() => Navigation.NavigateTo("/Admin/Profile", true);
+}

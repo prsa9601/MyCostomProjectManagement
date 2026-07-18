@@ -1,5 +1,5 @@
 ﻿@page "/Admin/Settings"
-@layout FrontLayout
+@layout AdminLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
@@ -744,39 +744,6 @@
     }
 </style>
 
-<!-- ============================================================
-     SPARKLE PARTICLES
-============================================================ -->
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-<div class="sparkle"></div>
-
-<!-- ============================================================
-     NAVBAR
-============================================================ -->
-<header class="navbar" id="navbar">
-    <div class="container">
-        <div class="logo">
-            <i class="fas fa-crown"></i>
-            Admin<span>Panel</span>
-        </div>
-        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
-            <li><a href="/AdminDashboard">داشبورد</a></li>
-            <li><a href="/Projects">پروژه‌ها</a></li>
-            <li><a href="/Users">کاربران</a></li>
-            <li><a href="/Settings" class="active">تنظیمات</a></li>
-        </ul>
-        <div class="nav-actions">
-            <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
-            <button class="hamburger" @onclick="ToggleMenu">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </div>
-</header>
 
 <!-- ============================================================
      PAGE CONTENT
@@ -1265,20 +1232,6 @@
     </div>
 </main>
 
-<!-- ============================================================
-     FOOTER
-============================================================ -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> تنظیمات سیستم</div>
-        <div class="footer-links">
-            <a href="/AdminDashboard">داشبورد</a>
-            <a href="/Projects">پروژه‌ها</a>
-            <a href="/Users">کاربران</a>
-            <a href="/Settings">تنظیمات</a>
-        </div>
-    </div>
-</footer>
 
 @code {
     // ============================================================

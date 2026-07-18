@@ -1685,7 +1685,7 @@
             <button class="btn-logout" @onclick="Logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
             <button class="btn-dashboard" @onclick="NavigateToDashboard"><i class="fas fa-chart-pie"></i> داشبورد</button>
             <button class="btn-admin" @onclick="NavigateToAdminDashboard"><i class="fas fa-user-cog"></i> ادمین</button>
-            <a href="#" class="btn-primary"><i class="fas fa-rocket"></i> خرید اشتراک</a>
+            <a href="/Packages" class="btn-primary"><i class="fas fa-rocket"></i> خرید اشتراک</a>
             <button class="hamburger" @onclick="ToggleMenu">
                 <span></span><span></span><span></span>
             </button>
@@ -1907,7 +1907,7 @@
             <div class="contact-info fade-up">
                 <div class="item"><i class="fas fa-envelope float-icon"></i> <span>mohammad@example.com</span></div>
                 <div class="item"><i class="fas fa-phone-alt float-icon float-icon-delay"></i> <span>+۹۸ ۹۱۲ ۳۴۵ ۶۷۸۹</span></div>
-                <div class="item"><i class="fab fa-telegram float-icon"></i> <span>@@mohammad_dev</span></div>
+                <div class="item"><i class="fab fa-telegram float-icon"></i> <span>@@mohammad_Parsa_dev</span></div>
                 <div class="item"><i class="fab fa-github float-icon float-icon-delay"></i> <span>github.com/mohammad-dev</span></div>
                 <div class="item"><i class="fab fa-linkedin float-icon"></i> <span>linkedin.com/in/mohammad-dev</span></div>
             </div>
@@ -1955,7 +1955,7 @@
 @code {
     // ---- متغیرهای وضعیت ----
     private bool isMenuOpen = false;
-    private string typewriterText = "محمد رضایی";
+    private string typewriterText = "محمد پارسا کریمی";
 
     // ---- داده‌های آماری ----
     private List<StatItem> stats = new();
@@ -1968,7 +1968,7 @@
     private int typewriterIndex = 0;
     private int charIndex = 0;
     private bool isDeleting = false;
-    private readonly string[] typewriterWords = { "محمد رضایی", "Mohammad Rezaei", "Full-Stack Developer" };
+    private readonly string[] typewriterWords = { "محمد پارسا کریمی", "mohammad Parsa Karimi", "Full-Stack Developer" };
 
     // ---- متدهای چرخه زندگی ----
     protected override async Task OnInitializedAsync()
@@ -2173,7 +2173,7 @@
                 else
                 {
                     isDeleting = true;
-                    typewriterTimer.Interval = 1800;
+                    typewriterTimer.Interval = 500;
                 }
             }
             typewriterText = currentWord.Substring(0, charIndex);

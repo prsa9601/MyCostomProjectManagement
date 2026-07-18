@@ -1119,6 +1119,7 @@
         await Task.Delay(500);
         // After payment, could navigate to dashboard
         // NavigationManager.NavigateTo("/UserDashboard", true);
+        NavigationManager.NavigateTo($"/Checkout/{packageId}", true);
     }
 
     private async Task ActivateFreePackage(string packageId)
