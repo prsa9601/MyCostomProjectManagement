@@ -5,13 +5,13 @@ using System.Globalization;
 
 namespace BackEnd.Core.Auth.Commands.VerifyOtpCode
 {
-    public class VerifyOtpCodeCommand : IBaseCommand
+    public class VerifyOtpCodeCommand : IBaseCommand<VerifyOtpCodeResponse>
     {
         public string PhoneNumber { get; set; }
         public string Token { get; set; }
     }
 
-    public class VerifyOtpCodeCommandHandler : IBaseCommandHandler<VerifyOtpCodeCommand>
+    public class VerifyOtpCodeCommandHandler : IBaseCommandHandler<VerifyOtpCodeCommand, VerifyOtpCodeResponse>
     {
         private readonly IUserRepository _repository;
 
@@ -20,16 +20,16 @@ namespace BackEnd.Core.Auth.Commands.VerifyOtpCode
             _repository = repository;
         }
 
-        public async Task<OperationResult> Handle(VerifyOtpCodeCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<VerifyOtpCodeResponse>> Handle(VerifyOtpCodeCommand request, CancellationToken cancellationToken)
         {
             var user = await _repository.GetByFilterAsync(i => i.PhoneNumber.Equals(request.PhoneNumber));
-            if (user == null) return OperationResult.NotFound("اول درخواست ارسال کد یکبار مصرف بدهید.");
+            if (user == null) return OperationResult<VerifyOtpCodeResponse>.NotFound("اول درخواست ارسال کد یکبار مصرف بدهید.");
 
             var userOtp = user.UserOtps.OrderByDescending(i => i.ExpireDate).FirstOrDefault(i => i.ExpireDate > DateTime.Now);
-            if (userOtp == null) return OperationResult.NotFound("رمز یکبار مصرف منقضی شده لطفا مجددا درخواست رمز یکبار مصرف بدهید.");
+            if (userOtp == null) return OperationResult<VerifyOtpCodeResponse>.NotFound("رمز یکبار مصرف منقضی شده لطفا مجددا درخواست رمز یکبار مصرف بدهید.");
 
             if (userOtp.Token != request.Token)
-                return OperationResult.Error("رمز یکبار مصرف وارد شده اشتباه است.");
+                return OperationResult<VerifyOtpCodeResponse>.Error("رمز یکبار مصرف وارد شده اشتباه است.");
 
             var userOtpSession = new UserOtpSession(request.Token);
             user.AddOtpSession(userOtpSession);
@@ -40,7 +40,11 @@ namespace BackEnd.Core.Auth.Commands.VerifyOtpCode
             }
 
             await _repository.SaveChangeAsync();
-            return OperationResult.Success();
+            return OperationResult<VerifyOtpCodeResponse>.Success(new VerifyOtpCodeResponse
+            {
+                UserAuthStatus = string.IsNullOrWhiteSpace(user.FullName)
+                ? UserAuthStatus.UserNeedToRegiter : UserAuthStatus.UserNeedToLogin,
+            });
         }
     }
 }

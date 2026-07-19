@@ -16,6 +16,11 @@ namespace BackEnd.Data.Entities.User
             HashRefreshToken = hashRefreshToken;
             ExpireDate = expireDate;
         }
+       
+        public void ActivatingSession()
+        {
+            IsActive = true;
+        }
 
     }
 }

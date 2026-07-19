@@ -29,12 +29,13 @@ namespace BackEnd.Core.User.Commands.Login
         //کارهای جی دبلیو تی توکن و سشن کاربر انجام شود
         public async Task<OperationResult<LoginUserCommandResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _repository.GetByFilterAsync(i => i.PhoneNumber == request.PhoneNumber);
+            var user = await _repository.GetByFilterWithIncludsAsync(i => i.PhoneNumber == request.PhoneNumber,
+                "UserOtpSessions");
             if (user == null) return OperationResult<LoginUserCommandResponse>.NotFound();
             if (user.PhoneNumberIsVerify == false) return OperationResult<LoginUserCommandResponse>.Error("لطفا درخواست رمز یکبار مصرف بدهید.");
 
             var userOtpSession = user.UserOtpSessions.OrderByDescending(i => i.ExpireDate)
-                .FirstOrDefault(i => i.ExpireDate > DateTime.Now && i.IsActive == true);
+                .FirstOrDefault(i => i.ExpireDate > DateTime.Now && i.IsActive == true && i.UserId == user.Id);
 
             if (userOtpSession == null) return OperationResult<LoginUserCommandResponse>.NotFound("لطفا ابتدا درخواست رمز عبور یکبار مصرف بدهید.");
 
@@ -49,8 +50,10 @@ namespace BackEnd.Core.User.Commands.Login
             string refreshToken = refreshTokenService.GenerateToken(user.Id, user.PhoneNumber, null);
 
             var userSession = new UserSession(_hashManager.Hash(refreshToken), refreshTokenService.GetExpireDate(refreshToken));
+            userSession.ActivatingSession();
             user.AddSession(userSession);
-            
+
+            userOtpSession.InActive();
             await _repository.SaveChangeAsync();
            
             return OperationResult<LoginUserCommandResponse>.Success(new LoginUserCommandResponse

@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <Folder Include="Facade\Role\" />
-    <Folder Include="Facade\User\" />
   </ItemGroup>
 
 </Project>

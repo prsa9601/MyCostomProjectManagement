@@ -1,12 +1,15 @@
+using BackEnd.Core;
+using BackEnd.Infrastructure.Auth.Middlewares;
 using MyCostomProjectManagement.Components;
 using MyCostomProjectManagement.Facade;
-using BackEnd.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddRazorPages();   // <-- این خط را اضافه کنید
 
 builder.Services.FacadeConfig();
 builder.Services.CoreConfig(builder.Configuration);
@@ -23,9 +26,18 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+app.UseHttpsRedirection();
+
+//app.UseRouting();
+//app.MapControllers();
 app.UseAntiforgery();
 
+app.UseMiddleware<AuthRefreshTokenMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapStaticAssets();
+app.MapRazorPages();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

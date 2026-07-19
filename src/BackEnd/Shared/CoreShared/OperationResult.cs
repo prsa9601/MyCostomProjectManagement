@@ -194,6 +194,15 @@
                 Message = BadRequestMessage,
             };
         }
+        public static OperationResult BadRequest(string message)
+        {
+            return new OperationResult()
+            {
+                Status = OperationResultStatus.BadRequest,
+                Message = message,
+                Title = "BadRequest",
+            };
+        }
         public static OperationResult Success(string message)
         {
             return new OperationResult()

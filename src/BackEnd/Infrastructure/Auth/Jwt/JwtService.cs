@@ -82,17 +82,20 @@ namespace BackEnd.Infrastructure.Auth.Jwt
             catch (SecurityTokenExpiredException)
             {
                 // توکن منقضی شده
-                throw new Exception("Token Expired");
+                //throw new Exception("Token Expired");
+                return default;
             }
             catch (SecurityTokenInvalidSignatureException)
             {
                 // امضا نامعتبر
-                throw new Exception("SignInKey Is Not Valid");
+                //throw new Exception("SignInKey Is Not Valid");
+                return default;
             }
             catch (Exception ex)
             {
                 // سایر خطاها
-                throw new SecurityTokenException("Invalid token", ex);
+                //throw new SecurityTokenException("Invalid token", ex);\
+                return default;
             }
         }
 

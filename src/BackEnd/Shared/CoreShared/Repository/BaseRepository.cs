@@ -23,9 +23,28 @@ namespace BackEnd.Shared.CoreShared.Repository
         {
             return await Context.Set<TEntity>().Where(expression).AsTracking().ToListAsync();
         }
+        
         public async Task<TEntity?> GetByFilterAsync(Expression<Func<TEntity, bool>> expression)
         {
             return await Context.Set<TEntity>().AsTracking().FirstOrDefaultAsync(expression);
+        }
+
+        public async Task<TEntity?> GetByFilterWithIncludsAsync(
+       Expression<Func<TEntity, bool>> expression,
+       params string[] includs)
+        {
+            IQueryable<TEntity> query = Context.Set<TEntity>().AsTracking();
+
+            // اعمال Include‌ها (اگر آرایه خالی نباشد)
+            if (includs != null && includs.Length > 0)
+            {
+                foreach (var include in includs)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            return await query.FirstOrDefaultAsync(expression);
         }
 
         public async Task<TEntity?> GetTracking(Guid id)

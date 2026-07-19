@@ -8,11 +8,12 @@ namespace BackEnd.Data.Entities.User
         public DateTime ExpireDate { get; set; }
         public string Token { get; set; }
         public bool IsActive { get; set; }
+        //public bool IsVerify { get; set; } = false;
 
         public UserOtpSession(string token)
         {
             Token = token;
-            ExpireDate.AddMinutes(5);
+            ExpireDate = DateTime.Now.AddMinutes(5);
             IsActive = true;
         }
 
@@ -20,5 +21,12 @@ namespace BackEnd.Data.Entities.User
         {
             IsActive = false;
         }
+
+        //public void IsVerifyed()
+        //{
+        //    ExpireDate.AddMinutes(5);
+        //    IsActive = true;
+        //    IsVerify = true;
+        //}
     }
 }

@@ -12,6 +12,8 @@ namespace BackEnd.Shared.CoreShared.Repository
 
         Task<T?> GetTracking(Guid id);
         Task<T?> GetTrackingWithString(string id);
+        Task<T?> GetByFilterWithIncludsAsync(Expression<Func<T, bool>> expression, 
+            params string[] includs);
 
         Task AddAsync(T entity);
         void Add(T entity);

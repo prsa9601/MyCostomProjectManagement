@@ -8,7 +8,7 @@ namespace MyCostomProjectManagement.Facade.Auth
     public interface IAuthFacade
     {
         Task<OperationResult> SendOtpCode(SendOtpCodeCommand command);
-        Task<OperationResult> VerifyOtpCode(VerifyOtpCodeCommand command);
+        Task<OperationResult<VerifyOtpCodeResponse>> VerifyOtpCode(VerifyOtpCodeCommand command);
     }
     public class AuthFacade : IAuthFacade
     {
@@ -24,7 +24,7 @@ namespace MyCostomProjectManagement.Facade.Auth
             return await _mediator.Send(command);
         }
 
-        public async Task<OperationResult> VerifyOtpCode(VerifyOtpCodeCommand command)
+        public async Task<OperationResult<VerifyOtpCodeResponse>> VerifyOtpCode(VerifyOtpCodeCommand command)
         {
             return await _mediator.Send(command);
         }

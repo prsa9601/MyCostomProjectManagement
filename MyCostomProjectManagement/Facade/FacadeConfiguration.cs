@@ -1,4 +1,5 @@
 ﻿using MyCostomProjectManagement.Facade.Auth;
+using MyCostomProjectManagement.Facade.User;
 
 namespace MyCostomProjectManagement.Facade
 {
@@ -7,6 +8,7 @@ namespace MyCostomProjectManagement.Facade
         public static IServiceCollection FacadeConfig(this IServiceCollection services)
         {
             services.AddScoped<IAuthFacade, AuthFacade>();
+            services.AddScoped<IUserFacade, UserFacade>();
 
             return services;
         }
