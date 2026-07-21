@@ -1,0 +1,327 @@
+﻿@using MyCostomProjectManagement.Infrastructure
+@* ============================================================
+    COMPONENT: Alert.razor
+    قرار دهید در Shared/Alert.razor
+    ============================================================ *@
+
+<style>
+    /* ============================================================
+           ALERT COMPONENT - Styled for User Side
+        ============================================================ */
+
+    .alert-container {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 99999;
+        width: 100%;
+        max-width: 520px;
+        padding: 0 16px;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .alert-item {
+        pointer-events: auto;
+        width: 100%;
+        padding: 16px 20px;
+        border-radius: 16px;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        animation: alertSlideDown 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .alert-item.removing {
+            animation: alertSlideUp 0.35s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+        }
+
+    @@keyframes alertSlideDown {
+        0% {
+            opacity: 0;
+            transform: translateY(-30px) scale(0.95);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @@keyframes alertSlideUp {
+        0% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateY(-30px) scale(0.95);
+        }
+    }
+
+    /* ----- Progress Bar (Auto-dismiss) ----- */
+    .alert-item .progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 0 0 0 16px;
+        animation: progressShrink var(--duration, 5s) linear forwards;
+        width: 100%;
+    }
+
+    @@keyframes progressShrink {
+        0% {
+            width: 100%;
+        }
+
+        100% {
+            width: 0%;
+        }
+    }
+
+    /* ----- Icon ----- */
+    .alert-item .alert-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    /* ----- Content ----- */
+    .alert-item .alert-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+        .alert-item .alert-content .title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .alert-item .alert-content .message {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+    /* ----- Close Button ----- */
+    .alert-item .close-btn {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 4px;
+        transition: 0.3s;
+        flex-shrink: 0;
+        margin-top: 2px;
+        line-height: 1;
+    }
+
+        .alert-item .close-btn:hover {
+            color: rgba(255, 255, 255, 0.8);
+            transform: rotate(90deg);
+        }
+
+    /* ============================================================
+           TYPES (Success, Error, Warning, Info)
+        ============================================================ */
+
+    /* ----- Success ----- */
+    .alert-item.type-success {
+        background: rgba(52, 211, 153, 0.06);
+        border-color: rgba(52, 211, 153, 0.08);
+    }
+
+        .alert-item.type-success .alert-icon {
+            background: rgba(52, 211, 153, 0.12);
+            color: #34d399;
+        }
+
+        .alert-item.type-success .progress-bar {
+            background: rgba(52, 211, 153, 0.2);
+        }
+
+    /* ----- Error ----- */
+    .alert-item.type-error {
+        background: rgba(239, 68, 68, 0.06);
+        border-color: rgba(239, 68, 68, 0.08);
+    }
+
+        .alert-item.type-error .alert-icon {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+        }
+
+        .alert-item.type-error .progress-bar {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+    /* ----- Warning ----- */
+    .alert-item.type-warning {
+        background: rgba(251, 146, 60, 0.06);
+        border-color: rgba(251, 146, 60, 0.08);
+    }
+
+        .alert-item.type-warning .alert-icon {
+            background: rgba(251, 146, 60, 0.12);
+            color: #fb923c;
+        }
+
+        .alert-item.type-warning .progress-bar {
+            background: rgba(251, 146, 60, 0.2);
+        }
+
+    /* ----- Info ----- */
+    .alert-item.type-info {
+        background: rgba(59, 130, 246, 0.06);
+        border-color: rgba(59, 130, 246, 0.08);
+    }
+
+        .alert-item.type-info .alert-icon {
+            background: rgba(59, 130, 246, 0.12);
+            color: #3b82f6;
+        }
+
+        .alert-item.type-info .progress-bar {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+    /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+    @@media (max-width: 480px) {
+        .alert-container {
+            top: 12px;
+            padding: 0 10px;
+            max-width: 100%;
+        }
+
+        .alert-item {
+            padding: 14px 16px;
+            border-radius: 14px;
+            gap: 12px;
+        }
+
+            .alert-item .alert-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 0.95rem;
+            }
+
+            .alert-item .alert-content .title {
+                font-size: 0.85rem;
+            }
+
+            .alert-item .alert-content .message {
+                font-size: 0.8rem;
+            }
+    }
+</style>
+
+@if (Alerts.Any())
+{
+    <div class="alert-container" id="alertContainer">
+        @foreach (var alert in Alerts)
+        {
+            <div class="alert-item type-@alert.Type.ToString().ToLower() @(alert.IsRemoving ? "removing" : "")"
+                 style="--duration: @(alert.Duration)s;"
+                 @onclick:stopPropagation="true">
+                <!-- Icon -->
+                <div class="alert-icon">
+                    @switch (alert.Type)
+                    {
+                        case AlertType.Success:
+                            <i class="fas fa-check-circle"></i>
+                            break;
+                        case AlertType.Error:
+                            <i class="fas fa-times-circle"></i>
+                            break;
+                        case AlertType.Warning:
+                            <i class="fas fa-exclamation-triangle"></i>
+                            break;
+                        case AlertType.Info:
+                            <i class="fas fa-info-circle"></i>
+                            break;
+                    }
+                </div>
+
+                <!-- Content -->
+                <div class="alert-content">
+                    @if (!string.IsNullOrEmpty(alert.Title))
+                    {
+                        <div class="title">@alert.Title</div>
+                    }
+                    <div class="message">@alert.Message</div>
+                </div>
+
+                <!-- Close Button -->
+                <button class="close-btn" @onclick="() => RemoveAlert(alert.Id)" title="بستن">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <!-- Progress Bar (auto-dismiss) -->
+                <div class="progress-bar" style="animation-duration: @(alert.Duration)s;"></div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    // ============================================================
+    // PARAMETERS
+    // ============================================================
+
+    [Inject] private AlertService AlertService { get; set; } = default!;
+
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private IReadOnlyList<AlertItem> Alerts => AlertService.Alerts;
+
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
+
+    protected override void OnInitialized()
+    {
+        AlertService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        AlertService.OnChange -= StateHasChanged;
+    }
+
+    // ============================================================
+    // METHODS
+    // ============================================================
+
+    private void RemoveAlert(string id)
+    {
+        AlertService.RemoveAlert(id);
+    }
+}

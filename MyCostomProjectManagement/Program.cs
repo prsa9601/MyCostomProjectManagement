@@ -1,17 +1,25 @@
 using BackEnd.Core;
 using BackEnd.Infrastructure.Auth.Middlewares;
+using Microsoft.AspNetCore.Components.Authorization;
 using MyCostomProjectManagement.Components;
 using MyCostomProjectManagement.Facade;
+using MyCostomProjectManagement.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-
 builder.Services.AddRazorPages();   // <-- این خط را اضافه کنید
+builder.Services.AddServerSideBlazor();
+
+builder.Services.AddScoped<UserAuthentication>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.FacadeConfig();
+builder.Services.AddScoped<AlertService>();
 builder.Services.CoreConfig(builder.Configuration);
 
 var app = builder.Build();

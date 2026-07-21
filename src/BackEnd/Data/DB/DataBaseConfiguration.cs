@@ -9,9 +9,14 @@ namespace BackEnd.Data.DB
         public static IServiceCollection DBConfig(this IServiceCollection services
             , IConfiguration configuration)
         {
-            services.AddDbContext<Context>(options =>
-           options.UseSqlServer(configuration.GetSection("ConnectionStrings")["DefaultConnection"]));
+           // services.AddDbContext<Context>(options =>
+           //options.UseSqlServer(configuration.GetSection("ConnectionStrings")["DefaultConnection"]));
 
+            services.AddDbContextFactory<Context>(options =>
+            {
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                // سایر تنظیمات
+            });
             ////MediatR
             //services.AddMediatR(cfg =>
             //{

@@ -18,8 +18,4 @@
     <ProjectReference Include="..\src\BackEnd\BackEnd.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Facade\Role\" />
-  </ItemGroup>
-
 </Project>

@@ -3,6 +3,16 @@
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject IRoleFacade _roleFacade
+
+@using BackEnd.Core.Role.Commands.Create
+@using BackEnd.Core.Role.Commands.Edit
+@using BackEnd.Core.Role.Commands.Remove
+@using BackEnd.Core.Role.Queries.DTOs
+@using BackEnd.Data.Entities.Role
+@using BackEnd.Shared.Extentions.Enum
+@using MyCostomProjectManagement.Facade.Role
+@using MyCostomProjectManagement.Infrastructure
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,8 +20,8 @@
 
 <style>
     /* ============================================================
-               ROLES & PERMISSIONS PAGE
-            ============================================================ */
+                                               ROLES & PERMISSIONS PAGE
+                                            ============================================================ */
 
     .page-header {
         display: flex;
@@ -183,8 +193,8 @@
         }
 
     /* ============================================================
-               STATS ROW
-            ============================================================ */
+                                               STATS ROW
+                                            ============================================================ */
     .stats-row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -232,8 +242,8 @@
         }
 
     /* ============================================================
-               ROLES LIST
-            ============================================================ */
+                                               ROLES LIST
+                                            ============================================================ */
     .roles-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -389,8 +399,8 @@
                         }
 
     /* ============================================================
-               MODAL
-            ============================================================ */
+                                               MODAL
+                                            ============================================================ */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -605,8 +615,8 @@
             }
 
     /* ============================================================
-               EMPTY STATE
-            ============================================================ */
+                                               EMPTY STATE
+                                            ============================================================ */
     .empty-state-mini {
         text-align: center;
         padding: 50px 20px;
@@ -628,8 +638,8 @@
         }
 
     /* ============================================================
-               RIPPLE
-            ============================================================ */
+                                               RIPPLE
+                                            ============================================================ */
     .ripple {
         position: relative;
         overflow: hidden;
@@ -652,8 +662,8 @@
     }
 
     /* ============================================================
-               FADE UP
-            ============================================================ */
+                                               FADE UP
+                                            ============================================================ */
     .fade-up {
         opacity: 0;
         transform: translateY(30px);
@@ -686,8 +696,8 @@
         }
 
     /* ============================================================
-               RESPONSIVE
-            ============================================================ */
+                                               RESPONSIVE
+                                            ============================================================ */
     @@media (max-width: 992px) {
         .roles-grid {
             grid-template-columns: 1fr;
@@ -777,8 +787,8 @@
     }
 
     /* ============================================================
-               SCROLLBAR
-            ============================================================ */
+                                               SCROLLBAR
+                                            ============================================================ */
     .modal-box::-webkit-scrollbar {
         width: 4px;
     }
@@ -811,8 +821,11 @@
                 <div class="subtitle">مدیریت نقش‌های کاربران و سطح دسترسی‌های سیستم</div>
             </div>
             <div class="actions">
-                <button class="btn-primary ripple" @onclick="OpenAddModal">
+                <button class="btn-primary ripple" @onclick="OpenAddModal" disabled="@isLoading">
                     <i class="fas fa-plus"></i> نقش جدید
+                </button>
+                <button class="btn-outline ripple" @onclick="RefreshData" disabled="@isLoading">
+                    <i class="fas fa-sync-alt"></i> بروزرسانی
                 </button>
             </div>
         </div>
@@ -849,67 +862,89 @@
             </div>
         </div>
 
-        <!-- Roles Grid -->
-        <div class="roles-grid">
-            @foreach (var role in roles)
-            {
-                <div class="role-card fade-up stagger-child">
-                    <div class="card-header">
-                        <div class="role-info">
-                            <div class="role-name">
-                                <i class="fas @(role.Icon)" style="color:@role.IconColor;"></i>
-                                @role.Name
-                                <span class="badge-count">@role.Users.Count کاربر</span>
+        <!-- Loading State -->
+        @if (isLoading)
+        {
+            <div style="text-align:center; padding:40px;">
+                <i class="fas fa-spinner fa-spin" style="font-size:2rem; color:#e8a838;"></i>
+                <p style="color:#94a3b8; margin-top:12px;">در حال بارگذاری...</p>
+            </div>
+        }
+        else
+        {
+            <!-- Roles Grid -->
+            <div class="roles-grid">
+                @foreach (var role in roles)
+                {
+                    <div class="role-card fade-up stagger-child">
+                        <div class="card-header">
+                            <div class="role-info">
+                                <div class="role-name">
+                                    <i class="fas @(role.Icon)" style="color:@role.IconColor;"></i>
+                                    @role.Name
+                                    <span class="badge-count">@role.Users.Count کاربر</span>
+                                </div>
+                                <div class="role-desc">@role.Description</div>
                             </div>
-                            <div class="role-desc">@role.Description</div>
+                            <div class="role-actions">
+                                <button class="btn-icon users" title="مشاهده کاربران" @onclick='() => ShowRoleUsers(role.Id)'>
+                                    <i class="fas fa-users"></i>
+                                </button>
+                                <button class="btn-icon edit" title="ویرایش نقش" @onclick='() => OpenEditModal(role.Id)'>
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon delete" title="حذف نقش" @onclick='() => DeleteRole(role.Id)'>
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="role-actions">
-                            <button class="btn-icon users" title="مشاهده کاربران" @onclick='() => ShowRoleUsers(role.Id)'>
-                                <i class="fas fa-users"></i>
-                            </button>
-                            <button class="btn-icon edit" title="ویرایش نقش" @onclick='() => OpenEditModal(role.Id)'>
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-icon delete" title="حذف نقش" @onclick='() => DeleteRole(role.Id)'>
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                        <div class="card-body">
+                            <div class="permissions">
+                                @foreach (var perm in role.Permissions.Take(6))
+                                {
+                                    <span class="perm-tag">@perm.GetDisplayName()</span>
+                                }
+                                @if (role.Permissions.Count > 6)
+                                {
+                                    <span class="perm-tag" style="color:#e8a838;">+@(role.Permissions.Count - 6) مورد</span>
+                                }
+                            </div>
+                            <div class="users-list">
+                                @foreach (var user in role.Users.Take(3))
+                                {
+                                    <span class="user-tag">
+                                        <span class="avatar-mini @user.AvatarClass">@user.Initials</span>
+                                        @user.Name
+                                    </span>
+                                }
+                                @if (role.Users.Count > 3)
+                                {
+                                    <span class="user-tag" style="color:#e8a838;">+@(role.Users.Count - 3) نفر</span>
+                                }
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="permissions">
-                            @foreach (var perm in role.Permissions.Take(6))
-                            {
-                                <span class="perm-tag">@perm</span>
-                            }
-                            @if (role.Permissions.Count > 6)
-                            {
-                                <span class="perm-tag" style="color:#e8a838;">+@(role.Permissions.Count - 6) مورد</span>
-                            }
-                        </div>
-                        <div class="users-list">
-                            @foreach (var user in role.Users.Take(3))
-                            {
-                                <span class="user-tag">
-                                    <span class="avatar-mini @user.AvatarClass">@user.Initials</span>
-                                    @user.Name
-                                </span>
-                            }
-                            @if (role.Users.Count > 3)
-                            {
-                                <span class="user-tag" style="color:#e8a838;">+@(role.Users.Count - 3) نفر</span>
-                            }
-                        </div>
-                    </div>
+                }
+            </div>
+
+            @if (!roles.Any())
+            {
+                <div class="empty-state-mini">
+                    <i class="fas fa-user-shield"></i>
+                    <h3>هیچ نقشی تعریف نشده است</h3>
+                    <p>برای شروع، یک نقش جدید ایجاد کنید.</p>
                 </div>
             }
-        </div>
+        }
 
-        @if (!roles.Any())
+        <!-- Pagination (optional - add if needed) -->
+        @if (totalPages > 1)
         {
-            <div class="empty-state-mini">
-                <i class="fas fa-user-shield"></i>
-                <h3>هیچ نقشی تعریف نشده است</h3>
-                <p>برای شروع، یک نقش جدید ایجاد کنید.</p>
+            <div class="pagination" style="display:flex; justify-content:center; gap:8px; margin-top:20px;">
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <button class="btn-outline btn-sm @(i == currentPage ? "active" : "")" @onclick='() => ChangePage(i)'>@i</button>
+                }
             </div>
         }
 
@@ -917,7 +952,7 @@
 </main>
 
 <!-- ============================================================
-     MODAL (Add/Edit Role) - کاملاً مجزا
+     MODAL (Add/Edit Role)
 ============================================================ -->
 <div class="modal-overlay @(isModalOpen ? "active" : "")" @onclick="CloseModal">
     <div class="modal-box" @onclick:stopPropagation="true">
@@ -968,19 +1003,28 @@
         <div class="form-group">
             <label>دسترسی‌ها (Permissions)</label>
             <div class="permissions-grid">
-                @foreach (var perm in allPermissions)
+                @foreach (var perm in Enum.GetValues(typeof(Permissions)).Cast<Permissions>())
                 {
+                    var id = Guid.NewGuid();
                     <div class="perm-item">
-                        <input type="checkbox" @bind="modalPermissions[perm]" />
-                        <label>@perm</label>
+                        <input type="checkbox" @bind="modalPermissions[perm.ToString()]" id="@id" />
+                        <label for="@id">@perm.GetDisplayName()</label>
                     </div>
                 }
             </div>
         </div>
 
         <div class="modal-actions">
-            <button class="btn-modal-primary ripple" @onclick="SaveRole">
-                <i class="fas fa-save"></i> @(isEditing ? "ذخیره تغییرات" : "ایجاد نقش")
+            <button class="btn-modal-primary ripple" @onclick="SaveRole" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>در حال ذخیره...</span>
+                }
+                else
+                {
+                    <span><i class="fas fa-save"></i> @(isEditing ? "ذخیره تغییرات" : "ایجاد نقش")</span>
+                }
             </button>
             <button class="btn-modal-secondary ripple" @onclick="CloseModal">
                 <i class="fas fa-times"></i> لغو
@@ -990,7 +1034,7 @@
 </div>
 
 <!-- ============================================================
-     USERS MODAL - کاملاً مجزا
+     USERS MODAL
 ============================================================ -->
 <div class="modal-overlay @(isUsersModalOpen ? "active" : "")" @onclick="CloseUsersModal">
     <div class="modal-box" @onclick:stopPropagation="true" style="max-width:480px;">
@@ -1043,9 +1087,11 @@
     // STATE
     // ============================================================
 
+    private bool isLoading = false;
+    private bool isSubmitting = false;
     private bool isModalOpen = false;
     private bool isEditing = false;
-    private string editingRoleId = "";
+    private Guid editingRoleId;
     private string modalRoleName = "";
     private string modalRoleDescription = "";
     private string modalRoleIcon = "fa-user-shield";
@@ -1058,9 +1104,11 @@
 
     // Data
     private List<Role> roles = new();
-    private List<string> allPermissions = new();
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private int pageSize = 8;
 
-    private int totalPermissions => allPermissions.Count;
+    private int totalPermissions => Enum.GetValues(typeof(Permissions)).Length;
     private int totalUsersWithRoles => roles.Sum(r => r.Users.Count);
     private int defaultRolesCount => roles.Count(r => r.IsDefault);
 
@@ -1074,151 +1122,83 @@
     // INITIALIZATION
     // ============================================================
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadMockData();
-        // مقداردهی اولیه دیکشنری برای جلوگیری از KeyNotFoundException
-        modalPermissions = allPermissions.ToDictionary(p => p, p => false);
+        // مقداردهی اولیه دیکشنری دسترسی‌ها با همه مقادیر false
+        InitializePermissionsDictionary();
+        // await LoadData();
+        StateHasChanged();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadData();
+
+        }
     }
 
-    private void LoadMockData()
+    private void InitializePermissionsDictionary()
     {
-        allPermissions = new List<string>
-        {
-            "مشاهده داشبورد",
-            "مدیریت کاربران",
-            "مشاهده کاربران",
-            "ویرایش کاربران",
-            "حذف کاربران",
-            "مدیریت نقش‌ها",
-            "مدیریت پروژه‌ها",
-            "مشاهده پروژه‌ها",
-            "ایجاد پروژه",
-            "ویرایش پروژه",
-            "حذف پروژه",
-            "مدیریت APIها",
-            "مشاهده APIها",
-            "ایجاد API",
-            "ویرایش API",
-            "حذف API",
-            "مدیریت پکیج‌ها",
-            "مشاهده پکیج‌ها",
-            "ایجاد پکیج",
-            "ویرایش پکیج",
-            "حذف پکیج",
-            "مدیریت درخواست‌ها",
-            "مشاهده درخواست‌ها",
-            "تایید درخواست",
-            "رد درخواست",
-            "مدیریت پیام‌ها",
-            "مشاهده پیام‌ها",
-            "پاسخ به پیام",
-            "حذف پیام",
-            "مدیریت مهارت‌ها",
-            "مشاهده مهارت‌ها",
-            "ایجاد مهارت",
-            "ویرایش مهارت",
-            "حذف مهارت",
-            "مدیریت نمونه کارها",
-            "مشاهده نمونه کارها",
-            "ایجاد نمونه کار",
-            "ویرایش نمونه کار",
-            "حذف نمونه کار",
-            "مدیریت تنظیمات",
-            "مشاهده تنظیمات",
-            "ویرایش تنظیمات"
-        };
+        modalPermissions = Enum.GetValues(typeof(Permissions))
+            .Cast<Permissions>()
+            .ToDictionary(p => p.ToString(), p => false);
+    }
 
-        roles = new List<Role>
+    private async Task LoadData(int page = 1)
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
         {
-            new Role
+            var result = await _roleFacade.GetFilter(new RoleFilterParam
             {
-                Id = "ROL-001",
-                Name = "مدیر ارشد",
-                Description = "دسترسی کامل به تمام بخش‌های سیستم",
-                Icon = "fa-crown",
-                IconColor = "#e8a838",
-                IsDefault = true,
-                Permissions = allPermissions.Take(20).ToList(),
-                Users = new List<RoleUser>
-                {
-                    new RoleUser { Id = "USR-001", Name = "علی رضایی", Email = "ali@example.com", Initials = "ع", AvatarClass = "gold" }
-                }
-            },
-            new Role
+                PageId = page,
+                Take = pageSize,
+                Search = null // optional search
+            });
+
+            roles = result.Data.Select(item => new Role
             {
-                Id = "ROL-002",
-                Name = "مدیر پروژه",
-                Description = "دسترسی به مدیریت پروژه‌ها و کاربران",
-                Icon = "fa-users-cog",
-                IconColor = "#3b82f6",
-                IsDefault = true,
-                Permissions = new List<string>
-                {
-                    "مشاهده داشبورد",
-                    "مشاهده کاربران",
-                    "مدیریت پروژه‌ها",
-                    "مشاهده پروژه‌ها",
-                    "ایجاد پروژه",
-                    "ویرایش پروژه",
-                    "مدیریت درخواست‌ها",
-                    "مشاهده درخواست‌ها",
-                    "تایید درخواست"
-                },
-                Users = new List<RoleUser>
-                {
-                    new RoleUser { Id = "USR-002", Name = "سارا حسینی", Email = "sara@example.com", Initials = "س", AvatarClass = "blue" },
-                    new RoleUser { Id = "USR-003", Name = "رضا کریمی", Email = "reza@example.com", Initials = "ر", AvatarClass = "green" }
-                }
-            },
-            new Role
-            {
-                Id = "ROL-003",
-                Name = "توسعه‌دهنده",
-                Description = "دسترسی به بخش‌های فنی و APIها",
-                Icon = "fa-code",
-                IconColor = "#52b788",
-                IsDefault = false,
-                Permissions = new List<string>
-                {
-                    "مشاهده داشبورد",
-                    "مشاهده پروژه‌ها",
-                    "مدیریت APIها",
-                    "مشاهده APIها",
-                    "ایجاد API",
-                    "ویرایش API",
-                    "مدیریت مهارت‌ها",
-                    "مشاهده مهارت‌ها",
-                    "ایجاد مهارت",
-                    "ویرایش مهارت"
-                },
-                Users = new List<RoleUser>
-                {
-                    new RoleUser { Id = "USR-004", Name = "مریم نادری", Email = "maryam@example.com", Initials = "م", AvatarClass = "purple" }
-                }
-            },
-            new Role
-            {
-                Id = "ROL-004",
-                Name = "کاربر عادی",
-                Description = "دسترسی پایه به سیستم",
-                Icon = "fa-user",
-                IconColor = "#94a3b8",
-                IsDefault = true,
-                Permissions = new List<string>
-                {
-                    "مشاهده داشبورد",
-                    "مشاهده پروژه‌ها",
-                    "مشاهده APIها"
-                },
-                Users = new List<RoleUser>
-                {
-                    new RoleUser { Id = "USR-005", Name = "احمد رضایی", Email = "ahmad@example.com", Initials = "ا", AvatarClass = "" },
-                    new RoleUser { Id = "USR-006", Name = "زهرا محمدی", Email = "zahra@example.com", Initials = "ز", AvatarClass = "" },
-                    new RoleUser { Id = "USR-007", Name = "نرگس احمدی", Email = "narges@example.com", Initials = "ن", AvatarClass = "" }
-                }
-            }
-        };
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                Icon = item.Icon ?? "fa-user-shield",
+                IconColor = item.IconColorCode ?? "#e8a838",
+                IsDefault = true, //item.IsDefault,
+                Permissions = item.RolePermissions?.Select(rp => rp.Permissions).ToList() ?? new List<Permissions>(),
+                //Users = new List<RoleUser>() // می‌توانید در صورت وجود داده واقعی جایگزین کنید
+            }).ToList();
+
+            totalPages = (int)Math.Ceiling(result.EntityCount / (double)pageSize);
+            currentPage = page;
+            // return;
+        }
+        catch (Exception ex)
+        {
+            //_alertService.Error($"خطا در بارگذاری داده‌ها: {ex.Message}");
+            await ShowCustomAlert();
+        }
+        //finally
+        //{
+        isLoading = false;
+        StateHasChanged();
+        await InitializeJsInterop();
+
+        return;
+        //}
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData(currentPage);
+    }
+
+    private async Task ChangePage(int page)
+    {
+        if (page != currentPage)
+            await LoadData(page);
     }
 
     // ============================================================
@@ -1228,17 +1208,18 @@
     private void OpenAddModal()
     {
         isEditing = false;
-        editingRoleId = "";
+        editingRoleId = Guid.Empty;
         modalRoleName = "";
         modalRoleDescription = "";
         modalRoleIcon = "fa-user-shield";
         modalRoleIconColor = "#e8a838";
-        modalPermissions = allPermissions.ToDictionary(p => p, p => false);
+        // Reset all permissions to false
+        InitializePermissionsDictionary();
         isModalOpen = true;
         StateHasChanged();
     }
 
-    private void OpenEditModal(string roleId)
+    private void OpenEditModal(Guid roleId)
     {
         var role = roles.FirstOrDefault(r => r.Id == roleId);
         if (role == null) return;
@@ -1249,7 +1230,17 @@
         modalRoleDescription = role.Description;
         modalRoleIcon = role.Icon;
         modalRoleIconColor = role.IconColor;
-        modalPermissions = allPermissions.ToDictionary(p => p, p => role.Permissions.Contains(p));
+
+        // Reset all permissions to false first
+        InitializePermissionsDictionary();
+        // Then set the ones that belong to the role to true
+        foreach (var perm in role.Permissions)
+        {
+            var key = perm.ToString();
+            if (modalPermissions.ContainsKey(key))
+                modalPermissions[key] = true;
+        }
+
         isModalOpen = true;
         StateHasChanged();
     }
@@ -1260,81 +1251,127 @@
         StateHasChanged();
     }
 
-    private void SaveRole()
+    private async Task SaveRole()
     {
         if (string.IsNullOrWhiteSpace(modalRoleName))
         {
-            // در برنامه واقعی، پیام خطا نمایش دهید
-            Console.WriteLine("لطفاً نام نقش را وارد کنید.");
+            //_alertService.Warning("لطفاً نام نقش را وارد کنید.");
+            await ShowCustomAlert();
             return;
         }
 
-        var selectedPermissions = modalPermissions.Where(p => p.Value).Select(p => p.Key).ToList();
-
-        if (isEditing)
-        {
-            var role = roles.FirstOrDefault(r => r.Id == editingRoleId);
-            if (role != null)
-            {
-                role.Name = modalRoleName.Trim();
-                role.Description = modalRoleDescription.Trim();
-                role.Icon = modalRoleIcon;
-                role.IconColor = modalRoleIconColor;
-                role.Permissions = selectedPermissions;
-            }
-        }
-        else
-        {
-            var newRole = new Role
-            {
-                Id = "ROL-" + (roles.Count + 1).ToString("D3"),
-                Name = modalRoleName.Trim(),
-                Description = modalRoleDescription.Trim(),
-                Icon = modalRoleIcon,
-                IconColor = modalRoleIconColor,
-                IsDefault = false,
-                Permissions = selectedPermissions,
-                Users = new List<RoleUser>()
-            };
-            roles.Add(newRole);
-        }
-
-        CloseModal();
+        isSubmitting = true;
         StateHasChanged();
+
+        try
+        {
+            var selectedPermissions = modalPermissions
+                .Where(p => p.Value)
+                .Select(p => Enum.Parse<Permissions>(p.Key))
+                .ToList();
+
+            if (isEditing)
+            {
+                // Update
+                var command = new EditRoleCommand(
+                    editingRoleId,
+                    modalRoleName.Trim(),
+                    selectedPermissions.Select(i => new RolePermission { Permissions = i }).ToList(),
+                    modalRoleIcon,
+                    modalRoleIconColor,
+                    modalRoleDescription.Trim(), false
+                );
+                await _roleFacade.Edit(command);
+                //_alertService.Success("نقش با موفقیت ویرایش شد.");
+                await ShowSuccess();
+            }
+            else
+            {
+                // Create
+                var command = new CreateRoleCommand(
+                    modalRoleName.Trim(),
+                    selectedPermissions.Select(p => new RolePermission { Permissions = p }).ToList(),
+                    modalRoleIcon,
+                    modalRoleIconColor,
+                    modalRoleDescription.Trim(), false
+                );
+                await _roleFacade.Create(command);
+                //_alertService.Success("نقش با موفقیت ایجاد شد.");
+                await ShowSuccess();
+            }
+
+            await LoadData(currentPage); // Refresh list
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            //_alertService.Error($"خطا در ذخیره نقش: {ex.Message}");
+            await ShowCustomAlert();
+        }
+        //finally
+        //{
+            isSubmitting = false;
+            StateHasChanged();
+            return;
+        //}
     }
 
-    private void DeleteRole(string roleId)
+    private async Task DeleteRole(Guid roleId)
     {
         var role = roles.FirstOrDefault(r => r.Id == roleId);
         if (role == null) return;
 
         if (role.IsDefault)
         {
-            Console.WriteLine("نقش‌های پیش‌فرض قابل حذف نیستند.");
+            //_alertService.Warning("نقش‌های پیش‌فرض قابل حذف نیستند.");
+            await ShowCustomAlert();
             return;
         }
 
         if (role.Users.Any())
         {
-            Console.WriteLine($"نقش {role.Name} دارای کاربر است و قابل حذف نیست.");
+            //_alertService.Warning($"نقش {role.Name} دارای کاربر است و قابل حذف نیست.");
+            await ShowCustomAlert();
             return;
         }
 
-        roles.RemoveAll(r => r.Id == roleId);
-        StateHasChanged();
+        // Confirm deletion (optional)
+        if (!await ConfirmAction($"آیا از حذف نقش {role.Name} اطمینان دارید؟")) return;
+
+        try
+        {
+            await _roleFacade.Remove(new RemoveRoleCommand { roleId = roleId });
+            //_alertService.Success("نقش با موفقیت حذف شد.");
+            await ShowSuccess();
+            await LoadData(currentPage);
+        }
+        catch (Exception ex)
+        {
+            // _alertService.Error($"خطا در حذف نقش: {ex.Message}");
+        }
+    }
+    private async Task ShowSuccess()
+    {
+        // await JSRuntime.InvokeVoidAsync("showSuccess", "عملیات با موفقیت انجام شد", "تبریک", 4000);
+        await JSRuntime.InvokeVoidAsync("showAlert", "عملیات موفق!", "success", "تبریک", 3000);
     }
 
+    // یا با متد عمومی:
+    private async Task ShowCustomAlert()
+    {
+        await JSRuntime.InvokeVoidAsync("showAlert", "متن پیام", "warning", "هشدار مهم", 6000);
+    }
     // ============================================================
     // USERS MODAL
     // ============================================================
 
-    private void ShowRoleUsers(string roleId)
+    private void ShowRoleUsers(Guid roleId)
     {
         var role = roles.FirstOrDefault(r => r.Id == roleId);
         if (role == null) return;
 
         selectedRoleName = role.Name;
-        selectedRoleUsers = role.Users;
+        selectedRoleUsers = role.Users; // در صورت وجود داده واقعی
         isUsersModalOpen = true;
         StateHasChanged();
     }
@@ -1346,16 +1383,20 @@
     }
 
     // ============================================================
-    // JS INTEROP (فقط برای ریپل و fade-up)
+    // HELPER
     // ============================================================
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task<bool> ConfirmAction(string message)
     {
-        if (firstRender)
-        {
-            await InitializeJsInterop();
-        }
+        // در یک برنامه واقعی، یک دیالوگ تأیید پیاده‌سازی کنید
+        // فعلاً فرض می‌کنیم true است
+        return true;
     }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
 
     private async Task InitializeJsInterop()
     {
@@ -1406,22 +1447,32 @@
 
     public class Role
     {
-        public string Id { get; set; } = "";
+        public Guid Id { get; set; }
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
         public string Icon { get; set; } = "fa-user-shield";
         public string IconColor { get; set; } = "#e8a838";
         public bool IsDefault { get; set; }
-        public List<string> Permissions { get; set; } = new();
+        public List<Permissions> Permissions { get; set; } = new();
         public List<RoleUser> Users { get; set; } = new();
     }
 
     public class RoleUser
     {
-        public string Id { get; set; } = "";
+        public Guid Id { get; set; }
         public string Name { get; set; } = "";
         public string Email { get; set; } = "";
         public string Initials { get; set; } = "";
         public string AvatarClass { get; set; } = "";
     }
+
+    // // Extension method for display name (if needed)
+    // public static class PermissionsExtensions
+    // {
+    //     public static string GetDisplayName(this Permissions permission)
+    //     {
+    //         return permission.ToString();
+    //     }
+    // }
 }
+<script src="../../../../GlobalAlert.js"></script> 
