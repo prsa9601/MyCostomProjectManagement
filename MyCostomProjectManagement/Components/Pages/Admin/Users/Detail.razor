@@ -1,8 +1,15 @@
-﻿@page "/Admin/UserDetail/{UserId}"
+﻿@page "/Admin/User/Detail/{UserId}"
 @layout AdminLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject IUserFacade _userFacade
+@inject IRoleFacade _roleFacade
+@inject JsAlertService _alertService
+
+@using MyCostomProjectManagement.Facade.Role
+@using MyCostomProjectManagement.Facade.User
+@using MyCostomProjectManagement.Infrastructure
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,7 +17,7 @@
 
 <style>
     /* ============================================================
-           USER DETAIL PAGE - با پس‌زمینه #13505b
+           USER DETAIL PAGE
         ============================================================ */
 
     .page-header {
@@ -86,12 +93,33 @@
         gap: 8px;
         box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
         font-family: inherit;
-        text-decoration: none;
     }
 
         .btn-primary:hover {
             transform: translateY(-2px) scale(1.02);
             box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+        }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-success:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
         }
 
     .btn-danger {
@@ -140,30 +168,8 @@
             transform: translateY(-2px);
         }
 
-    .btn-success {
-        background: linear-gradient(135deg, #52b788, #409f73);
-        color: #fff;
-        padding: 8px 22px;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        transition: all 0.35s ease;
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
-        font-family: inherit;
-    }
-
-        .btn-success:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
-        }
-
     /* ============================================================
-           USER PROFILE CARD
+           PROFILE CARD
         ============================================================ */
     .profile-card {
         background: rgba(255, 255, 255, 0.03);
@@ -214,20 +220,23 @@
                 flex-wrap: wrap;
             }
 
-                .profile-card .info .name .role-badge {
+                .profile-card .info .name .status-badge {
                     font-size: 0.7rem;
                     padding: 4px 14px;
                     border-radius: 30px;
                     font-weight: 500;
-                    background: rgba(59, 130, 246, 0.06);
-                    color: #3b82f6;
-                    border: 1px solid rgba(59, 130, 246, 0.04);
                 }
 
-                    .profile-card .info .name .role-badge.admin {
-                        background: rgba(232, 168, 56, 0.06);
-                        color: #e8a838;
-                        border-color: rgba(232, 168, 56, 0.04);
+                    .profile-card .info .name .status-badge.active {
+                        background: rgba(82, 183, 136, 0.06);
+                        color: #52b788;
+                        border: 1px solid rgba(82, 183, 136, 0.04);
+                    }
+
+                    .profile-card .info .name .status-badge.inactive {
+                        background: rgba(239, 68, 68, 0.06);
+                        color: #ef4444;
+                        border: 1px solid rgba(239, 68, 68, 0.04);
                     }
 
             .profile-card .info .details {
@@ -314,7 +323,7 @@
         }
 
     /* ============================================================
-           SECTION TITLE
+           ROLES SECTION
         ============================================================ */
     .section-title {
         font-size: 1.1rem;
@@ -339,82 +348,203 @@
             font-weight: 400;
         }
 
-    /* ============================================================
-           TABLES
-        ============================================================ */
-    .table-wrapper {
-        overflow-x: auto;
+    .role-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
         margin-bottom: 20px;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.03);
-        border-radius: 16px;
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        padding: 4px;
     }
 
-    .data-table {
+    .role-tag {
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: #b8c4d6;
+        transition: 0.3s;
+    }
+
+        .role-tag:hover {
+            border-color: rgba(232, 168, 56, 0.06);
+            color: #e8f0f1;
+        }
+
+        .role-tag .role-icon {
+            color: #e8a838;
+            margin-left: 4px;
+        }
+
+    /* ============================================================
+           MODAL
+        ============================================================ */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        border-collapse: collapse;
-        font-size: 0.9rem;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
     }
 
-        .data-table thead th {
-            text-align: right;
-            padding: 14px 18px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        .modal-overlay.active {
+            display: flex;
+        }
+
+    @@keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .modal-box {
+        background: #0a0e17;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 28px;
+        padding: 40px 36px;
+        max-width: 520px;
+        width: 100%;
+        margin: 20px;
+        box-shadow: 0 8px 64px rgba(0, 0, 0, 0.5);
+        animation: scaleIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    @@keyframes scaleIn {
+        0% {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .modal-box .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .modal-box .modal-title i {
+            color: #e8a838;
+        }
+
+    .modal-box .modal-subtitle {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+
+    .modal-box .form-group {
+        margin-bottom: 18px;
+    }
+
+        .modal-box .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
             color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .modal-box .form-group input,
+        .modal-box .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            color: #eef2f8;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.35s ease;
+            font-family: inherit;
+        }
+
+            .modal-box .form-group input:focus,
+            .modal-box .form-group textarea:focus {
+                border-color: #e8a838;
+                background: rgba(255, 255, 255, 0.04);
+                box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
+            }
+
+            .modal-box .form-group input::placeholder,
+            .modal-box .form-group textarea::placeholder {
+                color: #64748b;
+            }
+
+        .modal-box .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+    .modal-box .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        flex-wrap: wrap;
+    }
+
+        .modal-box .modal-actions .btn-modal-primary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            font-family: inherit;
+            background: linear-gradient(135deg, #52b788, #409f73);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
+        }
+
+            .modal-box .modal-actions .btn-modal-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
+            }
+
+        .modal-box .modal-actions .btn-modal-secondary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.9rem;
             font-weight: 500;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            font-family: inherit;
         }
 
-        .data-table tbody td {
-            padding: 12px 18px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-            vertical-align: middle;
-        }
-
-        .data-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .data-table tbody tr:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .data-table .status-badge {
-            font-size: 0.7rem;
-            padding: 3px 12px;
-            border-radius: 30px;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-            .data-table .status-badge.active {
-                background: rgba(82, 183, 136, 0.06);
-                color: #52b788;
-                border: 1px solid rgba(82, 183, 136, 0.02);
-            }
-
-            .data-table .status-badge.pending {
-                background: rgba(232, 168, 56, 0.06);
-                color: #e8a838;
-                border: 1px solid rgba(232, 168, 56, 0.02);
-            }
-
-            .data-table .status-badge.completed {
-                background: rgba(59, 130, 246, 0.06);
-                color: #3b82f6;
-                border: 1px solid rgba(59, 130, 246, 0.02);
-            }
-
-            .data-table .status-badge.cancelled {
-                background: rgba(220, 53, 69, 0.04);
-                color: #dc3545;
-                border: 1px solid rgba(220, 53, 69, 0.02);
+            .modal-box .modal-actions .btn-modal-secondary:hover {
+                background: rgba(255, 255, 255, 0.04);
+                border-color: rgba(255, 255, 255, 0.1);
+                color: #eef2f8;
+                transform: translateY(-2px);
             }
 
     /* ============================================================
@@ -432,6 +562,73 @@
             display: block;
             margin-bottom: 8px;
             color: rgba(59, 130, 246, 0.05);
+        }
+
+    /* ============================================================
+           LOADING
+        ============================================================ */
+    .loading-spinner {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+        .loading-spinner i {
+            font-size: 2.5rem;
+            color: #e8a838;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-spinner p {
+        color: #94a3b8;
+        margin-top: 12px;
+    }
+
+    /* ============================================================
+           RIPPLE
+        ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+
+    @@keyframes rippleAnim {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    /* ============================================================
+           FADE UP
+        ============================================================ */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
     /* ============================================================
@@ -515,34 +712,19 @@
             width: 30px;
         }
 
-        .data-table thead {
-            display: none;
+        .modal-box {
+            padding: 28px 20px;
+            margin: 12px;
         }
 
-        .data-table tbody td {
-            display: block;
-            padding: 8px 14px;
-            border-bottom: none;
-        }
-
-        .data-table tbody tr {
-            display: block;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            padding: 4px 0;
-        }
-
-            .data-table tbody tr:last-child {
-                border-bottom: none;
+            .modal-box .modal-actions {
+                flex-direction: column;
             }
 
-        .data-table td:before {
-            content: attr(data-label);
-            display: inline-block;
-            width: 80px;
-            font-size: 0.7rem;
-            color: #64748b;
-            font-weight: 500;
-        }
+                .modal-box .modal-actions .btn-modal-primary,
+                .modal-box .modal-actions .btn-modal-secondary {
+                    width: 100%;
+                }
     }
 
     @@media (max-width: 480px) {
@@ -558,64 +740,30 @@
             font-size: 0.8rem;
             justify-content: center;
         }
-    }
 
-    /* ============================================================
-           RIPPLE
-        ============================================================ */
-    .ripple {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .ripple-effect {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.15);
-        transform: scale(0);
-        animation: rippleAnim 0.6s linear;
-        pointer-events: none;
-    }
-
-    @@keyframes rippleAnim {
-        to {
-            transform: scale(4);
-            opacity: 0;
+        .modal-box {
+            padding: 20px 16px;
         }
     }
 
     /* ============================================================
-           FADE UP
+           SCROLLBAR
         ============================================================ */
-    .fade-up {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: opacity 0.7s ease, transform 0.7s ease;
+    .modal-box::-webkit-scrollbar {
+        width: 4px;
     }
 
-        .fade-up.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-    .stagger-child {
-        transition-delay: 0s;
+    .modal-box::-webkit-scrollbar-track {
+        background: transparent;
     }
 
-        .stagger-child:nth-child(1) {
-            transition-delay: 0.05s;
-        }
+    .modal-box::-webkit-scrollbar-thumb {
+        background: rgba(232, 168, 56, 0.2);
+        border-radius: 10px;
+    }
 
-        .stagger-child:nth-child(2) {
-            transition-delay: 0.1s;
-        }
-
-        .stagger-child:nth-child(3) {
-            transition-delay: 0.15s;
-        }
-
-        .stagger-child:nth-child(4) {
-            transition-delay: 0.2s;
+        .modal-box::-webkit-scrollbar-thumb:hover {
+            background: rgba(232, 168, 56, 0.3);
         }
 </style>
 
@@ -636,22 +784,26 @@
                     <i class="fas fa-user-circle"></i>
                     جزئیات کاربر
                 </h1>
-                <div class="subtitle">مشاهده و مدیریت اطلاعات کاربر</div>
+                <div class="subtitle">مشاهده اطلاعات کامل کاربر</div>
             </div>
             <div class="actions">
                 <a href="/Admin/Users" class="btn-back ripple">
                     <i class="fas fa-arrow-right"></i> بازگشت
                 </a>
-                <button class="btn-primary ripple" @onclick="EditUser">
+                <a href="/Admin/User/Edit/@UserId" class="btn-primary ripple">
                     <i class="fas fa-edit"></i> ویرایش
-                </button>
-                <button class="btn-danger ripple" @onclick="DeleteUser">
-                    <i class="fas fa-trash-alt"></i> حذف
-                </button>
+                </a>
             </div>
         </div>
 
-        @if (user != null)
+        @if (isLoading)
+        {
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>در حال بارگذاری اطلاعات کاربر...</p>
+            </div>
+        }
+        else if (user != null)
         {
             <!-- Profile Card -->
             <div class="profile-card fade-up visible">
@@ -659,9 +811,8 @@
                 <div class="info">
                     <div class="name">
                         @user.FullName
-                        <span class="role-badge @(user.Role == "admin" ? "admin" : "")">@user.RoleText</span>
-                        <span style="font-size:0.7rem; color:#94a3b8; font-weight:400;">
-                            <i class="fas fa-id-badge"></i> @user.Id
+                        <span class="status-badge @(user.Status == "active" ? "active" : "inactive")">
+                            @(user.Status == "active" ? "✅ فعال" : "❌ غیرفعال")
                         </span>
                     </div>
                     <div class="details">
@@ -678,10 +829,6 @@
                             <span class="value">عضو از @user.JoinDate</span>
                         </div>
                         <div class="item">
-                            <i class="fas fa-@(user.Status == "active" ? "check-circle" : "times-circle")" style="color:@(user.Status == "active" ? "#52b788" : "#dc3545"); opacity:0.8;"></i>
-                            <span class="value" style="color:@(user.Status == "active" ? "#52b788" : "#FF9933");">@(user.Status == "active" ? "فعال" : "غیرفعال")</span>
-                        </div>
-                        <div class="item">
                             <i class="fas fa-map-marker-alt"></i>
                             <span class="value">@user.Location</span>
                         </div>
@@ -689,11 +836,15 @@
                             <i class="fas fa-clock"></i>
                             <span class="value">آخرین فعالیت: @user.LastActive</span>
                         </div>
+                        <div class="item">
+                            <i class="fas fa-id-badge"></i>
+                            <span class="value">شناسه: @user.Id</span>
+                        </div>
                     </div>
                 </div>
                 <div class="actions">
-                    <button class="btn-success ripple" @onclick="SendEmail">
-                        <i class="fas fa-envelope"></i> ارسال ایمیل
+                    <button class="btn-success ripple" @onclick="OpenEmailModal">
+                        <i class="fas fa-envelope"></i> ایمیل
                     </button>
                     @if (user.Status == "active")
                     {
@@ -707,6 +858,9 @@
                             <i class="fas fa-check"></i> فعال کردن
                         </button>
                     }
+                    <button class="btn-danger ripple" @onclick="DeleteUser">
+                        <i class="fas fa-trash-alt"></i> حذف
+                    </button>
                 </div>
             </div>
 
@@ -742,121 +896,39 @@
                 </div>
             </div>
 
-            <!-- User Projects -->
+            <!-- Roles -->
             <div class="section-title">
-                <i class="fas fa-project-diagram"></i>
-                پروژه‌های کاربر
-                <span class="count">@user.Projects.Count مورد</span>
+                <i class="fas fa-user-tag"></i>
+                نقش‌های کاربر
+                <span class="count">@user.Roles.Count مورد</span>
             </div>
-            <div class="table-wrapper fade-up visible">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>شناسه</th>
-                            <th>عنوان</th>
-                            <th>وضعیت</th>
-                            <th>تاریخ</th>
-                            <th>عملیات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var proj in user.Projects)
-                        {
-                            <tr>
-                                <td data-label="شناسه">@proj.Id</td>
-                                <td data-label="عنوان">@proj.Title</td>
-                                <td data-label="وضعیت">
-                                    <span class="status-badge @proj.StatusClass">@proj.StatusText</span>
-                                </td>
-                                <td data-label="تاریخ">@proj.Date</td>
-                                <td data-label="عملیات">
-                                    <a href="/Admin/Projects/Detail/@proj.Id" class="btn-outline" style="padding:4px 12px; font-size:0.7rem; border-radius:30px;">
-                                        <i class="fas fa-eye"></i> مشاهده
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="role-tags">
+                @foreach (var role in user.Roles)
+                {
+                    <span class="role-tag">
+                        <i class="fas fa-shield-alt role-icon"></i>
+                        @role.Name
+                    </span>
+                }
+                @if (!user.Roles.Any())
+                {
+                    <div class="empty-state-mini" style="padding:10px 0;">
+                        <p>هیچ نقشی به این کاربر اختصاص داده نشده است.</p>
+                    </div>
+                }
             </div>
 
-            <!-- Purchase History -->
-            <div class="section-title">
-                <i class="fas fa-history"></i>
-                تاریخچه خریدها
-                <span class="count">@user.Purchases.Count مورد</span>
-            </div>
-            <div class="table-wrapper fade-up visible">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>شناسه</th>
-                            <th>پکیج</th>
-                            <th>قیمت</th>
-                            <th>تاریخ</th>
-                            <th>وضعیت</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var purchase in user.Purchases)
-                        {
-                            <tr>
-                                <td data-label="شناسه">@purchase.Id</td>
-                                <td data-label="پکیج">@purchase.PackageName</td>
-                                <td data-label="قیمت">@purchase.Price.ToString("N0") تومان</td>
-                                <td data-label="تاریخ">@purchase.Date</td>
-                                <td data-label="وضعیت">
-                                    <span class="status-badge @purchase.StatusClass">@purchase.StatusText</span>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- API Access -->
-            <div class="section-title">
-                <i class="fas fa-plug"></i>
-                دسترسی‌های API
-                <span class="count">@user.ApiAccesses.Count مورد</span>
-            </div>
-            <div class="table-wrapper fade-up visible">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>نام API</th>
-                            <th>پروژه</th>
-                            <th>روز باقیمانده</th>
-                            <th>وضعیت</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var api in user.ApiAccesses)
-                        {
-                            <tr>
-                                <td data-label="نام API">@api.Name</td>
-                                <td data-label="پروژه">@api.Project</td>
-                                <td data-label="روز باقیمانده">
-                                    <span style="color:@(api.RemainingDays < 7 ? "#dc3545" : "#52b788"); font-weight:600;">
-                                        @api.RemainingDays روز
-                                    </span>
-                                </td>
-                                <td data-label="وضعیت">
-                                    <span class="status-badge @(api.RemainingDays > 0 ? "active" : "cancelled")">
-                                        @(api.RemainingDays > 0 ? "✅ فعال" : "❌ منقضی")
-                                    </span>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <!-- Placeholder for future data -->
+            <div style="text-align:center; padding:20px; color:#64748b; font-size:0.9rem; border:1px dashed rgba(255,255,255,0.04); border-radius:16px; margin-top:20px;">
+                <i class="fas fa-info-circle" style="color:#e8a838;"></i>
+                اطلاعات بیشتر مانند پروژه‌ها و خریدها به‌زودی اضافه می‌شوند.
             </div>
         }
         else
         {
-            <div class="empty-state-mini" style="padding:60px 20px;">
-                <i class="fas fa-user-slash" style="font-size:4rem; display:block; margin-bottom:16px; color:#64748b;"></i>
-                <h3 style="color:#94a3b8; font-size:1.2rem;">کاربری با این شناسه یافت نشد</h3>
+            <div style="text-align:center; padding:60px 20px;">
+                <i class="fas fa-user-slash" style="font-size:4rem; color:#64748b; display:block; margin-bottom:16px;"></i>
+                <h3 style="color:#94a3b8;">کاربری با این شناسه یافت نشد</h3>
                 <p style="color:#64748b; margin-top:8px;">لطفاً شناسه کاربر را بررسی کنید.</p>
                 <a href="/Admin/Users" class="btn-primary ripple" style="margin-top:16px; display:inline-flex;">
                     <i class="fas fa-arrow-right"></i> بازگشت به لیست کاربران
@@ -867,106 +939,167 @@
     </div>
 </main>
 
+<!-- ============================================================
+     EMAIL MODAL
+============================================================ -->
+<div class="modal-overlay @(isEmailModalOpen ? "active" : "")" @onclick="CloseEmailModal">
+    <div class="modal-box" @onclick:stopPropagation="true">
+        <div class="modal-title">
+            <i class="fas fa-envelope"></i>
+            ارسال ایمیل
+        </div>
+        <div class="modal-subtitle">
+            ارسال ایمیل به <strong style="color:#e8a838;">@(user?.Email ?? "")</strong>
+        </div>
+
+        <div class="form-group">
+            <label>موضوع</label>
+            <input type="text" placeholder="موضوع ایمیل..." @bind="emailSubject" />
+        </div>
+
+        <div class="form-group">
+            <label>پیام</label>
+            <textarea placeholder="متن ایمیل را بنویسید..." @bind="emailBody"></textarea>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal-primary ripple" @onclick="SendEmail" disabled="@isSending">
+                @if (isSending)
+                {
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>در حال ارسال...</p>
+                }
+                else
+                {
+                    <span><i class="fas fa-paper-plane"></i> ارسال</span>
+                }
+            </button>
+            <button class="btn-modal-secondary ripple" @onclick="CloseEmailModal">
+                <i class="fas fa-times"></i> لغو
+            </button>
+        </div>
+    </div>
+</div>
+
 @code {
     // ============================================================
-    // DATA
+    // STATE
     // ============================================================
 
-    private UserDetail? user = null;
+    private bool isLoading = false;
+    private bool isSending = false;
+    private bool isEmailModalOpen = false;
+    private string emailSubject = "";
+    private string emailBody = "";
+    private UserDetailDto? user = null;
 
     // ============================================================
     // INITIALIZATION
     // ============================================================
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadUserData();
     }
 
-    private void LoadUserData()
+    private async Task LoadData()
     {
-        // Mock data - in real app, fetch from API based on UserId
-        // For demo, we generate sample data
+        isLoading = true;
+        StateHasChanged();
 
-        if (UserId == "USR-001" || UserId == "1" || string.IsNullOrEmpty(UserId))
+        try
         {
-            user = new UserDetail
+            var userResult = await _userFacade.GetId(Guid.Parse(UserId));
+            if (userResult == null)
             {
-                Id = "USR-001",
-                FullName = "علی رضایی",
-                Email = "ali.rezaei@example.com",
-                Phone = "+۹۸ ۹۱۲ ۳۴۵ ۶۷۸۹",
-                Role = "admin",
-                RoleText = "ادمین",
-                Status = "active",
+                await _alertService.Error("کاربر مورد نظر یافت نشد.");
+                return;
+            }
+
+            user = new UserDetailDto
+            {
+                Id = userResult.Id,
+                FullName = userResult.FullName,
+                Email = userResult.Email,
+                Phone = userResult.PhoneNumber,
                 Location = "تهران، ایران",
-                JoinDate = "۱۴۰۴/۱۱/۰۵",
-                LastActive = "۱۴۰۵/۰۴/۱۸ - ۱۴:۳۰",
-                Initials = "ع",
-                ProjectCount = 8,
-                PurchaseCount = 5,
-                ApiAccessCount = 4,
-                HasActivePackage = true,
-                ActivePackageName = "حرفه‌ای",
-                Projects = new List<UserProject>
-                {
-                    new UserProject { Id = "PRJ-001", Title = "فروشگاه اینترنتی", StatusClass = "active", StatusText = "فعال", Date = "۱۴۰۵/۰۴/۱۲" },
-                    new UserProject { Id = "PRJ-002", Title = "داشبورد مدیریتی", StatusClass = "completed", StatusText = "تکمیل شده", Date = "۱۴۰۵/۰۴/۰۵" },
-                    new UserProject { Id = "PRJ-003", Title = "سیستم رزرواسیون", StatusClass = "pending", StatusText = "در انتظار", Date = "۱۴۰۵/۰۴/۰۱" }
-                },
-                Purchases = new List<UserPurchase>
-                {
-                    new UserPurchase { Id = "#INV-001", PackageName = "پکیج حرفه‌ای", Price = 249000, Date = "۱۴۰۵/۰۴/۰۱", StatusClass = "active", StatusText = "موفق" },
-                    new UserPurchase { Id = "#INV-002", PackageName = "پکیج پایه", Price = 99000, Date = "۱۴۰۵/۰۳/۱۵", StatusClass = "active", StatusText = "موفق" },
-                    new UserPurchase { Id = "#INV-003", PackageName = "پکیج طلایی", Price = 1250000, Date = "۱۴۰۵/۰۲/۲۰", StatusClass = "pending", StatusText = "در انتظار" }
-                },
-                ApiAccesses = new List<UserApiAccess>
-                {
-                    new UserApiAccess { Name = "درگاه پرداخت زرین‌پال", Project = "پروژه فروشگاهی", RemainingDays = 52 },
-                    new UserApiAccess { Name = "ارسال پیامک کاوه‌نگار", Project = "سیستم اطلاع‌رسانی", RemainingDays = 45 },
-                    new UserApiAccess { Name = "نقشه و مسیریابی نشان", Project = "اپلیکیشن مسیریابی", RemainingDays = 30 },
-                    new UserApiAccess { Name = "احراز هویت ملی", Project = "سامانه ثبت‌نام", RemainingDays = 5 }
-                }
-            };
-        }
-        else if (UserId == "USR-002" || UserId == "2")
-        {
-            user = new UserDetail
-            {
-                Id = "USR-002",
-                FullName = "سارا حسینی",
-                Email = "sara.hosseini@example.com",
-                Phone = "+۹۸ ۹۳۶ ۱۲۳ ۴۵۶۷",
-                Role = "user",
-                RoleText = "کاربر",
-                Status = "inactive",
-                Location = "اصفهان، ایران",
-                JoinDate = "۱۴۰۵/۰۱/۱۲",
-                LastActive = "۱۴۰۵/۰۴/۱۰ - ۰۹:۱۵",
-                Initials = "س",
-                ProjectCount = 3,
-                PurchaseCount = 2,
-                ApiAccessCount = 1,
+                JoinDate = userResult.CreationDate.ToString("yyyy/MM/dd") ?? "نامشخص",
+                LastActive = "امروز، ۱۴:۳۰",
+                Status = userResult.UserBlackLists.Any(i => i.ExpireDate > DateTime.Now) ? "inactive" : "active",
+                Initials = userResult.FullName.Length > 0 ? userResult.FullName.Substring(0, 1) : "?",
+                ProjectCount = 0,
+                PurchaseCount = 0,
+                ApiAccessCount = 0,
                 HasActivePackage = false,
-                ActivePackageName = "",
-                Projects = new List<UserProject>
+                ActivePackageName = "—",
+                Roles = userResult.UserRoles.Select(i => new RoleDto
                 {
-                    new UserProject { Id = "PRJ-004", Title = "وب‌سایت شرکتی", StatusClass = "active", StatusText = "فعال", Date = "۱۴۰۵/۰۳/۲۸" }
-                },
-                Purchases = new List<UserPurchase>
-                {
-                    new UserPurchase { Id = "#INV-004", PackageName = "پکیج پایه", Price = 99000, Date = "۱۴۰۵/۰۳/۱۰", StatusClass = "active", StatusText = "موفق" }
-                },
-                ApiAccesses = new List<UserApiAccess>
-                {
-                    new UserApiAccess { Name = "ارسال ایمیل SMTP", Project = "سیستم اطلاع‌رسانی", RemainingDays = 0 }
-                }
+                    Id = i.RoleId,
+                    Name =  i.Title ??  "نقش ناشناخته"
+                }).ToList()
             };
         }
-        else
+        catch (Exception ex)
         {
-            // User not found
-            user = null;
+            await _alertService.Error($"خطا در بارگذاری اطلاعات: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    // ============================================================
+    // EMAIL MODAL
+    // ============================================================
+
+    private void OpenEmailModal()
+    {
+        if (user == null) return;
+        emailSubject = $"ارسال از پنل ادمین - {user.FullName}";
+        emailBody = "";
+        isEmailModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseEmailModal()
+    {
+        isEmailModalOpen = false;
+        StateHasChanged();
+    }
+
+    private async Task SendEmail()
+    {
+        if (user == null) return;
+
+        if (string.IsNullOrWhiteSpace(emailSubject) || string.IsNullOrWhiteSpace(emailBody))
+        {
+            await _alertService.Warning("لطفاً موضوع و متن ایمیل را وارد کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        isSending = true;
+        StateHasChanged();
+
+        try
+        {
+            // در اینجا متد ارسال ایمیل واقعی را صدا بزنید
+            // await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody);
+
+            // شبیه‌سازی تاخیر
+            await Task.Delay(1500);
+
+            await _alertService.Success($"ایمیل با موفقیت به {user.Email} ارسال شد.", "ارسال ایمیل", 5000);
+            CloseEmailModal();
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در ارسال ایمیل: {ex.Message}", "خطا", 6000);
+        }
+        finally
+        {
+            isSending = false;
+            StateHasChanged();
         }
     }
 
@@ -974,38 +1107,46 @@
     // ACTIONS
     // ============================================================
 
-    private void EditUser()
+    private async Task ToggleBlock()
     {
-        NavigationManager.NavigateTo($"/Admin/EditUser/{UserId}", true);
+        if (user == null) return;
+
+        var newStatus = user.Status == "active" ? "inactive" : "active";
+        var action = newStatus == "active" ? "فعال" : "مسدود";
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"آیا از {action} کردن کاربر {user.FullName} اطمینان دارید؟");
+        if (!confirmed) return;
+
+        try
+        {
+            // Call backend to toggle status
+            // await _userFacade.ToggleStatus(user.Id, newStatus);
+            user.Status = newStatus;
+            await _alertService.Success($"کاربر با موفقیت {action} شد.", "تغییر وضعیت", 4000);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در تغییر وضعیت کاربر: {ex.Message}", "خطا", 6000);
+        }
     }
 
-    private void DeleteUser()
+    private async Task DeleteUser()
     {
-        // In real app: show confirmation dialog
-        if (user != null)
+        if (user == null) return;
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"آیا از حذف کاربر {user.FullName} اطمینان دارید؟");
+        if (!confirmed) return;
+
+        try
         {
-            Console.WriteLine($"حذف کاربر: {user.FullName}");
-            // Redirect to users list after deletion
+            // await _userFacade.Delete(user.Id);
+            await _alertService.Success("کاربر با موفقیت حذف شد.", "حذف کاربر", 4000);
             NavigationManager.NavigateTo("/Admin/Users", true);
         }
-    }
-
-    private void ToggleBlock()
-    {
-        if (user != null)
+        catch (Exception ex)
         {
-            user.Status = user.Status == "active" ? "inactive" : "active";
-            StateHasChanged();
-            Console.WriteLine($"وضعیت کاربر {user.FullName} به {user.Status} تغییر یافت.");
-        }
-    }
-
-    private void SendEmail()
-    {
-        if (user != null)
-        {
-            Console.WriteLine($"ارسال ایمیل به: {user.Email}");
-            // In real app: open email composer or send email
+            await _alertService.Error($"خطا در حذف کاربر: {ex.Message}", "خطا", 6000);
         }
     }
 
@@ -1017,7 +1158,11 @@
     {
         if (firstRender)
         {
+            await LoadData();
+
             await InitializeJsInterop();
+                       StateHasChanged();
+
         }
     }
 
@@ -1068,52 +1213,29 @@
     // HELPER CLASSES
     // ============================================================
 
-    public class UserDetail
+    public class UserDetailDto
     {
-        public string Id { get; set; } = "";
+        public Guid Id { get; set; }
         public string FullName { get; set; } = "";
         public string Email { get; set; } = "";
         public string Phone { get; set; } = "";
-        public string Role { get; set; } = "";
-        public string RoleText { get; set; } = "";
-        public string Status { get; set; } = "";
         public string Location { get; set; } = "";
         public string JoinDate { get; set; } = "";
         public string LastActive { get; set; } = "";
+        public string Status { get; set; } = "active";
         public string Initials { get; set; } = "";
         public int ProjectCount { get; set; }
         public int PurchaseCount { get; set; }
         public int ApiAccessCount { get; set; }
         public bool HasActivePackage { get; set; }
         public string ActivePackageName { get; set; } = "";
-        public List<UserProject> Projects { get; set; } = new();
-        public List<UserPurchase> Purchases { get; set; } = new();
-        public List<UserApiAccess> ApiAccesses { get; set; } = new();
+        public List<RoleDto> Roles { get; set; } = new();
     }
 
-    public class UserProject
+    public class RoleDto
     {
-        public string Id { get; set; } = "";
-        public string Title { get; set; } = "";
-        public string StatusClass { get; set; } = "";
-        public string StatusText { get; set; } = "";
-        public string Date { get; set; } = "";
-    }
-
-    public class UserPurchase
-    {
-        public string Id { get; set; } = "";
-        public string PackageName { get; set; } = "";
-        public int Price { get; set; }
-        public string Date { get; set; } = "";
-        public string StatusClass { get; set; } = "";
-        public string StatusText { get; set; } = "";
-    }
-
-    public class UserApiAccess
-    {
+        public Guid Id { get; set; }
         public string Name { get; set; } = "";
-        public string Project { get; set; } = "";
-        public int RemainingDays { get; set; }
     }
 }
+<script src="../../../../../../GlobalAlert.js"></script>

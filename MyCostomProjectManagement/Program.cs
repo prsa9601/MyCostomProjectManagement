@@ -1,9 +1,11 @@
 using BackEnd.Core;
+using BackEnd.Data.DB.Initializer;
 using BackEnd.Infrastructure.Auth.Middlewares;
 using Microsoft.AspNetCore.Components.Authorization;
 using MyCostomProjectManagement.Components;
 using MyCostomProjectManagement.Facade;
 using MyCostomProjectManagement.Infrastructure;
+using MyCostomProjectManagement.Shared.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,8 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.FacadeConfig();
 builder.Services.AddScoped<AlertService>();
+builder.Services.AddScoped<JsAlertService>();
+builder.Services.AddScoped<FileExtensions>();
 builder.Services.CoreConfig(builder.Configuration);
 
 var app = builder.Build();
@@ -32,7 +36,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
 
 app.UseHttpsRedirection();
 
@@ -44,9 +47,15 @@ app.UseMiddleware<AuthRefreshTokenMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapStaticAssets();
+app.UseStaticFiles();
+
+//کامنت کردم این رو ویدیو کامل و درست پلی شد
+//app.MapStaticAssets();
+
 app.MapRazorPages();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+await DbInitializer.InitializeAsync(app.Services);
 
 app.Run();

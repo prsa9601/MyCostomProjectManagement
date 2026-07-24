@@ -1,4 +1,7 @@
 ﻿@page "/Admin/Users"
+@using System.Globalization
+@using BackEnd.Core.Role.Queries.DTOs
+@using MyCostomProjectManagement.Facade.Role
 @using MyCostomProjectManagement.Facade.User
 @using MyCostomProjectManagement.Shared.Extentions
 @layout AdminLayout
@@ -6,6 +9,7 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
 @inject IUserFacade _userFacade
+@inject IRoleFacade _roleFacade
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,8 +18,8 @@
 
 <style>
     /* ============================================================
-               USERS PAGE - با پس‌زمینه #13505b
-            ============================================================ */
+                       USERS PAGE - با پس‌زمینه #13505b
+                    ============================================================ */
 
     * {
         margin: 0;
@@ -47,8 +51,8 @@
     }
 
     /* ============================================================
-               GLASS EFFECT
-            ============================================================ */
+                       GLASS EFFECT
+                    ============================================================ */
     .glass {
         background: rgba(255, 255, 255, 0.06);
         backdrop-filter: blur(14px);
@@ -67,8 +71,8 @@
         }
 
     /* ============================================================
-               ANIMATIONS
-            ============================================================ */
+                       ANIMATIONS
+                    ============================================================ */
     @@keyframes float {
         0% {
             transform: translateY(0px);
@@ -280,8 +284,8 @@
     }
 
     /* ============================================================
-               NAVBAR
-            ============================================================ */
+                       NAVBAR
+                    ============================================================ */
     .navbar {
         position: fixed;
         top: 0;
@@ -475,8 +479,8 @@
         }
 
     /* ============================================================
-               PAGE HEADER
-            ============================================================ */
+                       PAGE HEADER
+                    ============================================================ */
     .page-header {
         padding-top: 100px;
         padding-bottom: 32px;
@@ -513,8 +517,8 @@
         }
 
     /* ============================================================
-               FILTER BAR
-            ============================================================ */
+                       FILTER BAR
+                    ============================================================ */
     .filter-bar {
         display: flex;
         gap: 16px;
@@ -596,8 +600,8 @@
                 }
 
     /* ============================================================
-               USERS TABLE / GRID
-            ============================================================ */
+                       USERS TABLE / GRID
+                    ============================================================ */
     .users-grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -763,8 +767,8 @@
                 }
 
     /* ============================================================
-               PAGINATION
-            ============================================================ */
+                       PAGINATION
+                    ============================================================ */
     .pagination {
         display: flex;
         justify-content: center;
@@ -797,8 +801,8 @@
             }
 
     /* ============================================================
-               FOOTER
-            ============================================================ */
+                       FOOTER
+                    ============================================================ */
     .footer {
         position: relative;
         padding: 28px 0 20px;
@@ -838,8 +842,179 @@
         }
 
     /* ============================================================
-               RESPONSIVE
-            ============================================================ */
+                       MODAL ها
+                    ============================================================ */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.96);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .modal-box {
+        max-width: 500px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        padding: 32px 28px;
+        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.3);
+        color: #e8f0f1;
+        transition: all 0.3s ease;
+    }
+
+        .modal-box h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .modal-box h2 i {
+                color: #e8a838;
+            }
+
+        .modal-box .sub {
+            color: rgba(232, 240, 241, 0.4);
+            font-size: 0.85rem;
+            margin-bottom: 22px;
+        }
+
+        .modal-box .form-group {
+            margin-bottom: 18px;
+        }
+
+            .modal-box .form-group label {
+                display: block;
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: rgba(232, 240, 241, 0.5);
+                margin-bottom: 4px;
+            }
+
+            .modal-box .form-group input,
+            .modal-box .form-group select,
+            .modal-box .form-group textarea {
+                width: 100%;
+                padding: 10px 14px;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                background: rgba(255, 255, 255, 0.03);
+                color: #e8f0f1;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+                font-family: inherit;
+            }
+
+                .modal-box .form-group input:focus,
+                .modal-box .form-group select:focus,
+                .modal-box .form-group textarea:focus {
+                    border-color: #e8a838;
+                    outline: none;
+                    background: rgba(255, 255, 255, 0.05);
+                    box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+                }
+
+            .modal-box .form-group textarea {
+                min-height: 100px;
+                resize: vertical;
+            }
+
+            .modal-box .form-group select option {
+                background: #13505b;
+                color: #e8f0f1;
+            }
+
+            .modal-box .form-group .checkbox-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-top: 4px;
+            }
+
+                .modal-box .form-group .checkbox-group label {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 0.9rem;
+                    color: #e8f0f1;
+                    font-weight: 400;
+                    cursor: pointer;
+                }
+
+                    .modal-box .form-group .checkbox-group label input[type="checkbox"] {
+                        width: auto;
+                        margin: 0;
+                        accent-color: #e8a838;
+                    }
+
+            /* تاریخ شمسی */
+            .modal-box .form-group .date-fields {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+                .modal-box .form-group .date-fields input {
+                    flex: 1;
+                    min-width: 60px;
+                }
+
+        .modal-box .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+            .modal-box .modal-actions .btn-secondary {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                color: rgba(232, 240, 241, 0.4);
+                padding: 8px 24px;
+                border-radius: 40px;
+                font-weight: 500;
+                font-size: 0.85rem;
+                transition: all 0.35s ease;
+                cursor: pointer;
+            }
+
+                .modal-box .modal-actions .btn-secondary:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                    color: #e8f0f1;
+                }
+
+            .modal-box .modal-actions .btn-primary {
+                padding: 8px 28px;
+            }
+
+    /* ============================================================
+                       RESPONSIVE
+                    ============================================================ */
     @@media (max-width: 1200px) {
         .user-row {
             grid-template-columns: auto 1fr auto auto;
@@ -962,6 +1137,10 @@
             width: 100%;
             justify-content: center;
         }
+
+        .modal-box .form-group .date-fields {
+            flex-direction: column;
+        }
     }
 </style>
 
@@ -1008,33 +1187,47 @@
         </div>
 
         <!-- Users Grid -->
-        <div class="users-grid">
-            @foreach (var user in filteredUsers)
-            {
-                <div class="user-row fade-up stagger-child">
-                    <div class="avatar @user.AvatarClass">@user.Initials</div>
-                    <div class="user-info">
-                        <div class="name">@user.FullName</div>
-                        <div class="email">@user.Email</div>
+        @if (isLoading)
+        {
+            <div style="text-align:center; padding:40px;">
+                <i class="fas fa-spinner fa-spin" style="font-size:2rem; color:#e8a838;"></i>
+                <p style="color:#94a3b8; margin-top:12px;">در حال بارگذاری...</p>
+            </div>
+        }
+        else
+        {
+            <div class="users-grid">
+                @foreach (var user in filteredUsers)
+                {
+                    <div class="user-row fade-up stagger-child">
+                        <div class="avatar @user.AvatarClass">@user.Initials</div>
+                        <div class="user-info">
+                            <div class="name">@user.FullName</div>
+                            <div class="email">@user.Email</div>
+                        </div>
+                        <span class="user-role @user.RoleClass">@user.RoleText</span>
+                        <span class="user-status @user.StatusClass">@user.StatusText</span>
+                        <div class="user-actions">
+                            <button class="ripple" title="مشاهده" @onclick='() => ViewUser(user.Id)'><i class="fas fa-eye"></i></button>
+                            <button class="ripple" title="ویرایش" @onclick='() => EditUser(user.Id)'><i class="fas fa-edit"></i></button>
+                            <!-- دکمه تنظیم نقش (چندگانه) -->
+                            <button class="ripple" title="تنظیم نقش" @onclick='() => OpenRoleModal(user)'><i class="fas fa-user-tag"></i></button>
+                            <!-- دکمه ارسال ایمیل -->
+                            <button class="ripple" title="ارسال ایمیل" @onclick='() => OpenEmailModal(user)'><i class="fas fa-envelope"></i></button>
+                            @if (user.StatusClass == "active")
+                            {
+                                <button class="ripple block" title="مسدود کردن" @onclick='() => OpenBlockModal(user)'><i class="fas fa-ban"></i></button>
+                            }
+                            else
+                            {
+                                <button class="ripple" title="فعال کردن" @onclick='() => ActivateUser(user.Id)' style="color:#52b788;"><i class="fas fa-check-circle"></i></button>
+                            }
+                            <button class="ripple delete" title="حذف" @onclick='() => DeleteUser(user.Id)'><i class="fas fa-trash-alt"></i></button>
+                        </div>
                     </div>
-                    <span class="user-role @user.RoleClass">@user.RoleText</span>
-                    <span class="user-status @user.StatusClass">@user.StatusText</span>
-                    <div class="user-actions">
-                        <button class="ripple" title="مشاهده" @onclick='() => ViewUser(user.Id)'><i class="fas fa-eye"></i></button>
-                        <button class="ripple" title="ویرایش" @onclick='() => EditUser(user.Id)'><i class="fas fa-edit"></i></button>
-                        @if (user.StatusClass == "active")
-                        {
-                            <button class="ripple block" title="مسدود کردن" @onclick='() => BlockUser(user.Id)'><i class="fas fa-ban"></i></button>
-                        }
-                        else
-                        {
-                            <button class="ripple" title="فعال کردن" @onclick='() => ActivateUser(user.Id)' style="color:#52b788;"><i class="fas fa-check-circle"></i></button>
-                        }
-                        <button class="ripple delete" title="حذف" @onclick='() => DeleteUser(user.Id)'><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </div>
-            }
-        </div>
+                }
+            </div>            
+        }
 
         <!-- Pagination -->
         @if (totalPages > 1)
@@ -1052,7 +1245,99 @@
     </div>
 </main>
 
+<!-- ============================================================
+MODAL: تنظیم نقش (چندگانه)
+============================================================ -->
+@if (isRoleModalOpen && selectedUserForRole != null)
+{
+    <div class="modal-overlay" @onclick="CloseRoleModal">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <h2><i class="fas fa-user-tag"></i> تنظیم نقش‌ها</h2>
+            <div class="sub">نقش‌های کاربر <strong>@selectedUserForRole.FullName</strong> را انتخاب کنید.</div>
 
+            <div class="form-group">
+                <label>نقش‌ها (چندگانه)</label>
+                <div class="checkbox-group">
+                    @foreach (var role in availableRoles)
+                    {
+                        <label>
+                            <input type="checkbox"
+                                   checked="@selectedRoles.Contains(role)"
+                                   @onchange="(e) => ToggleRole(role, e.Value)" />
+                            @roleDisplay[role]
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" @onclick="CloseRoleModal">انصراف</button>
+                <button class="btn-primary" @onclick="SaveRoles">ذخیره نقش‌ها</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ============================================================
+MODAL: ارسال ایمیل
+============================================================ -->
+@if (isEmailModalOpen && selectedUserForEmail != null)
+{
+    <div class="modal-overlay" @onclick="CloseEmailModal">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <h2><i class="fas fa-envelope"></i> ارسال ایمیل</h2>
+            <div class="sub">ارسال پیام به <strong>@selectedUserForEmail.FullName</strong></div>
+
+            <div class="form-group">
+                <label for="emailTo">گیرنده</label>
+                <input id="emailTo" type="email" value="@selectedUserForEmail.Email" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="emailSubject">موضوع</label>
+                <input id="emailSubject" type="text" placeholder="موضوع پیام..." @bind="emailSubject" />
+            </div>
+
+            <div class="form-group">
+                <label for="emailBody">متن پیام</label>
+                <textarea id="emailBody" placeholder="متن ایمیل را وارد کنید..." @bind="emailBody"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" @onclick="CloseEmailModal">انصراف</button>
+                <button class="btn-primary" @onclick="SendEmail">ارسال ایمیل</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ============================================================
+MODAL: غیرفعال‌سازی با تاریخ انقضا (شمسی)
+============================================================ -->
+@if (isBlockModalOpen && selectedUserForBlock != null)
+{
+    <div class="modal-overlay" @onclick="CloseBlockModal">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <h2><i class="fas fa-ban"></i> مسدود کردن کاربر</h2>
+            <div class="sub">مدت زمان مسدودیت برای <strong>@selectedUserForBlock.FullName</strong> را به صورت شمسی مشخص کنید.</div>
+
+            <div class="form-group">
+                <label>تاریخ انقضا (شمسی)</label>
+                <div class="date-fields">
+                    <input type="number" min="1300" max="1500" placeholder="سال" @bind="blockYear" />
+                    <input type="number" min="1" max="12" placeholder="ماه" @bind="blockMonth" />
+                    <input type="number" min="1" max="31" placeholder="روز" @bind="blockDay" />
+                </div>
+                <small style="color: rgba(232,240,241,0.3); display:block; margin-top:4px;">مثال: ۱۴۰۴/۰۵/۱۵</small>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" @onclick="CloseBlockModal">انصراف</button>
+                <button class="btn-primary" @onclick="ConfirmBlock">مسدود کن</button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     // ============================================================
@@ -1073,14 +1358,59 @@
     private int totalUsers => allUsers.Count;
 
     // ============================================================
+    // MODAL STATE
+    // ============================================================
+
+    // نقش‌ها (چندگانه)
+    private bool isRoleModalOpen = false;
+    private UserItem? selectedUserForRole = null;
+    private List<string> selectedRoles = new();
+    private List<string> availableRoles { get; set; }
+    private Dictionary<string, string> roleDisplay { get; set; }
+
+    // ایمیل
+    private bool isEmailModalOpen = false;
+    private UserItem? selectedUserForEmail = null;
+    private string emailSubject = "";
+    private string emailBody = "";
+    private List<RoleDto> roleDtos { get; set; }
+
+    // مسدودسازی با تاریخ شمسی
+    private bool isBlockModalOpen = false;
+    private UserItem? selectedUserForBlock = null;
+    private int blockYear = 1404;
+    private int blockMonth = 1;
+    private int blockDay = 1;
+
+
+    private bool isLoading = true;
+
+    // ============================================================
     // INITIALIZATION
     // ============================================================
 
     protected override async Task OnInitializedAsync()
     {
-        // LoadUsers();
-        await GetUsers();
-        ApplyFilters();
+        try{
+             roleDtos = await _roleFacade.GetAll();
+             availableRoles = roleDtos.Select(i => i.Name).ToList();
+             roleDisplay = roleDtos.ToDictionary(i => i.Name, i => i.Name);
+             await GetUsers();
+
+             ApplyFilters();
+             // تنظیم تاریخ پیش‌فرض شمسی (امروز + ۷ روز)
+             var now = DateTime.Now.AddDays(7);
+             var persianCal = new PersianCalendar();
+             blockYear = persianCal.GetYear(now);
+             blockMonth = persianCal.GetMonth(now);
+             blockDay = persianCal.GetDayOfMonth(now);
+             isLoading = false;
+             StateHasChanged();
+           }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"خطا در بروزرسانی: {ex.Message}");
+        }
     }
 
     private async Task GetUsers(int pageId = 1, int take = 8, string? search = null)
@@ -1098,150 +1428,43 @@
             Email = i.Email,
             AvatarClass = "",
             Initials = i.FullName.TrimStart()[0].ToString(),
-            RoleText = "",
+            Roles = new List<string>(),
             JoinDate = i.CreationDate.ToPersianDateString(),
-            StatusClass = i.UserBlackLists.Any(b => b.ExpireDate > DateTime.Now) ? "inacrive": "active",
-            StatusText = i.UserBlackLists.Any(b => b.ExpireDate > DateTime.Now) ? "غیرفعال": "فعال" ,
-            RoleClass = ""
+            StatusClass = i.UserBlackLists.Any(b => b.ExpireDate > DateTime.Now) ? "inactive" : "active",
+            StatusText = i.UserBlackLists.Any(b => b.ExpireDate > DateTime.Now) ? "غیرفعال" : "فعال",
+            BlockExpireDate = i.UserBlackLists.FirstOrDefault(b => b.ExpireDate > DateTime.Now)?.ExpireDate
         }).ToList();
+
+        foreach (var user in allUsers)
+        {
+            UpdateUserRoleDisplay(user);
+            if (user.BlockExpireDate.HasValue)
+            {
+                var persianCal = new PersianCalendar();
+                var date = user.BlockExpireDate.Value;
+                user.StatusText = $"غیرفعال تا {persianCal.GetYear(date)}/{persianCal.GetMonth(date):00}/{persianCal.GetDayOfMonth(date):00}";
+            }
+        }
     }
 
-    // private void LoadUsers()
-    // {
-    //     allUsers = new List<UserItem>
-    //     {
-    //         new UserItem
-    //         {
-    //             Id = "USR-001",
-    //             FullName = "علی رضایی",
-    //             Email = "ali.rezaei@example.com",
-    //             RoleClass = "admin",
-    //             RoleText = "ادمین",
-    //             StatusClass = "active",
-    //             StatusText = "فعال",
-    //             Initials = "ع",
-    //             AvatarClass = "gold",
-    //             JoinDate = "۱۴۰۴/۱۱/۰۵"
-    //         },
-    //         new UserItem
-    //         {
-    //             Id = "USR-002",
-    //             FullName = "سارا حسینی",
-    //             Email = "sara.hosseini@example.com",
-    //             RoleClass = "manager",
-    //             RoleText = "مدیر پروژه",
-    //             StatusClass = "active",
-    //             StatusText = "فعال",
-    //             Initials = "س",
-    //             AvatarClass = "blue",
-    //             JoinDate = "۱۴۰۵/۰۱/۱۲"
-    //         },
-    //         new UserItem
-    //         {
-    //             Id = "USR-003",
-    //             FullName = "مریم نادری",
-    //             Email = "maryam.naderi@example.com",
-    //             RoleClass = "user",
-    //             RoleText = "کاربر",
-    //             StatusClass = "pending",
-    //             StatusText = "در انتظار",
-    //             Initials = "م",
-    //             AvatarClass = "purple",
-    //             JoinDate = "۱۴۰۵/۰۲/۲۸"
-    //         },
-    //         new UserItem
-    //         {
-    //             Id = "USR-004",
-    //             FullName = "رضا کریمی",
-    //             Email = "reza.karimi@example.com",
-    //             RoleClass = "user",
-    //             RoleText = "کاربر",
-    //             StatusClass = "inactive",
-    //             StatusText = "غیرفعال",
-    //             Initials = "ر",
-    //             AvatarClass = "",
-    //             JoinDate = "۱۴۰۴/۰۹/۲۰"
-    //         },
-    //         new UserItem
-    //         {
-    //             Id = "USR-005",
-    //             FullName = "احمد رضایی",
-    //             Email = "ahmad.rezaei@example.com",
-    //             RoleClass = "manager",
-    //             RoleText = "مدیر پروژه",
-    //             StatusClass = "active",
-    //             StatusText = "فعال",
-    //             Initials = "ا",
-    //             AvatarClass = "gold",
-    //             JoinDate = "۱۴۰۴/۱۲/۰۳"
-    //         },
-    //         new UserItem
-    //         {
-    //             Id = "USR-006",
-    //             FullName = "زهرا محمدی",
-    //             Email = "zahra.mohammadi@example.com",
-    //             RoleClass = "admin",
-    //             RoleText = "ادمین",
-    //             StatusClass = "active",
-    //             StatusText = "فعال",
-    //             Initials = "ز",
-    //             AvatarClass = "purple",
-    //             JoinDate = "۱۴۰۵/۰۳/۱۵"
-    //         },
-    //         new UserItem
-    //         {
-    //             Id = "USR-007",
-    //             FullName = "حسین رحیمی",
-    //             Email = "hossein.rahimi@example.com",
-    //             RoleClass = "user",
-    //             RoleText = "کاربر",
-    //             StatusClass = "pending",
-    //             StatusText = "در انتظار",
-    //             Initials = "ح",
-    //             AvatarClass = "blue",
-    //             JoinDate = "۱۴۰۵/۰۴/۰۲"
-    //         },
-    //         new UserItem
-    //         {
-    //             Id = "USR-008",
-    //             FullName = "نرگس احمدی",
-    //             Email = "narges.ahmadi@example.com",
-    //             RoleClass = "user",
-    //             RoleText = "کاربر",
-    //             StatusClass = "active",
-    //             StatusText = "فعال",
-    //             Initials = "ن",
-    //             AvatarClass = "",
-    //             JoinDate = "۱۴۰۵/۰۲/۱۴"
-    //         },
-    //         new UserItem
-    //         {
-    //             Id = "USR-009",
-    //             FullName = "امیر محمدی",
-    //             Email = "amir.mohammadi@example.com",
-    //             RoleClass = "manager",
-    //             RoleText = "مدیر پروژه",
-    //             StatusClass = "inactive",
-    //             StatusText = "غیرفعال",
-    //             Initials = "ا",
-    //             AvatarClass = "gold",
-    //             JoinDate = "۱۴۰۴/۱۰/۱۸"
-    //         },
-    //         new UserItem
-    //         {
-    //             Id = "USR-010",
-    //             FullName = "فاطمه کریمی",
-    //             Email = "fatemeh.karimi@example.com",
-    //             RoleClass = "user",
-    //             RoleText = "کاربر",
-    //             StatusClass = "active",
-    //             StatusText = "فعال",
-    //             Initials = "ف",
-    //             AvatarClass = "purple",
-    //             JoinDate = "۱۴۰۵/۰۱/۲۵"
-    //         }
-    //     };
-    // }
+    private void UpdateUserRoleDisplay(UserItem user)
+    {
+        if (user.Roles == null || !user.Roles.Any())
+        {
+            user.RoleText = "بدون نقش";
+            user.RoleClass = "";
+            return;
+        }
+
+        var primaryRole = user.Roles.First();
+        user.RoleText = roleDisplay.GetValueOrDefault(primaryRole, primaryRole);
+        user.RoleClass = primaryRole switch
+        {
+            "admin" => "admin",
+            "manager" => "manager",
+            _ => "user"
+        };
+    }
 
     // ============================================================
     // FILTER & SEARCH
@@ -1251,30 +1474,25 @@
     {
         var query = allUsers.AsEnumerable();
 
-        // Filter by status
         if (!string.IsNullOrEmpty(filterStatus) && filterStatus != "all")
         {
             query = query.Where(u => u.StatusClass == filterStatus);
         }
 
-        // Filter by role
         if (!string.IsNullOrEmpty(filterRole) && filterRole != "all")
         {
-            query = query.Where(u => u.RoleClass == filterRole);
+            query = query.Where(u => u.Roles != null && u.Roles.Contains(filterRole));
         }
 
-        // Search
         if (!string.IsNullOrEmpty(searchTerm))
         {
             var term = searchTerm.Trim();
             query = query.Where(u =>
                 u.FullName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                u.Email.Contains(term, StringComparison.OrdinalIgnoreCase) //||
-                                                                           // u.Id.Contains(term, StringComparison.OrdinalIgnoreCase)
+                u.Email.Contains(term, StringComparison.OrdinalIgnoreCase)
             );
         }
 
-        // Pagination
         var total = query.Count();
         totalPages = (int)Math.Ceiling(total / (double)pageSize);
         if (totalPages == 0) totalPages = 1;
@@ -1321,32 +1539,20 @@
     private void CreateNewUser() => NavigationManager.NavigateTo("/NewUser", true);
     private async Task RefreshUsers()
     {
-        // LoadUsers();
         await GetUsers();
         ApplyFilters();
         StateHasChanged();
     }
 
-    private void ViewUser(Guid id) => NavigationManager.NavigateTo($"/Admin/UserDetail/{id}", true);
-    private void EditUser(Guid id) => NavigationManager.NavigateTo($"/EditUser/{id}", true);
+    private void ViewUser(Guid id) => NavigationManager.NavigateTo($"/Admin/User/Detail/{id}", true);
+    private void EditUser(Guid id) => NavigationManager.NavigateTo($"/Admin/User/Edit/{id}", true);
     private void DeleteUser(Guid id)
     {
-        // In a real app, show confirmation dialog
         allUsers.RemoveAll(u => u.Id == id);
         ApplyFilters();
         StateHasChanged();
     }
-    private void BlockUser(Guid id)
-    {
-        var user = allUsers.FirstOrDefault(u => u.Id == id);
-        if (user != null)
-        {
-            user.StatusClass = "inactive";
-            user.StatusText = "غیرفعال";
-            ApplyFilters();
-            StateHasChanged();
-        }
-    }
+
     private void ActivateUser(Guid id)
     {
         var user = allUsers.FirstOrDefault(u => u.Id == id);
@@ -1354,8 +1560,138 @@
         {
             user.StatusClass = "active";
             user.StatusText = "فعال";
+            user.BlockExpireDate = null;
             ApplyFilters();
             StateHasChanged();
+        }
+    }
+
+    // ============================================================
+    // MODAL: نقش‌های چندگانه
+    // ============================================================
+
+    private void OpenRoleModal(UserItem user)
+    {
+        selectedUserForRole = user;
+        selectedRoles = user.Roles?.ToList() ?? new List<string>();
+        isRoleModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseRoleModal()
+    {
+        isRoleModalOpen = false;
+        selectedUserForRole = null;
+        StateHasChanged();
+    }
+
+    private void ToggleRole(string role, object? checkedValue)
+    {
+        if (checkedValue is bool isChecked)
+        {
+            if (isChecked && !selectedRoles.Contains(role))
+                selectedRoles.Add(role);
+            else if (!isChecked && selectedRoles.Contains(role))
+                selectedRoles.Remove(role);
+        }
+    }
+
+    private void SaveRoles()
+    {
+        if (selectedUserForRole == null) return;
+
+        selectedUserForRole.Roles = selectedRoles.Distinct().ToList();
+        UpdateUserRoleDisplay(selectedUserForRole);
+        var rolesSelect = roleDtos.Where(i => selectedRoles.Contains(i.Name)).Select(i => i.Id).ToList();
+        var result = _userFacade.SetUserRole(new BackEnd.Core.User.Commands.SetUserRole.SetUserRoleCommand
+        {
+            UserId = selectedUserForRole.Id,
+            RoleIds = rolesSelect
+        });
+        CloseRoleModal();
+        ApplyFilters();
+    }
+
+    // ============================================================
+    // MODAL: ایمیل
+    // ============================================================
+
+    private void OpenEmailModal(UserItem user)
+    {
+        selectedUserForEmail = user;
+        emailSubject = "";
+        emailBody = "";
+        isEmailModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseEmailModal()
+    {
+        isEmailModalOpen = false;
+        selectedUserForEmail = null;
+        StateHasChanged();
+    }
+
+    private async Task SendEmail()
+    {
+        if (selectedUserForEmail == null) return;
+
+        await JSRuntime.InvokeVoidAsync("alert", $"ایمیل به {selectedUserForEmail.Email} ارسال شد.\nموضوع: {emailSubject}\nمتن: {emailBody}");
+
+        CloseEmailModal();
+    }
+
+    // ============================================================
+    // MODAL: مسدودسازی با تاریخ شمسی
+    // ============================================================
+
+    private void OpenBlockModal(UserItem user)
+    {
+        selectedUserForBlock = user;
+        // مقداردهی پیش‌فرض: امروز + ۷ روز به صورت شمسی
+        var now = DateTime.Now.AddDays(7);
+        var persianCal = new PersianCalendar();
+        blockYear = persianCal.GetYear(now);
+        blockMonth = persianCal.GetMonth(now);
+        blockDay = persianCal.GetDayOfMonth(now);
+        isBlockModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseBlockModal()
+    {
+        isBlockModalOpen = false;
+        selectedUserForBlock = null;
+        StateHasChanged();
+    }
+
+    private void ConfirmBlock()
+    {
+        if (selectedUserForBlock == null) return;
+
+        try
+        {
+            // تبدیل تاریخ شمسی به میلادی
+            var persianCal = new PersianCalendar();
+            var expireDate = persianCal.ToDateTime(blockYear, blockMonth, blockDay, 23, 59, 59, 0);
+
+            if (expireDate <= DateTime.Now)
+            {
+                JSRuntime.InvokeVoidAsync("alert", "تاریخ انقضا باید بزرگتر از زمان فعلی باشد.");
+                return;
+            }
+
+            selectedUserForBlock.StatusClass = "inactive";
+            selectedUserForBlock.BlockExpireDate = expireDate;
+            selectedUserForBlock.StatusText = $"غیرفعال تا {blockYear}/{blockMonth:00}/{blockDay:00}";
+
+            CloseBlockModal();
+            ApplyFilters();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            JSRuntime.InvokeVoidAsync("alert", $"خطا در تبدیل تاریخ: {ex.Message}");
         }
     }
 
@@ -1367,7 +1703,21 @@
     {
         if (firstRender)
         {
+                  roleDtos = await _roleFacade.GetAll();
+             availableRoles = roleDtos.Select(i => i.Name).ToList();
+             roleDisplay = roleDtos.ToDictionary(i => i.Name, i => i.Name);
+             await GetUsers();
+
+             ApplyFilters();
+             // تنظیم تاریخ پیش‌فرض شمسی (امروز + ۷ روز)
+             var now = DateTime.Now.AddDays(7);
+             var persianCal = new PersianCalendar();
+             blockYear = persianCal.GetYear(now);
+             blockMonth = persianCal.GetMonth(now);
+             blockDay = persianCal.GetDayOfMonth(now);
+             isLoading = false;
             await InitializeJsInterop();
+            StateHasChanged();
         }
     }
 
@@ -1409,7 +1759,6 @@
 
             fadeEls.forEach(el => observer.observe(el));
 
-            // Trigger visible for elements already in view
             setTimeout(() => {
                 fadeEls.forEach(el => {
                     if (el.getBoundingClientRect().top < window.innerHeight) {
@@ -1421,7 +1770,7 @@
     }
 
     // ============================================================
-    // HELPER CLASSES
+    // HELPER CLASS
     // ============================================================
 
     public class UserItem
@@ -1429,6 +1778,7 @@
         public Guid Id { get; set; }
         public string FullName { get; set; } = "";
         public string Email { get; set; } = "";
+        public List<string> Roles { get; set; } = new();
         public string RoleClass { get; set; } = "";
         public string RoleText { get; set; } = "";
         public string StatusClass { get; set; } = "";
@@ -1436,5 +1786,7 @@
         public string Initials { get; set; } = "";
         public string AvatarClass { get; set; } = "";
         public string JoinDate { get; set; } = "";
+        public DateTime? BlockExpireDate { get; set; }
     }
 }
+<script src="../../../../../../GlobalAlert.js"></script>

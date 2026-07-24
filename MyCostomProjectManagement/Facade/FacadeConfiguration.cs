@@ -1,5 +1,7 @@
 ﻿using MyCostomProjectManagement.Facade.Auth;
+using MyCostomProjectManagement.Facade.Portfolio;
 using MyCostomProjectManagement.Facade.Role;
+using MyCostomProjectManagement.Facade.Skills;
 using MyCostomProjectManagement.Facade.User;
 
 namespace MyCostomProjectManagement.Facade
@@ -11,6 +13,8 @@ namespace MyCostomProjectManagement.Facade
             services.AddScoped<IAuthFacade, AuthFacade>();
             services.AddScoped<IUserFacade, UserFacade>();
             services.AddScoped<IRoleFacade, RoleFacade>();
+            services.AddScoped<ISkillFacade, SkillFacade>();
+            services.AddScoped<IPortfolioFacade, PortfolioFacade>();
 
             return services;
         }

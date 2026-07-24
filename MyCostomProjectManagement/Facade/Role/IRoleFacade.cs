@@ -2,6 +2,7 @@
 using BackEnd.Core.Role.Commands.Edit;
 using BackEnd.Core.Role.Commands.Remove;
 using BackEnd.Core.Role.Queries.DTOs;
+using BackEnd.Core.Role.Queries.GetAll;
 using BackEnd.Core.Role.Queries.GetFilter;
 using BackEnd.Core.Role.Queries.GetRoles;
 using BackEnd.Shared.CoreShared;
@@ -17,6 +18,7 @@ namespace MyCostomProjectManagement.Facade.Role
 
         Task<List<RoleDto>> GetRolesByRoleIds(List<Guid> roleIds);
         Task<RoleFilterResult> GetFilter(RoleFilterParam param);
+        Task<List<RoleDto>> GetAll();
     }
     public class RoleFacade : IRoleFacade
     {
@@ -35,6 +37,11 @@ namespace MyCostomProjectManagement.Facade.Role
         public async Task<OperationResult> Edit(EditRoleCommand command)
         {
             return await _mediator.Send(command);
+        }
+
+        public async Task<List<RoleDto>> GetAll()
+        {
+            return await _mediator.Send(new GetAllRolesQuery());
         }
 
         public async Task<RoleFilterResult> GetFilter(RoleFilterParam param)

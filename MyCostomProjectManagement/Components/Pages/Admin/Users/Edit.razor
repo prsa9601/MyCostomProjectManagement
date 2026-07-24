@@ -1,0 +1,934 @@
+﻿@page "/Admin/User/Edit/{UserId}"
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject IUserFacade _userFacade
+@inject IRoleFacade _roleFacade
+@inject JsAlertService _alertService
+
+@using MyCostomProjectManagement.Facade.Role
+@using MyCostomProjectManagement.Facade.User
+@using MyCostomProjectManagement.Infrastructure
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ویرایش کاربر | پنل ادمین</title>
+
+<style>
+    /* ============================================================
+                       EDIT USER PAGE
+                    ============================================================ */
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 32px;
+        padding-top: 20px;
+    }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-header h1 i {
+                color: #e8a838;
+            }
+
+        .page-header .subtitle {
+            color: rgba(232, 240, 241, 0.5);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .page-header .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: #e8f0f1;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(232, 168, 56, 0.06);
+            transform: translateY(-2px);
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+        }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-success:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(220, 53, 69, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-danger:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(220, 53, 69, 0.2);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: 0.3s;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+        .btn-outline:hover {
+            border-color: #e8a838;
+            color: #fff;
+            background: rgba(232, 168, 56, 0.04);
+            transform: translateY(-2px);
+        }
+
+    /* ============================================================
+                       FORM CONTAINER
+                    ============================================================ */
+    .form-container {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 32px;
+        margin-bottom: 32px;
+        transition: all 0.3s ease;
+    }
+
+        .form-container:hover {
+            border-color: rgba(232, 168, 56, 0.06);
+        }
+
+        .form-container .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e8edf5;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding-bottom: 12px;
+        }
+
+            .form-container .section-title i {
+                color: #e8a838;
+            }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+            .form-group label .required {
+                color: #dc3545;
+            }
+
+        .form-group .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+            .form-group .input-wrapper:focus-within {
+                border-color: #e8a838;
+                background: rgba(255, 255, 255, 0.04);
+                box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
+            }
+
+            .form-group .input-wrapper .input-icon {
+                padding: 0 0 0 14px;
+                color: #64748b;
+                font-size: 0.9rem;
+                opacity: 0.4;
+                transition: 0.3s;
+            }
+
+            .form-group .input-wrapper:focus-within .input-icon {
+                opacity: 0.8;
+                color: #e8a838;
+            }
+
+            .form-group .input-wrapper input,
+            .form-group .input-wrapper select {
+                width: 100%;
+                padding: 12px 14px;
+                background: transparent;
+                border: none;
+                color: #eef2f8;
+                font-size: 0.95rem;
+                outline: none;
+                font-family: inherit;
+            }
+
+                .form-group .input-wrapper input::placeholder {
+                    color: #64748b;
+                }
+
+                .form-group .input-wrapper select option {
+                    background: #0a0e17;
+                    color: #eef2f8;
+                }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-group .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 4px 0;
+    }
+
+        .form-group .toggle-wrapper .toggle-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+    .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 40px;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+    }
+
+        .toggle-switch.active {
+            background: rgba(82, 183, 136, 0.15);
+            border-color: rgba(82, 183, 136, 0.1);
+        }
+
+        .toggle-switch .toggle-knob {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(232, 240, 241, 0.15);
+            transition: all 0.35s ease;
+        }
+
+        .toggle-switch.active .toggle-knob {
+            right: 24px;
+            background: #52b788;
+            box-shadow: 0 0 16px rgba(82, 183, 136, 0.15);
+        }
+
+    .form-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        flex-wrap: wrap;
+    }
+
+    /* ============================================================
+                       ROLE CHECKBOXES
+                    ============================================================ */
+    .role-checkboxes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        padding: 8px 0;
+    }
+
+    .role-checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+        .role-checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(232, 168, 56, 0.06);
+        }
+
+        .role-checkbox-item input[type="checkbox"] {
+            accent-color: #e8a838;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .role-checkbox-item label {
+            font-size: 0.85rem;
+            color: #b8c4d6;
+            cursor: pointer;
+            margin: 0;
+        }
+
+    /* ============================================================
+                       RESPONSIVE
+                    ============================================================ */
+    @@media (max-width: 992px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .role-checkboxes {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .page-header .actions {
+                width: 100%;
+            }
+
+                .page-header .actions .btn-primary {
+                    flex: 1;
+                    justify-content: center;
+                }
+
+        .form-container {
+            padding: 20px;
+        }
+
+        .role-checkboxes {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+            .form-actions .btn-success,
+            .form-actions .btn-outline {
+                width: 100%;
+                justify-content: center;
+            }
+    }
+
+    @@media (max-width: 480px) {
+        .page-header h1 {
+            font-size: 1.2rem;
+        }
+
+        .form-container {
+            padding: 16px;
+        }
+
+        .form-group .input-wrapper input {
+            font-size: 0.85rem;
+        }
+    }
+
+    /* ============================================================
+                       RIPPLE
+                    ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+
+    @@keyframes rippleAnim {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    /* ============================================================
+                       FADE UP
+                    ============================================================ */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    /* ============================================================
+                       LOADING
+                    ============================================================ */
+    .loading-spinner {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+        .loading-spinner i {
+            font-size: 2.5rem;
+            color: #e8a838;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-spinner p {
+        color: #94a3b8;
+        margin-top: 12px;
+    }
+</style>
+
+<!-- ===== ROUTE PARAMETER ===== -->
+@code {
+    [Parameter]
+    public string UserId { get; set; } = "";
+}
+
+<!-- ===== PAGE CONTENT ===== -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-user-edit"></i>
+                    ویرایش کاربر
+                </h1>
+                <div class="subtitle">ویرایش اطلاعات کاربر @(user != null ? user.FullName : "")</div>
+            </div>
+            <div class="actions">
+                <a href="/Admin/Users" class="btn-back ripple">
+                    <i class="fas fa-arrow-right"></i> بازگشت
+                </a>
+                <a href="/Admin/User/Detail/@UserId" class="btn-outline ripple">
+                    <i class="fas fa-eye"></i> مشاهده
+                </a>
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>در حال بارگذاری اطلاعات کاربر...</p>
+            </div>
+        }
+        else if (user != null)
+        {
+            <!-- Form -->
+            <div class="form-container fade-up visible">
+                <div class="section-title">
+                    <i class="fas fa-user-cog"></i>
+                    اطلاعات پایه
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>نام کامل <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i class="fas fa-user"></i></span>
+                            <input type="text" placeholder="نام کامل" @bind="editUser.FullName" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ایمیل <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                            <input type="email" placeholder="example@email.com" @bind="editUser.Email" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>شماره تلفن <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i class="fas fa-phone"></i></span>
+                            <input type="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" @bind="editUser.Phone" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>موقعیت مکانی</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i class="fas fa-map-marker-alt"></i></span>
+                            <input type="text" placeholder="تهران، ایران" @bind="editUser.Location" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:24px;">
+                    <i class="fas fa-shield-alt"></i>
+                    نقش‌ها و دسترسی‌ها
+                </div>
+
+                <div class="role-checkboxes">
+                    @foreach (var role in allRoles)
+                    {
+                        <div class="role-checkbox-item">
+                            <input type="checkbox" @bind="roleSelection[role.Id]" />
+                            <label>@role.Name</label>
+                        </div>
+                    }
+                </div>
+
+                <div class="section-title" style="margin-top:24px;">
+                    <i class="fas fa-toggle-on"></i>
+                    وضعیت حساب
+                </div>
+
+                <div class="form-group">
+                    <div class="toggle-wrapper">
+                        <span class="toggle-label">غیرفعال</span>
+                        <div class="toggle-switch @(editUser.IsActive ? "active" : "")" @onclick="ToggleStatus">
+                            <div class="toggle-knob"></div>
+                        </div>
+                        <span class="toggle-label">فعال</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:#64748b; margin-top:4px;">
+                        در صورت غیرفعال بودن، کاربر نمی‌تواند وارد سیستم شود.
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-success ripple" @onclick="SaveUser" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>در حال ذخیره...</span>
+                        }
+                        else
+                        {
+                            <span><i class="fas fa-save"></i> ذخیره تغییرات</span>
+                        }
+                    </button>
+                    <button class="btn-outline ripple" @onclick="CancelEdit">
+                        <i class="fas fa-times"></i> انصراف
+                    </button>
+                    @if (!editUser.IsActive)
+                    {
+                        <button class="btn-danger ripple" @onclick="DeleteUser">
+                            <i class="fas fa-trash-alt"></i> حذف کاربر
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div style="text-align:center; padding:60px 20px;">
+                <i class="fas fa-user-slash" style="font-size:4rem; color:#64748b; display:block; margin-bottom:16px;"></i>
+                <h3 style="color:#94a3b8;">کاربری با این شناسه یافت نشد</h3>
+                <p style="color:#64748b; margin-top:8px;">لطفاً شناسه کاربر را بررسی کنید.</p>
+                <a href="/Admin/Users" class="btn-primary ripple" style="margin-top:16px; display:inline-flex;">
+                    <i class="fas fa-arrow-right"></i> بازگشت به لیست کاربران
+                </a>
+            </div>
+        }
+
+    </div>
+</main>
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private bool isLoading = false;
+    private bool isSubmitting = false;
+    private EditUserModel? editUser = null;
+    private UserDetailDto? user = null;
+    private List<RoleDto> allRoles = new();
+    private Dictionary<Guid, bool> roleSelection = new();
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Load user data
+            var userResult = await _userFacade.GetId(Guid.Parse(UserId));
+            if (userResult == null)
+            {
+                await _alertService.Error("کاربر مورد نظر یافت نشد.");
+                return;
+            }
+
+            user = new UserDetailDto
+            {
+                Id = userResult.Id,
+                Email = userResult.Email,
+                FullName = userResult.FullName,
+                Location = "Iran Tehran",
+                Phone = userResult.PhoneNumber,
+                Roles = userResult.UserRoles.Select(i => new RoleDto
+                {
+                    Description = "1",
+                    Id = i.RoleId,
+                    Name = i.Id.ToString()
+                }).ToList(),
+                Status = userResult.UserBlackLists.Any(i => i.ExpireDate > DateTime.Now) ? "inactive" : "active",
+            };
+
+            // Load all roles for selection
+            var rolesResult = await _roleFacade.GetAll();
+            allRoles = rolesResult.Select(r => new RoleDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Description = r.Description
+            }).ToList();
+
+            // Map to EditUserModel
+            editUser = new EditUserModel
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Location = user.Location ?? "",
+                IsActive = user.Status == "active",
+                RoleIds = user.Roles?.Select(r => r.Id).ToList() ?? new List<Guid>()
+            };
+
+            // Initialize role selection dictionary
+            roleSelection = allRoles.ToDictionary(r => r.Id, r => editUser.RoleIds.Contains(r.Id));
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در بارگذاری اطلاعات: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    // ============================================================
+    // UI METHODS
+    // ============================================================
+
+    private void ToggleStatus()
+    {
+        if (editUser != null)
+        {
+            editUser.IsActive = !editUser.IsActive;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveUser()
+    {
+        if (editUser == null) return;
+
+        // Validation
+        if (string.IsNullOrWhiteSpace(editUser.FullName))
+        {
+            await _alertService.Warning("لطفاً نام کامل را وارد کنید.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(editUser.Email) || !editUser.Email.Contains("@"))
+        {
+            await _alertService.Warning("لطفاً ایمیل معتبر وارد کنید.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(editUser.Phone) || editUser.Phone.Length < 10)
+        {
+            await _alertService.Warning("لطفاً شماره تلفن معتبر وارد کنید.");
+            return;
+        }
+
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            // Update RoleIds from selection
+            editUser.RoleIds = roleSelection.Where(kv => kv.Value).Select(kv => kv.Key).ToList();
+
+            // var command = new EditUserCommand(
+            //     editUser.Id,
+            //     editUser.FullName.Trim(),
+            //     editUser.Email.Trim(),
+            //     editUser.Phone.Trim(),
+            //     editUser.Location?.Trim() ?? "",
+            //     editUser.IsActive,
+            //     editUser.RoleIds
+            // );
+
+            // await _userFacade.Update(command);
+            await _alertService.Success("اطلاعات کاربر با موفقیت به‌روزرسانی شد.");
+            NavigationManager.NavigateTo($"/Admin/UserDetail/{editUser.Id}", true);
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در ذخیره تغییرات: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CancelEdit()
+    {
+        if (editUser != null)
+        {
+            NavigationManager.NavigateTo($"/Admin/UserDetail/{editUser.Id}", true);
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/Admin/Users", true);
+        }
+    }
+
+    private async Task DeleteUser()
+    {
+        if (editUser == null) return;
+
+        // Confirm deletion
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"آیا از حذف کاربر {editUser.FullName} اطمینان دارید؟");
+        if (!confirmed) return;
+
+        try
+        {
+            // await _userFacade.Delete(editUser.Id);
+            await _alertService.Success("کاربر با موفقیت حذف شد.");
+            NavigationManager.NavigateTo("/Admin/Users", true);
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در حذف کاربر: {ex.Message}");
+        }
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 400);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASSES
+    // ============================================================
+
+    public class EditUserModel
+    {
+        public Guid Id { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public string Location { get; set; } = "";
+        public bool IsActive { get; set; }
+        public List<Guid> RoleIds { get; set; } = new();
+    }
+
+    public class RoleDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+
+    public class UserDetailDto
+    {
+        public Guid Id { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public string Location { get; set; } = "";
+        public string Status { get; set; } = "";
+        public List<RoleDto> Roles { get; set; } = new();
+    }
+}
+<script src="../../../../../../GlobalAlert.js"></script>

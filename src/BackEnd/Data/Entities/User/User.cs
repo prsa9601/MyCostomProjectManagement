@@ -45,6 +45,17 @@ namespace BackEnd.Data.Entities.User
             UserOtpSessions.Add(userOtpSession);
         }
         
+        
+        public void SetUserRoles(List<Guid> roleIds)
+        {
+            UserRoles = roleIds.Select(i=>new UserRole
+            {
+                UserId=Id,
+                RoleId = i
+            }).ToList();
+
+        }
+        
         public void AddSession(UserSession userSession)
         {
             userSession.UserId = Id;

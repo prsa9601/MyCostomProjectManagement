@@ -44,8 +44,8 @@ namespace BackEnd.Core.User.Queries.GetFilter
             var model = new UserFilterResult()
             {
                 Data = await users.Skip(skip).Take(@params.Take)
-                    .Select(role => _mapper.Map<Data.Entities.User.User, UserDto>
-                    (role)).ToListAsync(cancellationToken),
+                    .Select(user => _mapper.Map<Data.Entities.User.User, UserDto>
+                    (user)).ToListAsync(cancellationToken),
                 FilterParams = @params
             };
 

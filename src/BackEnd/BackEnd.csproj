@@ -13,15 +13,11 @@
     <Folder Include="Core\ContactUs\Queries\Mappers\" />
     <Folder Include="Core\Package\Commands\" />
     <Folder Include="Core\Package\Queries\Mappers\" />
-    <Folder Include="Core\Portfolio\Commands\" />
-    <Folder Include="Core\Portfolio\Queries\Mappers\" />
     <Folder Include="Core\Project\Commands\" />
     <Folder Include="Core\Project\Queries\DTOs\" />
     <Folder Include="Core\Project\Queries\Mappers\" />
     <Folder Include="Core\SiteSetting\Commands\" />
     <Folder Include="Core\SiteSetting\Queries\Mappers\" />
-    <Folder Include="Core\Skills\Commands\" />
-    <Folder Include="Core\Skills\Queries\Mappers\" />
     <Folder Include="Core\User\Commands\Edit\" />
     <Folder Include="Data\DB\Migrations\" />
     <Folder Include="Data\Entities\ApiProducts\Repository\" />
@@ -29,18 +25,14 @@
     <Folder Include="Data\Entities\ContactUs\Repository\" />
     <Folder Include="Data\Entities\PurchaseReport\" />
     <Folder Include="Data\Entities\Package\Repository\" />
-    <Folder Include="Data\Entities\Portfolio\Repository\" />
     <Folder Include="Data\Entities\Projects\Repository\" />
     <Folder Include="Data\Entities\Project\" />
     <Folder Include="Data\Entities\SiteSettings\Repository\" />
-    <Folder Include="Data\Entities\Skills\Repository\" />
     <Folder Include="Infrastructure\InternalAPIs\" />
     <Folder Include="Infrastructure\Repositories\ContactUs\" />
     <Folder Include="Infrastructure\Repositories\ApiProduct\" />
     <Folder Include="Infrastructure\Repositories\Project\" />
-    <Folder Include="Infrastructure\Repositories\Portfolio\" />
     <Folder Include="Infrastructure\Repositories\SiteSettings\" />
-    <Folder Include="Infrastructure\Repositories\Skills\" />
     <Folder Include="Infrastructure\Repositories\Package\" />
   </ItemGroup>
 

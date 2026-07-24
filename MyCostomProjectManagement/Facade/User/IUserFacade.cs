@@ -1,5 +1,6 @@
 ﻿using BackEnd.Core.User.Commands.Login;
 using BackEnd.Core.User.Commands.Register;
+using BackEnd.Core.User.Commands.SetUserRole;
 using BackEnd.Core.User.Queries.DTOs;
 using BackEnd.Core.User.Queries.DTOs.UserFilterDto;
 using BackEnd.Core.User.Queries.GetFilter;
@@ -13,6 +14,7 @@ namespace MyCostomProjectManagement.Facade.User
     {
         Task<OperationResult> Register(RegisterUserCommand command);
         Task<OperationResult<LoginUserCommandResponse>> Login(LoginUserCommand command);
+        Task<OperationResult> SetUserRole(SetUserRoleCommand command);
         
         Task<UserDto> GetId(Guid userId);
         Task<UserFilterResult> GetFilter(UserFilterParam param);
@@ -42,6 +44,11 @@ namespace MyCostomProjectManagement.Facade.User
         }
 
         public async Task<OperationResult> Register(RegisterUserCommand command)
+        {
+            return await _mediator.Send(command);
+        }
+
+        public async Task<OperationResult> SetUserRole(SetUserRoleCommand command)
         {
             return await _mediator.Send(command);
         }

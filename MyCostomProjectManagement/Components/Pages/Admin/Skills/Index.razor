@@ -1,8 +1,12 @@
 ﻿@page "/Admin/Skills"
+@using BackEnd.Core.Skills.Commands.Create
+@using BackEnd.Core.Skills.Commands.Edit
+@using MyCostomProjectManagement.Facade.Skills
 @layout AdminLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject ISkillFacade _skillFacade
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,8 +15,8 @@
 
 <style>
     /* ============================================================
-       SKILLS PAGE - با پس‌زمینه #13505b
-    ============================================================ */
+               SKILLS PAGE - با پس‌زمینه #13505b
+            ============================================================ */
 
     * {
         margin: 0;
@@ -44,8 +48,8 @@
     }
 
     /* ============================================================
-       GLASS EFFECT
-    ============================================================ */
+               GLASS EFFECT
+            ============================================================ */
     .glass {
         background: rgba(255, 255, 255, 0.06);
         backdrop-filter: blur(14px);
@@ -56,50 +60,67 @@
         transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
     }
 
-    .glass:hover {
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 8px 48px rgba(0, 0, 0, 0.12);
-        transform: translateY(-3px);
-        border-color: rgba(255, 255, 255, 0.06);
-    }
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 48px rgba(0, 0, 0, 0.12);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
 
     /* ============================================================
-       ANIMATIONS
-    ============================================================ */
+               ANIMATIONS
+            ============================================================ */
     @@keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0px); }
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
     }
+
     .float-anim {
         animation: float 4s ease-in-out infinite;
     }
 
     @@keyframes rotateBorder {
-        0% { background-position: 0% 50%; }
-        100% { background-position: 400% 50%; }
+        0% {
+            background-position: 0% 50%;
+        }
+
+        100% {
+            background-position: 400% 50%;
+        }
     }
+
     .gradient-border {
         position: relative;
         overflow: hidden;
         border: 1px solid transparent;
         background-clip: padding-box;
     }
-    .gradient-border::before {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        z-index: -1;
-        border-radius: 22px;
-        background: conic-gradient(from 0deg, #e8a838, #52b788, #1a7a8a, #e8a838, #52b788);
-        background-size: 400% 400%;
-        animation: rotateBorder 8s linear infinite;
-        opacity: 0.2;
-        transition: opacity 0.4s;
-    }
-    .gradient-border:hover::before {
-        opacity: 0.5;
-    }
+
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: 22px;
+            background: conic-gradient(from 0deg, #e8a838, #52b788, #1a7a8a, #e8a838, #52b788);
+            background-size: 400% 400%;
+            animation: rotateBorder 8s linear infinite;
+            opacity: 0.2;
+            transition: opacity 0.4s;
+        }
+
+        .gradient-border:hover::before {
+            opacity: 0.5;
+        }
 
     /* Ripple */
     .ripple {
@@ -107,6 +128,7 @@
         overflow: hidden;
         cursor: pointer;
     }
+
     .ripple-effect {
         position: absolute;
         border-radius: 50%;
@@ -115,28 +137,53 @@
         animation: rippleAnim 0.6s linear;
         pointer-events: none;
     }
+
     @@keyframes rippleAnim {
-        to { transform: scale(4); opacity: 0; }
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
     }
 
     /* Fade Up */
     .fade-up {
         opacity: 0;
         transform: translateY(40px);
-        transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1),
-                    transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1), transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
     }
-    .fade-up.visible {
-        opacity: 1;
-        transform: translateY(0);
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    .stagger-child {
+        transition-delay: 0s;
     }
-    .stagger-child { transition-delay: 0s; }
-    .stagger-child:nth-child(1) { transition-delay: 0.05s; }
-    .stagger-child:nth-child(2) { transition-delay: 0.1s; }
-    .stagger-child:nth-child(3) { transition-delay: 0.15s; }
-    .stagger-child:nth-child(4) { transition-delay: 0.2s; }
-    .stagger-child:nth-child(5) { transition-delay: 0.25s; }
-    .stagger-child:nth-child(6) { transition-delay: 0.3s; }
+
+        .stagger-child:nth-child(1) {
+            transition-delay: 0.05s;
+        }
+
+        .stagger-child:nth-child(2) {
+            transition-delay: 0.1s;
+        }
+
+        .stagger-child:nth-child(3) {
+            transition-delay: 0.15s;
+        }
+
+        .stagger-child:nth-child(4) {
+            transition-delay: 0.2s;
+        }
+
+        .stagger-child:nth-child(5) {
+            transition-delay: 0.25s;
+        }
+
+        .stagger-child:nth-child(6) {
+            transition-delay: 0.3s;
+        }
 
     /* Sparkle Particles */
     .sparkle {
@@ -149,21 +196,74 @@
         z-index: 0;
         animation: sparkleAnim 10s infinite alternate ease-in-out;
     }
+
     @@keyframes sparkleAnim {
-        0% { transform: translate(0, 0) scale(1); opacity: 0.1; }
-        50% { transform: translate(20px, -30px) scale(1.8); opacity: 0.6; }
-        100% { transform: translate(-10px, 20px) scale(0.6); opacity: 0.05; }
+        0% {
+            transform: translate(0, 0) scale(1);
+            opacity: 0.1;
+        }
+
+        50% {
+            transform: translate(20px, -30px) scale(1.8);
+            opacity: 0.6;
+        }
+
+        100% {
+            transform: translate(-10px, 20px) scale(0.6);
+            opacity: 0.05;
+        }
     }
-    .sparkle:nth-child(1) { left: 5%; top: 20%; animation-duration: 12s; }
-    .sparkle:nth-child(2) { left: 85%; top: 60%; animation-duration: 14s; animation-delay: 2s; width: 6px; height: 6px; }
-    .sparkle:nth-child(3) { left: 30%; top: 70%; animation-duration: 16s; animation-delay: 4s; }
-    .sparkle:nth-child(4) { left: 92%; top: 30%; animation-duration: 11s; animation-delay: 1s; width: 5px; height: 5px; background: rgba(82, 183, 136, 0.15); }
-    .sparkle:nth-child(5) { left: 50%; top: 90%; animation-duration: 18s; animation-delay: 3s; }
-    .sparkle:nth-child(6) { left: 3%; top: 50%; animation-duration: 13s; animation-delay: 5s; background: rgba(232, 168, 56, 0.15); }
+
+    .sparkle:nth-child(1) {
+        left: 5%;
+        top: 20%;
+        animation-duration: 12s;
+    }
+
+    .sparkle:nth-child(2) {
+        left: 85%;
+        top: 60%;
+        animation-duration: 14s;
+        animation-delay: 2s;
+        width: 6px;
+        height: 6px;
+    }
+
+    .sparkle:nth-child(3) {
+        left: 30%;
+        top: 70%;
+        animation-duration: 16s;
+        animation-delay: 4s;
+    }
+
+    .sparkle:nth-child(4) {
+        left: 92%;
+        top: 30%;
+        animation-duration: 11s;
+        animation-delay: 1s;
+        width: 5px;
+        height: 5px;
+        background: rgba(82, 183, 136, 0.15);
+    }
+
+    .sparkle:nth-child(5) {
+        left: 50%;
+        top: 90%;
+        animation-duration: 18s;
+        animation-delay: 3s;
+    }
+
+    .sparkle:nth-child(6) {
+        left: 3%;
+        top: 50%;
+        animation-duration: 13s;
+        animation-delay: 5s;
+        background: rgba(232, 168, 56, 0.15);
+    }
 
     /* ============================================================
-       NAVBAR
-    ============================================================ */
+               NAVBAR (اختیاری - در صورت استفاده از AdminLayout می‌توانید حذف کنید)
+            ============================================================ */
     .navbar {
         position: fixed;
         top: 0;
@@ -177,17 +277,17 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     }
 
-    .navbar.scrolled {
-        background: rgba(19, 80, 91, 0.92);
-        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.12);
-    }
+        .navbar.scrolled {
+            background: rgba(19, 80, 91, 0.92);
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.12);
+        }
 
-    .navbar .container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-    }
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
 
     .logo {
         font-size: 1.5rem;
@@ -197,8 +297,15 @@
         align-items: center;
         gap: 8px;
     }
-    .logo span { color: #e8a838; }
-    .logo i { color: #e8a838; font-size: 1.3rem; }
+
+        .logo span {
+            color: #e8a838;
+        }
+
+        .logo i {
+            color: #e8a838;
+            font-size: 1.3rem;
+        }
 
     .nav-links {
         display: flex;
@@ -208,28 +315,42 @@
         font-weight: 500;
         align-items: center;
     }
-    .nav-links a {
-        color: rgba(232, 240, 241, 0.6);
-        transition: all 0.35s ease;
-        position: relative;
-        padding: 4px 0;
-    }
-    .nav-links a:hover { color: #ffffff; }
-    .nav-links a::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        right: 0;
-        width: 0;
-        height: 2.5px;
-        background: #e8a838;
-        transition: 0.35s;
-        border-radius: 4px;
-        box-shadow: 0 0 12px rgba(232, 168, 56, 0.15);
-    }
-    .nav-links a:hover::after { width: 100%; }
-    .nav-links a.active { color: #ffffff; }
-    .nav-links a.active::after { width: 100%; }
+
+        .nav-links a {
+            color: rgba(232, 240, 241, 0.6);
+            transition: all 0.35s ease;
+            position: relative;
+            padding: 4px 0;
+        }
+
+            .nav-links a:hover {
+                color: #ffffff;
+            }
+
+            .nav-links a::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                right: 0;
+                width: 0;
+                height: 2.5px;
+                background: #e8a838;
+                transition: 0.35s;
+                border-radius: 4px;
+                box-shadow: 0 0 12px rgba(232, 168, 56, 0.15);
+            }
+
+            .nav-links a:hover::after {
+                width: 100%;
+            }
+
+            .nav-links a.active {
+                color: #ffffff;
+            }
+
+                .nav-links a.active::after {
+                    width: 100%;
+                }
 
     .nav-actions {
         display: flex;
@@ -253,10 +374,11 @@
         gap: 8px;
         box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
     }
-    .btn-primary:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
-    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+        }
 
     .btn-outline {
         background: transparent;
@@ -268,11 +390,12 @@
         font-size: 0.85rem;
         transition: all 0.35s ease;
     }
-    .btn-outline:hover {
-        border-color: #e8a838;
-        background: rgba(232, 168, 56, 0.04);
-        transform: translateY(-2px);
-    }
+
+        .btn-outline:hover {
+            border-color: #e8a838;
+            background: rgba(232, 168, 56, 0.04);
+            transform: translateY(-2px);
+        }
 
     .btn-light {
         background: rgba(255, 255, 255, 0.04);
@@ -287,11 +410,12 @@
         align-items: center;
         gap: 6px;
     }
-    .btn-light:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: #e8a838;
-        transform: translateY(-2px);
-    }
+
+        .btn-light:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: #e8a838;
+            transform: translateY(-2px);
+        }
 
     .btn-danger {
         background: linear-gradient(135deg, #dc3545, #b02a37);
@@ -307,10 +431,11 @@
         align-items: center;
         gap: 4px;
     }
-    .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(220, 53, 69, 0.15);
-    }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(220, 53, 69, 0.15);
+        }
 
     .avatar-btn {
         width: 38px;
@@ -326,11 +451,12 @@
         transition: all 0.35s ease;
         cursor: pointer;
     }
-    .avatar-btn:hover {
-        background: rgba(232, 168, 56, 0.04);
-        transform: scale(1.05);
-        border-color: #e8a838;
-    }
+
+        .avatar-btn:hover {
+            background: rgba(232, 168, 56, 0.04);
+            transform: scale(1.05);
+            border-color: #e8a838;
+        }
 
     .hamburger {
         display: none;
@@ -340,18 +466,19 @@
         background: none;
         border: none;
     }
-    .hamburger span {
-        display: block;
-        width: 28px;
-        height: 2.5px;
-        background: #e8f0f1;
-        border-radius: 4px;
-        transition: 0.3s;
-    }
+
+        .hamburger span {
+            display: block;
+            width: 28px;
+            height: 2.5px;
+            background: #e8f0f1;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
 
     /* ============================================================
-       PAGE HEADER
-    ============================================================ */
+               PAGE HEADER
+            ============================================================ */
     .page-header {
         padding-top: 100px;
         padding-bottom: 32px;
@@ -362,30 +489,34 @@
         gap: 16px;
     }
 
-    .page-header h1 {
-        font-size: 2rem;
-        font-weight: 800;
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    .page-header h1 i { color: #e8a838; }
-    .page-header .subtitle {
-        color: rgba(232, 240, 241, 0.5);
-        font-size: 0.9rem;
-        margin-top: 4px;
-    }
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    .page-header .actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
+            .page-header h1 i {
+                color: #e8a838;
+            }
+
+        .page-header .subtitle {
+            color: rgba(232, 240, 241, 0.5);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .page-header .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
 
     /* ============================================================
-       STATS ROW
-    ============================================================ */
+               STATS ROW
+            ============================================================ */
     .stats-row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -405,32 +536,36 @@
         gap: 14px;
         transition: all 0.3s ease;
     }
-    .stat-mini:hover {
-        transform: translateY(-3px);
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(232, 168, 56, 0.06);
-    }
-    .stat-mini i {
-        font-size: 1.6rem;
-        color: #e8a838;
-        opacity: 0.5;
-        width: 40px;
-        text-align: center;
-    }
-    .stat-mini .info .number {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #ffffff;
-        line-height: 1.2;
-    }
-    .stat-mini .info .label {
-        font-size: 0.75rem;
-        color: rgba(232, 240, 241, 0.3);
-    }
+
+        .stat-mini:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(232, 168, 56, 0.06);
+        }
+
+        .stat-mini i {
+            font-size: 1.6rem;
+            color: #e8a838;
+            opacity: 0.5;
+            width: 40px;
+            text-align: center;
+        }
+
+        .stat-mini .info .number {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .stat-mini .info .label {
+            font-size: 0.75rem;
+            color: rgba(232, 240, 241, 0.3);
+        }
 
     /* ============================================================
-       FILTER BAR
-    ============================================================ */
+               FILTER BAR
+            ============================================================ */
     .filter-bar {
         display: flex;
         gap: 16px;
@@ -445,68 +580,75 @@
         align-items: center;
     }
 
-    .filter-bar .search-box {
-        flex: 1;
-        min-width: 200px;
-        display: flex;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 40px;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        padding: 0 16px;
-        transition: all 0.35s ease;
-    }
-    .filter-bar .search-box:focus-within {
-        border-color: #e8a838;
-        background: rgba(255, 255, 255, 0.04);
-        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
-    }
-    .filter-bar .search-box input {
-        background: transparent;
-        border: none;
-        padding: 12px 12px;
-        color: #e8f0f1;
-        font-size: 0.9rem;
-        width: 100%;
-        outline: none;
-    }
-    .filter-bar .search-box input::placeholder {
-        color: rgba(232, 240, 241, 0.3);
-    }
-    .filter-bar .search-box i {
-        color: rgba(232, 240, 241, 0.2);
-        font-size: 0.9rem;
-    }
+        .filter-bar .search-box {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 0 16px;
+            transition: all 0.35s ease;
+        }
 
-    .filter-bar .filter-group {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-    .filter-bar .filter-group .filter-btn {
-        padding: 8px 18px;
-        border-radius: 40px;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        background: rgba(255, 255, 255, 0.02);
-        color: rgba(232, 240, 241, 0.4);
-        font-size: 0.8rem;
-        font-weight: 500;
-        transition: all 0.35s ease;
-        cursor: pointer;
-    }
-    .filter-bar .filter-group .filter-btn:hover {
-        border-color: rgba(232, 168, 56, 0.1);
-        color: #e8f0f1;
-    }
-    .filter-bar .filter-group .filter-btn.active {
-        background: rgba(232, 168, 56, 0.08);
-        border-color: rgba(232, 168, 56, 0.1);
-        color: #e8a838;
-    }
+            .filter-bar .search-box:focus-within {
+                border-color: #e8a838;
+                background: rgba(255, 255, 255, 0.04);
+                box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+            }
+
+            .filter-bar .search-box input {
+                background: transparent;
+                border: none;
+                padding: 12px 12px;
+                color: #e8f0f1;
+                font-size: 0.9rem;
+                width: 100%;
+                outline: none;
+            }
+
+                .filter-bar .search-box input::placeholder {
+                    color: rgba(232, 240, 241, 0.3);
+                }
+
+            .filter-bar .search-box i {
+                color: rgba(232, 240, 241, 0.2);
+                font-size: 0.9rem;
+            }
+
+        .filter-bar .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+            .filter-bar .filter-group .filter-btn {
+                padding: 8px 18px;
+                border-radius: 40px;
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                background: rgba(255, 255, 255, 0.02);
+                color: rgba(232, 240, 241, 0.4);
+                font-size: 0.8rem;
+                font-weight: 500;
+                transition: all 0.35s ease;
+                cursor: pointer;
+            }
+
+                .filter-bar .filter-group .filter-btn:hover {
+                    border-color: rgba(232, 168, 56, 0.1);
+                    color: #e8f0f1;
+                }
+
+                .filter-bar .filter-group .filter-btn.active {
+                    background: rgba(232, 168, 56, 0.08);
+                    border-color: rgba(232, 168, 56, 0.1);
+                    color: #e8a838;
+                }
 
     /* ============================================================
-       ADD SKILL FORM
-    ============================================================ */
+               ADD SKILL FORM
+            ============================================================ */
     .add-skill-form {
         padding: 24px;
         background: rgba(255, 255, 255, 0.03);
@@ -517,86 +659,121 @@
         margin-bottom: 32px;
         transition: all 0.3s ease;
     }
-    .add-skill-form:hover {
-        border-color: rgba(232, 168, 56, 0.06);
-    }
-    .add-skill-form .form-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .add-skill-form .form-title i { color: #e8a838; }
-    .add-skill-form .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr auto;
-        gap: 12px;
-        align-items: end;
-    }
-    .add-skill-form .form-group {
-        margin-bottom: 0;
-    }
-    .add-skill-form .form-group label {
-        display: block;
-        font-size: 0.75rem;
-        color: rgba(232, 240, 241, 0.3);
-        margin-bottom: 4px;
-        font-weight: 500;
-    }
-    .add-skill-form .form-group input,
-    .add-skill-form .form-group select {
-        width: 100%;
-        padding: 10px 14px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: 10px;
-        color: #e8f0f1;
-        font-size: 0.9rem;
-        transition: all 0.35s ease;
-        outline: none;
-        font-family: inherit;
-    }
-    .add-skill-form .form-group input:focus,
-    .add-skill-form .form-group select:focus {
-        border-color: #e8a838;
-        background: rgba(255, 255, 255, 0.04);
-        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
-    }
-    .add-skill-form .form-group input::placeholder {
-        color: rgba(232, 240, 241, 0.15);
-    }
-    .add-skill-form .form-group select option {
-        background: #13505b;
-        color: #e8f0f1;
-    }
 
-    .add-skill-form .btn-add {
-        padding: 10px 24px;
-        border-radius: 10px;
-        border: none;
-        background: linear-gradient(135deg, #52b788, #409f73);
-        color: #fff;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.35s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-        height: 42px;
-    }
-    .add-skill-form .btn-add:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(82, 183, 136, 0.15);
-    }
+        .add-skill-form:hover {
+            border-color: rgba(232, 168, 56, 0.06);
+        }
+
+        .add-skill-form .form-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .add-skill-form .form-title i {
+                color: #e8a838;
+            }
+
+        .add-skill-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 0.8fr 0.8fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .add-skill-form .form-group {
+            margin-bottom: 0;
+        }
+
+            .add-skill-form .form-group label {
+                display: block;
+                font-size: 0.75rem;
+                color: rgba(232, 240, 241, 0.3);
+                margin-bottom: 4px;
+                font-weight: 500;
+            }
+
+            .add-skill-form .form-group input,
+            .add-skill-form .form-group select {
+                width: 100%;
+                padding: 10px 14px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                border-radius: 10px;
+                color: #e8f0f1;
+                font-size: 0.9rem;
+                transition: all 0.35s ease;
+                outline: none;
+                font-family: inherit;
+            }
+
+                .add-skill-form .form-group input:focus,
+                .add-skill-form .form-group select:focus {
+                    border-color: #e8a838;
+                    background: rgba(255, 255, 255, 0.04);
+                    box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+                }
+
+                .add-skill-form .form-group input::placeholder {
+                    color: rgba(232, 240, 241, 0.15);
+                }
+
+                .add-skill-form .form-group select option {
+                    background: #13505b;
+                    color: #e8f0f1;
+                }
+
+            .add-skill-form .form-group.checkbox-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding-top: 6px;
+            }
+
+                .add-skill-form .form-group.checkbox-group label {
+                    margin-bottom: 0;
+                    cursor: pointer;
+                }
+
+                .add-skill-form .form-group.checkbox-group input[type="checkbox"] {
+                    width: 18px;
+                    height: 18px;
+                    accent-color: #e8a838;
+                    cursor: pointer;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.04);
+                    border-radius: 4px;
+                }
+
+        .add-skill-form .btn-add {
+            padding: 10px 24px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #52b788, #409f73);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            height: 42px;
+        }
+
+            .add-skill-form .btn-add:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 16px rgba(82, 183, 136, 0.15);
+            }
 
     /* ============================================================
-       SKILLS GRID
-    ============================================================ */
+               SKILLS GRID
+            ============================================================ */
     .skills-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -617,124 +794,174 @@
         overflow: hidden;
     }
 
-    .skill-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 3px;
-        height: 100%;
-        border-radius: 0 3px 3px 0;
-        opacity: 0.4;
-    }
+        .skill-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 3px;
+            height: 100%;
+            border-radius: 0 3px 3px 0;
+            opacity: 0.4;
+        }
 
-    .skill-card.category-frontend::before { background: #52b788; }
-    .skill-card.category-backend::before { background: #e8a838; }
-    .skill-card.category-database::before { background: #8264c8; }
-    .skill-card.category-devops::before { background: #1a7a8a; }
-    .skill-card.category-other::before { background: #7f8c8d; }
+        .skill-card.category-frontend::before {
+            background: #52b788;
+        }
 
-    .skill-card:hover {
-        transform: translateY(-6px);
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(232, 168, 56, 0.06);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-    }
+        .skill-card.category-backend::before {
+            background: #e8a838;
+        }
 
-    .skill-card .skill-icon {
-        font-size: 2.8rem;
-        color: #e8a838;
-        margin-bottom: 10px;
-        display: block;
-        opacity: 0.7;
-        transition: all 0.3s ease;
-    }
-    .skill-card:hover .skill-icon {
-        opacity: 1;
-        transform: scale(1.05);
-    }
+        .skill-card.category-database::before {
+            background: #8264c8;
+        }
 
-    .skill-card .skill-name {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 4px;
-    }
+        .skill-card.category-devops::before {
+            background: #1a7a8a;
+        }
 
-    .skill-card .skill-category {
-        font-size: 0.7rem;
-        color: rgba(232, 240, 241, 0.2);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 10px;
-    }
+        .skill-card.category-other::before {
+            background: #7f8c8d;
+        }
 
-    .skill-card .skill-progress {
-        width: 100%;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.04);
-        border-radius: 10px;
-        overflow: hidden;
-        margin-bottom: 14px;
-    }
-    .skill-card .skill-progress .fill {
-        height: 100%;
-        border-radius: 10px;
-        background: linear-gradient(90deg, #52b788, #e8a838);
-        transition: width 1s ease;
-        width: 0%;
-    }
+        .skill-card:hover {
+            transform: translateY(-6px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(232, 168, 56, 0.06);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
 
-    .skill-card .skill-actions {
-        display: flex;
-        gap: 6px;
-        justify-content: center;
-    }
-    .skill-card .skill-actions button {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        background: rgba(255, 255, 255, 0.02);
-        color: rgba(232, 240, 241, 0.15);
-        transition: all 0.35s ease;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .skill-card .skill-actions button:hover {
-        border-color: rgba(232, 168, 56, 0.06);
-        color: #e8f0f1;
-        background: rgba(232, 168, 56, 0.02);
-        transform: scale(1.05);
-    }
-    .skill-card .skill-actions button.edit:hover {
-        border-color: rgba(82, 183, 136, 0.06);
-        color: #52b788;
-        background: rgba(82, 183, 136, 0.02);
-    }
-    .skill-card .skill-actions button.delete:hover {
-        border-color: rgba(220, 53, 69, 0.06);
-        color: #dc3545;
-        background: rgba(220, 53, 69, 0.02);
-    }
+        .skill-card .skill-icon {
+            font-size: 2.8rem;
+            color: #e8a838;
+            margin-bottom: 10px;
+            display: block;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
 
-    /* Edit mode inside card */
-    .skill-card .edit-mode {
-        display: none;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255, 255, 255, 0.03);
-    }
-    .skill-card .edit-mode.active {
-        display: block;
-        animation: fadeIn 0.3s ease;
-    }
+        .skill-card:hover .skill-icon {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .skill-card .skill-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .skill-card .skill-category {
+            font-size: 0.7rem;
+            color: rgba(232, 240, 241, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .skill-card .skill-progress {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+            .skill-card .skill-progress .fill {
+                height: 100%;
+                border-radius: 10px;
+                background: linear-gradient(90deg, #52b788, #e8a838);
+                transition: width 1s ease;
+                width: 0%;
+            }
+
+        .skill-card .skill-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: 0.3px;
+        }
+
+            .skill-card .skill-status.active {
+                background: rgba(82, 183, 136, 0.15);
+                color: #52b788;
+            }
+
+            .skill-card .skill-status.inactive {
+                background: rgba(220, 53, 69, 0.12);
+                color: #E67D2C;
+            }
+
+        .skill-card .skill-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+            .skill-card .skill-actions button {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                background: rgba(255, 255, 255, 0.02);
+                color: rgba(232, 240, 241, 0.15);
+                transition: all 0.35s ease;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .skill-card .skill-actions button:hover {
+                    border-color: rgba(232, 168, 56, 0.06);
+                    color: #e8f0f1;
+                    background: rgba(232, 168, 56, 0.02);
+                    transform: scale(1.05);
+                }
+
+                .skill-card .skill-actions button.edit:hover {
+                    border-color: rgba(82, 183, 136, 0.06);
+                    color: #52b788;
+                    background: rgba(82, 183, 136, 0.02);
+                }
+
+                .skill-card .skill-actions button.delete:hover {
+                    border-color: rgba(220, 53, 69, 0.06);
+                    color: #dc3545;
+                    background: rgba(220, 53, 69, 0.02);
+                }
+
+        /* Edit mode inside card */
+        .skill-card .edit-mode {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+            .skill-card .edit-mode.active {
+                display: block;
+                animation: fadeIn 0.3s ease;
+            }
+
     @@keyframes fadeIn {
-        0% { opacity: 0; transform: translateY(10px); }
-        100% { opacity: 1; transform: translateY(0); }
+        0% {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
+
     .skill-card .edit-mode input,
     .skill-card .edit-mode select {
         width: 100%;
@@ -749,52 +976,78 @@
         font-family: inherit;
         margin-bottom: 8px;
     }
-    .skill-card .edit-mode input:focus,
-    .skill-card .edit-mode select:focus {
-        border-color: #e8a838;
-        background: rgba(255, 255, 255, 0.04);
+
+        .skill-card .edit-mode input:focus,
+        .skill-card .edit-mode select:focus {
+            border-color: #e8a838;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .skill-card .edit-mode input::placeholder {
+            color: rgba(232, 240, 241, 0.15);
+        }
+
+        .skill-card .edit-mode select option {
+            background: #13505b;
+            color: #e8f0f1;
+        }
+
+    .skill-card .edit-mode .edit-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        color: rgba(232, 240, 241, 0.5);
+        font-size: 0.85rem;
     }
-    .skill-card .edit-mode input::placeholder {
-        color: rgba(232, 240, 241, 0.15);
-    }
-    .skill-card .edit-mode select option {
-        background: #13505b;
-        color: #e8f0f1;
-    }
+
+        .skill-card .edit-mode .edit-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #e8a838;
+            margin: 0;
+            cursor: pointer;
+        }
+
     .skill-card .edit-mode .edit-actions {
         display: flex;
         gap: 8px;
         margin-top: 8px;
     }
-    .skill-card .edit-mode .edit-actions button {
-        flex: 1;
-        padding: 6px 12px;
-        border-radius: 8px;
-        border: none;
-        font-size: 0.75rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    .skill-card .edit-mode .edit-actions .save-edit {
-        background: linear-gradient(135deg, #52b788, #409f73);
-        color: #fff;
-    }
-    .skill-card .edit-mode .edit-actions .save-edit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(82, 183, 136, 0.15);
-    }
-    .skill-card .edit-mode .edit-actions .cancel-edit {
-        background: rgba(255, 255, 255, 0.04);
-        color: rgba(232, 240, 241, 0.3);
-    }
-    .skill-card .edit-mode .edit-actions .cancel-edit:hover {
-        background: rgba(255, 255, 255, 0.06);
-    }
+
+        .skill-card .edit-mode .edit-actions button {
+            flex: 1;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .skill-card .edit-mode .edit-actions .save-edit {
+            background: linear-gradient(135deg, #52b788, #409f73);
+            color: #fff;
+        }
+
+            .skill-card .edit-mode .edit-actions .save-edit:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(82, 183, 136, 0.15);
+            }
+
+        .skill-card .edit-mode .edit-actions .cancel-edit {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(232, 240, 241, 0.3);
+        }
+
+            .skill-card .edit-mode .edit-actions .cancel-edit:hover {
+                background: rgba(255, 255, 255, 0.06);
+            }
 
     /* ============================================================
-       EMPTY STATE
-    ============================================================ */
+               EMPTY STATE
+            ============================================================ */
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -802,24 +1055,27 @@
         border-radius: 20px;
         border: 1px solid rgba(255, 255, 255, 0.02);
     }
-    .empty-state i {
-        font-size: 4rem;
-        color: rgba(232, 168, 56, 0.1);
-        margin-bottom: 16px;
-    }
-    .empty-state h3 {
-        font-size: 1.3rem;
-        color: rgba(232, 240, 241, 0.3);
-        margin-bottom: 8px;
-    }
-    .empty-state p {
-        color: rgba(232, 240, 241, 0.15);
-        font-size: 0.9rem;
-    }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: rgba(232, 168, 56, 0.1);
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.3rem;
+            color: rgba(232, 240, 241, 0.3);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: rgba(232, 240, 241, 0.15);
+            font-size: 0.9rem;
+        }
 
     /* ============================================================
-       PAGINATION
-    ============================================================ */
+               PAGINATION
+            ============================================================ */
     .pagination {
         display: flex;
         justify-content: center;
@@ -827,30 +1083,33 @@
         margin-top: 20px;
         padding: 16px 0;
     }
-    .pagination button {
-        padding: 8px 16px;
-        border-radius: 40px;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        background: rgba(255, 255, 255, 0.02);
-        color: rgba(232, 240, 241, 0.3);
-        font-size: 0.8rem;
-        transition: all 0.35s ease;
-        cursor: pointer;
-    }
-    .pagination button:hover {
-        border-color: rgba(232, 168, 56, 0.06);
-        color: #e8f0f1;
-        background: rgba(232, 168, 56, 0.02);
-    }
-    .pagination button.active {
-        background: rgba(232, 168, 56, 0.06);
-        border-color: rgba(232, 168, 56, 0.06);
-        color: #e8a838;
-    }
+
+        .pagination button {
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(232, 240, 241, 0.3);
+            font-size: 0.8rem;
+            transition: all 0.35s ease;
+            cursor: pointer;
+        }
+
+            .pagination button:hover {
+                border-color: rgba(232, 168, 56, 0.06);
+                color: #e8f0f1;
+                background: rgba(232, 168, 56, 0.02);
+            }
+
+            .pagination button.active {
+                background: rgba(232, 168, 56, 0.06);
+                border-color: rgba(232, 168, 56, 0.06);
+                color: #e8a838;
+            }
 
     /* ============================================================
-       FOOTER
-    ============================================================ */
+               FOOTER
+            ============================================================ */
     .footer {
         position: relative;
         padding: 28px 0 20px;
@@ -861,39 +1120,50 @@
         z-index: 1;
         margin-top: 20px;
     }
-    .footer .container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-    }
+
+        .footer .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
     .footer-links {
         display: flex;
         gap: 24px;
         font-size: 0.85rem;
         color: rgba(232, 240, 241, 0.2);
     }
-    .footer-links a:hover { color: #e8a838; }
+
+        .footer-links a:hover {
+            color: #e8a838;
+        }
+
     .footer-copy {
         color: rgba(232, 240, 241, 0.2);
         font-size: 0.8rem;
     }
-    .footer-copy i { color: #e8a838; }
+
+        .footer-copy i {
+            color: #e8a838;
+        }
 
     /* ============================================================
-       RESPONSIVE
-    ============================================================ */
+               RESPONSIVE
+            ============================================================ */
     @@media (max-width: 992px) {
         .stats-row {
             grid-template-columns: 1fr 1fr;
         }
+
         .add-skill-form .form-row {
             grid-template-columns: 1fr 1fr;
         }
-        .add-skill-form .form-row .btn-add {
-            grid-column: 1 / -1;
-            justify-content: center;
-        }
+
+            .add-skill-form .form-row .btn-add {
+                grid-column: 1 / -1;
+                justify-content: center;
+            }
     }
 
     @@media (max-width: 768px) {
@@ -910,52 +1180,87 @@
             border-radius: 20px;
             align-items: center;
         }
-        .nav-links.open { display: flex; }
-        .hamburger { display: flex; }
-        .nav-actions .btn-outline { display: none; }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+        .hamburger {
+            display: flex;
+        }
+
+        .nav-actions .btn-outline {
+            display: none;
+        }
 
         .page-header {
             flex-direction: column;
             align-items: flex-start;
         }
-        .page-header h1 { font-size: 1.5rem; }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
         .filter-bar {
             flex-direction: column;
             padding: 16px;
         }
-        .filter-bar .search-box { width: 100%; }
-        .page-header .actions { width: 100%; }
-        .page-header .actions .btn-primary { flex: 1; justify-content: center; }
+
+            .filter-bar .search-box {
+                width: 100%;
+            }
+
+        .page-header .actions {
+            width: 100%;
+        }
+
+            .page-header .actions .btn-primary {
+                flex: 1;
+                justify-content: center;
+            }
 
         .stats-row {
             grid-template-columns: 1fr 1fr;
         }
-        .stat-mini .info .number { font-size: 1.1rem; }
-        .stat-mini i { font-size: 1.2rem; width: 30px; }
+
+        .stat-mini .info .number {
+            font-size: 1.1rem;
+        }
+
+        .stat-mini i {
+            font-size: 1.2rem;
+            width: 30px;
+        }
 
         .skills-grid {
             grid-template-columns: 1fr 1fr;
         }
+
         .add-skill-form .form-row {
             grid-template-columns: 1fr;
         }
-        .add-skill-form .form-row .btn-add {
-            grid-column: 1;
-            justify-content: center;
-        }
+
+            .add-skill-form .form-row .btn-add {
+                grid-column: 1;
+                justify-content: center;
+            }
     }
 
     @@media (max-width: 480px) {
         .skills-grid {
             grid-template-columns: 1fr;
         }
+
         .stats-row {
             grid-template-columns: 1fr;
         }
+
         .filter-bar .filter-group {
             width: 100%;
             justify-content: center;
         }
+
         .add-skill-form .form-row {
             grid-template-columns: 1fr;
         }
@@ -1023,11 +1328,11 @@
             </div>
             <div class="filter-group">
                 <button class="filter-btn @(filterCategory == "all" ? "active" : "")" @onclick='() => SetCategory("all")'>همه</button>
-                <button class="filter-btn @(filterCategory == "frontend" ? "active" : "")" @onclick='() => SetCategory("frontend")'>فرانت‌اند</button>
-                <button class="filter-btn @(filterCategory == "backend" ? "active" : "")" @onclick='() => SetCategory("backend")'>بک‌اند</button>
-                <button class="filter-btn @(filterCategory == "database" ? "active" : "")" @onclick='() => SetCategory("database")'>دیتابیس</button>
-                <button class="filter-btn @(filterCategory == "devops" ? "active" : "")" @onclick='() => SetCategory("devops")'>DevOps</button>
-                <button class="filter-btn @(filterCategory == "other" ? "active" : "")" @onclick='() => SetCategory("other")'>سایر</button>
+                <button class="filter-btn @(filterCategory == "FrontEnd" ? "active" : "")" @onclick='() => SetCategory("FrontEnd")'>فرانت‌اند</button>
+                <button class="filter-btn @(filterCategory == "BackEnd" ? "active" : "")" @onclick='() => SetCategory("BackEnd")'>بک‌اند</button>
+                <button class="filter-btn @(filterCategory == "DataBase" ? "active" : "")" @onclick='() => SetCategory("DataBase")'>دیتابیس</button>
+                <button class="filter-btn @(filterCategory == "DevOps" ? "active" : "")" @onclick='() => SetCategory("DevOps")'>DevOps</button>
+                <button class="filter-btn @(filterCategory == "Others" ? "active" : "")" @onclick='() => SetCategory("Others")'>سایر</button>
             </div>
         </div>
 
@@ -1045,12 +1350,24 @@
                 <div class="form-group">
                     <label>دسته‌بندی</label>
                     <select @bind="newSkillCategory">
-                        <option value="frontend">فرانت‌اند</option>
-                        <option value="backend">بک‌اند</option>
-                        <option value="database">دیتابیس</option>
-                        <option value="devops">DevOps</option>
-                        <option value="other">سایر</option>
+                        <option value="FrontEnd">فرانت‌اند</option>
+                        <option value="BackEnd">بک‌اند</option>
+                        <option value="DataBase">دیتابیس</option>
+                        <option value="DevOps">DevOps</option>
+                        <option value="Others">سایر</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>درصد پیشرفت</label>
+                    <input type="number" min="0" max="100" placeholder="۵۰" @bind="newSkillProgress" />
+                </div>
+                <div class="form-group">
+                    <label>آیکون (کلاس Font Awesome)</label>
+                    <input type="text" placeholder="مثال: fab fa-react" @bind="newSkillIcon" />
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="newIsActive" @bind="newSkillIsActive" />
+                    <label for="newIsActive">فعال</label>
                 </div>
                 <button class="btn-add ripple" @onclick="AddSkill"><i class="fas fa-plus"></i> افزودن</button>
             </div>
@@ -1069,6 +1386,9 @@
                         <div class="skill-progress">
                             <div class="fill" style="width:@(skill.Progress)%;"></div>
                         </div>
+                        <div class="skill-status @(skill.IsActive ? "active" : "inactive")">
+                            @(skill.IsActive ? "فعال" : "غیرفعال")
+                        </div>
 
                         <!-- Action Buttons -->
                         <div class="skill-actions">
@@ -1080,13 +1400,18 @@
                         <div class="edit-mode @(editingSkillId == skill.Id ? "active" : "")">
                             <input type="text" @bind="editName" placeholder="نام مهارت" />
                             <select @bind="editCategory">
-                                <option value="frontend">فرانت‌اند</option>
-                                <option value="backend">بک‌اند</option>
-                                <option value="database">دیتابیس</option>
-                                <option value="devops">DevOps</option>
-                                <option value="other">سایر</option>
+                                <option value="FrontEnd">فرانت‌اند</option>
+                                <option value="BackEnd">بک‌اند</option>
+                                <option value="DataBase">دیتابیس</option>
+                                <option value="DevOps">DevOps</option>
+                                <option value="Others">سایر</option>
                             </select>
                             <input type="number" @bind="editProgress" min="0" max="100" placeholder="سطح پیشرفت (۰-۱۰۰)" />
+                            <input type="text" @bind="editIcon" placeholder="آیکون (کلاس Font Awesome)" />
+                            <div class="edit-checkbox">
+                                <input type="checkbox" id="editIsActive" @bind="editIsActive" />
+                                <label for="editIsActive">فعال</label>
+                            </div>
                             <div class="edit-actions">
                                 <button class="save-edit ripple" @onclick='() => SaveEdit(skill.Id)'><i class="fas fa-check"></i> ذخیره</button>
                                 <button class="cancel-edit ripple" @onclick='() => CancelEdit()'><i class="fas fa-times"></i> لغو</button>
@@ -1112,7 +1437,8 @@
                 <button @onclick='() => ChangePage(currentPage - 1)' disabled="@(currentPage == 1)"><i class="fas fa-chevron-right"></i></button>
                 @for (int i = 1; i <= totalPages; i++)
                 {
-                    <button class="@(i == currentPage ? "active" : "")" @onclick='() => ChangePage(i)'>@i</button>
+                    int pageId = i;
+                    <button class="@(i == currentPage ? "active" : "")" @onclick='() => ChangePage(pageId)'>@i</button>
                 }
                 <button @onclick='() => ChangePage(currentPage + 1)' disabled="@(currentPage == totalPages)"><i class="fas fa-chevron-left"></i></button>
             </div>
@@ -1136,13 +1462,18 @@
 
     // New skill form
     private string newSkillName = "";
-    private string newSkillCategory = "frontend";
+    private string newSkillCategory = "FrontEnd";
+    private int newSkillProgress = 50;
+    private bool newSkillIsActive = true;
+    private string newSkillIcon = "fas fa-code"; // مقدار پیش‌فرض
 
     // Edit mode
-    private string? editingSkillId = null;
+    private Guid editingSkillId { get; set; }
     private string editName = "";
-    private string editCategory = "frontend";
+    private string editCategory = "FrontEnd";
     private int editProgress = 50;
+    private bool editIsActive = true;
+    private string editIcon = "fas fa-code";
 
     private List<SkillItem> allSkills = new();
     private List<SkillItem> filteredSkills = new();
@@ -1152,61 +1483,48 @@
     private int highLevelCount => allSkills.Count(s => s.Progress >= 80);
     private int learningCount => allSkills.Count(s => s.Progress < 50);
 
-    // Icon mapping for categories
-    private Dictionary<string, string> categoryIcons = new()
-    {
-        { "frontend", "fab fa-react" },
-        { "backend", "fas fa-server" },
-        { "database", "fas fa-database" },
-        { "devops", "fas fa-cloud" },
-        { "other", "fas fa-code" }
-    };
-
+    // Icon mapping for categories (فقط برای نمایش نام دسته‌بندی)
     private Dictionary<string, string> categoryTexts = new()
     {
-        { "frontend", "فرانت‌اند" },
-        { "backend", "بک‌اند" },
-        { "database", "دیتابیس" },
-        { "devops", "DevOps" },
-        { "other", "سایر" }
+        { "FrontEnd", "فرانت‌اند" },
+        { "BackEnd", "بک‌اند" },
+        { "DataBase", "دیتابیس" },
+        { "DevOps", "DevOps" },
+        { "Others", "سایر" }
     };
 
     // ============================================================
     // INITIALIZATION
     // ============================================================
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadSkills();
-        ApplyFilters();
+        await LoadSkills();
+        // ApplyFilters();
     }
 
-    private void LoadSkills()
+    private async Task LoadSkills(int pageId = 1, int take = 10)
     {
-        allSkills = new List<SkillItem>
+        var result = await _skillFacade.GetFilter(new BackEnd.Core.Skills.Queries.DTOs.SkillFilterParam
         {
-            new SkillItem { Id = "SK-001", Name = "React", Category = "frontend", Progress = 90 },
-            new SkillItem { Id = "SK-002", Name = "Vue.js", Category = "frontend", Progress = 85 },
-            new SkillItem { Id = "SK-003", Name = "Node.js", Category = "backend", Progress = 80 },
-            new SkillItem { Id = "SK-004", Name = "Python", Category = "backend", Progress = 75 },
-            new SkillItem { Id = "SK-005", Name = "MongoDB", Category = "database", Progress = 85 },
-            new SkillItem { Id = "SK-006", Name = "PostgreSQL", Category = "database", Progress = 70 },
-            new SkillItem { Id = "SK-007", Name = "AWS", Category = "devops", Progress = 65 },
-            new SkillItem { Id = "SK-008", Name = "Docker", Category = "devops", Progress = 60 },
-            new SkillItem { Id = "SK-009", Name = "TypeScript", Category = "frontend", Progress = 88 },
-            new SkillItem { Id = "SK-010", Name = "GraphQL", Category = "backend", Progress = 55 },
-            new SkillItem { Id = "SK-011", Name = "Redis", Category = "database", Progress = 45 },
-            new SkillItem { Id = "SK-012", Name = "Kubernetes", Category = "devops", Progress = 40 },
-            new SkillItem { Id = "SK-013", Name = "Figma", Category = "other", Progress = 70 },
-            new SkillItem { Id = "SK-014", Name = "Git", Category = "other", Progress = 95 }
-        };
+            PageId = pageId,
+            Take = take,
+        });
+        allSkills = result.Data.Select(i => new SkillItem
+        {
+            Category = i.SkillTypes.ToString(),
+            Icon = i.Icon, // از دیتابیس خوانده می‌شود
+            CategoryText = categoryTexts.GetValueOrDefault(i.SkillTypes.ToString(), "سایر"),
+            Id = i.Id,
+            Name = i.Title,
+            Progress = i.SkillPercentage,
+            IsActive = i.IsActive,
+        }).ToList();
 
-        // Set icon and category text for each skill
-        foreach (var skill in allSkills)
-        {
-            skill.Icon = categoryIcons.GetValueOrDefault(skill.Category, "fas fa-code");
-            skill.CategoryText = categoryTexts.GetValueOrDefault(skill.Category, "سایر");
-        }
+        filteredSkills = allSkills;
+
+        totalPages = result.EndPage;
+        StateHasChanged();
     }
 
     // ============================================================
@@ -1253,11 +1571,14 @@
         StateHasChanged();
     }
 
-    private void ChangePage(int page)
+    private async Task ChangePage(int page)
     {
         if (page < 1 || page > totalPages) return;
         currentPage = page;
-        ApplyFilters();
+        await LoadSkills(page, 10);
+        // ApplyFilters();
+        await InitializeJsInterop();
+
         StateHasChanged();
     }
 
@@ -1265,27 +1586,32 @@
     // CRUD OPERATIONS
     // ============================================================
 
-    private void AddSkill()
+    private async Task AddSkill()
     {
         if (string.IsNullOrWhiteSpace(newSkillName)) return;
 
-        var newSkill = new SkillItem
+        var command = new CreateSkillCommand
         {
-            Id = "SK-" + (allSkills.Count + 1).ToString("D3"),
-            Name = newSkillName.Trim(),
-            Category = newSkillCategory,
-            Progress = 0,
-            Icon = categoryIcons.GetValueOrDefault(newSkillCategory, "fas fa-code"),
-            CategoryText = categoryTexts.GetValueOrDefault(newSkillCategory, "سایر")
+            Title = newSkillName.Trim(),
+            SkillTypes = Enum.Parse<BackEnd.Data.Entities.Skills.SkillTypes>(newSkillCategory),
+            SkillPercentage = newSkillProgress,
+            IsActive = newSkillIsActive,
+            Icon = string.IsNullOrWhiteSpace(newSkillIcon) ? "fas fa-code" : newSkillIcon.Trim()
         };
 
-        allSkills.Add(newSkill);
+        await _skillFacade.Create(command);
+
         newSkillName = "";
-        ApplyFilters();
+        newSkillProgress = 50;
+        newSkillIsActive = true;
+        newSkillIcon = "fas fa-code";
+
+        await LoadSkills();
+        // ApplyFilters();
         StateHasChanged();
     }
 
-    private void ToggleEdit(string id)
+    private void ToggleEdit(Guid id)
     {
         var skill = allSkills.FirstOrDefault(s => s.Id == id);
         if (skill == null) return;
@@ -1300,10 +1626,12 @@
         editName = skill.Name;
         editCategory = skill.Category;
         editProgress = skill.Progress;
+        editIsActive = skill.IsActive;
+        editIcon = skill.Icon;
         StateHasChanged();
     }
 
-    private void SaveEdit(string id)
+    private async Task SaveEdit(Guid id)
     {
         var skill = allSkills.FirstOrDefault(s => s.Id == id);
         if (skill == null) return;
@@ -1314,25 +1642,46 @@
         }
         skill.Category = editCategory;
         skill.Progress = Math.Clamp(editProgress, 0, 100);
-        skill.Icon = categoryIcons.GetValueOrDefault(editCategory, "fas fa-code");
+        skill.IsActive = editIsActive;
+        skill.Icon = string.IsNullOrWhiteSpace(editIcon) ? "fas fa-code" : editIcon.Trim();
         skill.CategoryText = categoryTexts.GetValueOrDefault(editCategory, "سایر");
 
+        var updateCommand = new EditSkillCommand
+        {
+            Id = id,
+            Title = skill.Name,
+            SkillTypes = Enum.Parse<BackEnd.Data.Entities.Skills.SkillTypes>(skill.Category),
+            SkillPercentage = skill.Progress,
+            IsActive = skill.IsActive,
+            Icon = skill.Icon
+        };
+        await _skillFacade.Edit(updateCommand);
+
         CancelEdit();
-        ApplyFilters();
+        await LoadSkills(currentPage, 10);
+        await InitializeJsInterop();
+
+        // ApplyFilters();
         StateHasChanged();
     }
 
     private void CancelEdit()
     {
-        editingSkillId = null;
+        editingSkillId = Guid.Empty;
         editName = "";
-        editCategory = "frontend";
+        editCategory = "FrontEnd";
         editProgress = 50;
+        editIsActive = true;
+        editIcon = "fas fa-code";
         StateHasChanged();
     }
 
-    private void DeleteSkill(string id)
+    private async Task DeleteSkill(Guid id)
     {
+        await _skillFacade.Remove(new BackEnd.Core.Skills.Commands.Remove.RemoveSkillCommand
+        {
+            SkillId = id
+        });
         allSkills.RemoveAll(s => s.Id == id);
         if (editingSkillId == id) CancelEdit();
         ApplyFilters();
@@ -1346,10 +1695,10 @@
     private void ToggleMenu() => isMenuOpen = !isMenuOpen;
     private void CloseMenu() => isMenuOpen = false;
     private void GoToProfile() => NavigationManager.NavigateTo("/Profile", true);
-    private void RefreshSkills()
+    private async Task RefreshSkills()
     {
-        LoadSkills();
-        ApplyFilters();
+        await LoadSkills();
+        // ApplyFilters();
         StateHasChanged();
     }
 
@@ -1361,6 +1710,7 @@
     {
         if (firstRender)
         {
+            await LoadSkills();
             await InitializeJsInterop();
         }
     }
@@ -1415,16 +1765,17 @@
     }
 
     // ============================================================
-    // HELPER CLASSES
+    // HELPER CLASS
     // ============================================================
 
     public class SkillItem
     {
-        public string Id { get; set; } = "";
+        public Guid Id { get; set; }
         public string Name { get; set; } = "";
         public string Category { get; set; } = "";
         public string CategoryText { get; set; } = "";
         public string Icon { get; set; } = "";
         public int Progress { get; set; }
+        public bool IsActive { get; set; }
     }
 }

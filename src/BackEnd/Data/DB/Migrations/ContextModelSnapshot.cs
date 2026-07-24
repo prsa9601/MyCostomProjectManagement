@@ -90,6 +90,9 @@ namespace BackEnd.Data.DB.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
@@ -97,8 +100,7 @@ namespace BackEnd.Data.DB.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Image")
-                        .IsRequired()
+                    b.Property<string>("Link")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
@@ -107,7 +109,7 @@ namespace BackEnd.Data.DB.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Portfolios");
+                    b.ToTable("PortfolioFiles", "portfolio");
                 });
 
             modelBuilder.Entity("BackEnd.Data.Entities.Projects.Project", b =>
@@ -412,7 +414,13 @@ namespace BackEnd.Data.DB.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<int>("SkillPercentage")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SkillTypes")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -602,6 +610,43 @@ namespace BackEnd.Data.DB.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserSessionBlackList");
+                });
+
+            modelBuilder.Entity("BackEnd.Data.Entities.Portfolio.Portfolio", b =>
+                {
+                    b.OwnsOne("BackEnd.Data.Entities.Portfolio.PortfolioFile", "File", b1 =>
+                        {
+                            b1.Property<Guid>("PortfolioId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateTime>("CreationDate")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("ImageAddress")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<bool>("IsImage")
+                                .HasColumnType("bit");
+
+                            b1.Property<bool>("IsVideo")
+                                .HasColumnType("bit");
+
+                            b1.Property<string>("VideoAddress")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("PortfolioId");
+
+                            b1.ToTable("PortfolioFiles", "portfolio");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PortfolioId");
+                        });
+
+                    b.Navigation("File")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("BackEnd.Data.Entities.Role.RolePermission", b =>

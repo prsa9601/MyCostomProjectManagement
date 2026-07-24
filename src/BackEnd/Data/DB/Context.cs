@@ -27,6 +27,25 @@ namespace BackEnd.Data.DB
         public DbSet<Portfolio> Portfolios { get; set; }
         #endregion
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+         
+            //modelBuilder.ApplyConfigurationsFromAssembly(typeof(Context).Assembly);
+            //modelBuilder.Entity<Category>()
+            //    .HasDiscriminator<string>("PersonType")
+            //    .HasValue<ProductCategory>("ProductCategory")  // به جای Student
+            //    .HasValue<BlogCategory>("BlogCategory"); // به جای Teacher
 
+            modelBuilder.Entity<Portfolio>(builder =>
+            {
+                builder.ToTable("Portfolios", "portfolio");
+                builder.OwnsOne(b => b.File, image =>
+                {
+                    builder.ToTable("PortfolioFiles", "portfolio");
+
+                });
+            });
+                base.OnModelCreating(modelBuilder);
+        }
     }
 }
