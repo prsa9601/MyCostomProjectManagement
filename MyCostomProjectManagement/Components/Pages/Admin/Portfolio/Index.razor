@@ -1601,7 +1601,7 @@ PAGE CONTENT
                                 </div>
                             }
                             <div class="edit-actions">
-                                <button class="save-edit ripple" @onclick='() => SaveEdit(item.Id)'><i class="fas fa-check"></i> ذخیره</button>
+                                <button class="save-edit ripple" @onclick='async () => await SaveEdit(item.Id)'><i class="fas fa-check"></i> ذخیره</button>
                                 <button class="cancel-edit ripple" @onclick='() => CancelEdit()'><i class="fas fa-times"></i> لغو</button>
                             </div>
                         </div>
@@ -1894,30 +1894,68 @@ PAGE CONTENT
         StateHasChanged();
     }
 
+    // private async Task HandleEditFileSelected(InputFileChangeEventArgs e, Guid itemId)
+    // {
+    //     var file = e.File;
+    //     if (file != null)
+    //     {
+    //         try
+    //         {
+    //             using var stream = file.OpenReadStream(maxAllowedSize: MaxFileSize);
+    //             var buffer = new byte[stream.Length];
+    //             await stream.ReadAsync(buffer, 0, (int)stream.Length);
+    //             editMediaData = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+    //             inputFile = await _fileExtension.ConvertToIFormFile(file);
+    //             if (inputFile == null)
+    //             {
+    //                 //ShowToast("خطا در تبدیل فایل", "error");
+    //                 return;
+    //             }
+    //             //ShowToast("فایل جدید انتخاب شد", "success");
+    //             StateHasChanged();
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             //ShowToast("خطا در آپلود فایل: " + ex.Message, "error");
+    //         }
+    //     }
+    // }
     private async Task HandleEditFileSelected(InputFileChangeEventArgs e, Guid itemId)
     {
         var file = e.File;
-        if (file != null)
+        if (file == null) return;
+
+        try
         {
-            try
+            // ۱) یک بار جریان فایل را باز کن و همه بایت‌ها را بخوان
+            using var browserStream = file.OpenReadStream(maxAllowedSize: MaxFileSize);
+            using var memoryStream = new MemoryStream();
+            await browserStream.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();  // کل بایت‌های فایل
+
+            // ۲) ساخت پیش‌نمایش Base64
+            editMediaData = $"data:{file.ContentType};base64,{Convert.ToBase64String(fileBytes)}";
+
+            // ۳) ساخت IFormFile از همان بایت‌ها (بدون نیاز به متد کمکی جداگانه)
+            var formFileStream = new MemoryStream(fileBytes); // یک جریان جدید و مستقل
+            inputFile = new FormFile(
+                baseStream: formFileStream,
+                baseStreamOffset: 0,
+                length: formFileStream.Length,
+                name: file.Name,
+                fileName: file.Name)
             {
-                using var stream = file.OpenReadStream(maxAllowedSize: MaxFileSize);
-                var buffer = new byte[stream.Length];
-                await stream.ReadAsync(buffer, 0, (int)stream.Length);
-                editMediaData = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
-                inputFile = await _fileExtension.ConvertToIFormFile(file);
-                if (inputFile == null)
-                {
-                    //ShowToast("خطا در تبدیل فایل", "error");
-                    return;
-                }
-                //ShowToast("فایل جدید انتخاب شد", "success");
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                //ShowToast("خطا در آپلود فایل: " + ex.Message, "error");
-            }
+                Headers = new HeaderDictionary(),
+                ContentType = file.ContentType
+            };
+
+            // در صورت نیاز، پیام موفقیت نمایش دهید
+            // ShowToast("فایل جدید انتخاب شد", "success");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            // ShowToast("خطا در آپلود فایل: " + ex.Message, "error");
         }
     }
 
@@ -2073,7 +2111,7 @@ PAGE CONTENT
             //ShowToast("نمونه کار با موفقیت حذف شد", "success");
             if (editingId == id) CancelEdit();
             await LoadItems(currentPage, pageSize);
-            ApplyFilters();
+            // ApplyFilters();
             await InitializeJsInterop();
             StateHasChanged();
         }

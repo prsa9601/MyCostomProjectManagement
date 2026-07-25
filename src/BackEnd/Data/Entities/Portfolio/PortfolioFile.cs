@@ -14,6 +14,11 @@ namespace BackEnd.Data.Entities.Portfolio
             
         }
 
+        private void SetNewId()
+        {
+            Id = Guid.NewGuid();
+        }
+
         public PortfolioFile(string fileAddress)
         {
             if (IsVideoFile(fileAddress))

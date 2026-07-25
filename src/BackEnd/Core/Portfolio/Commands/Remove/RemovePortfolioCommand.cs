@@ -21,6 +21,7 @@ namespace BackEnd.Core.Portfolio.Commands.Remove
             var portfolio = await _repository.DeleteOneEntity(i => i.Id == request.Id);
             if (portfolio == false) return OperationResult.Error();
 
+            await _repository.SaveChangeAsync();
             return OperationResult.Success();
         }
     }

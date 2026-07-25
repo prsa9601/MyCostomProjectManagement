@@ -44,14 +44,22 @@ namespace BackEnd.Core.Portfolio.Commands.Edit
                     }
                     else if (_fileService.IsImage(stream))
                     {
-                        var fileName = await _fileService.SaveFileAndGenerateName(request.File, Directories.PortfolioVideo);
+                        var fileName = await _fileService.SaveFileAndGenerateName(request.File, Directories.PortfolioImage);
                         portfolio.SetFile(fileName);
                     }
                 }
             }
 
-            await _repository.AddAsync(portfolio);
-            await _repository.SaveChangeAsync();
+           
+            try
+            {
+                await _repository.SaveChangeAsync();
+
+            }
+            catch (Exception ex)
+            {
+
+            }
             return OperationResult.Success();
         }
     }

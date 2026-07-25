@@ -42,7 +42,7 @@ namespace BackEnd.Core.Portfolio.Commands.Create
                     }
                     else if (_fileService.IsImage(stream))
                     {
-                        var fileName = await _fileService.SaveFileAndGenerateName(request.File, Directories.PortfolioVideo);
+                        var fileName = await _fileService.SaveFileAndGenerateName(request.File, Directories.PortfolioImage);
                         portfolio.SetFile(fileName);
                     }
                 }

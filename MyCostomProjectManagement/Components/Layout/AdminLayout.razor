@@ -323,6 +323,25 @@
     }
 </style>
 
+<style>
+.home-btn {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none; /* برای حذف خط زیر لینک */
+    display: inline-flex;
+    align-items: center;
+    transition: 0.2s;
+}
+.home-btn:hover {
+    background: #334155;
+    color: white;
+}
+</style>
 <!-- ============================================================
      SPARKLE PARTICLES (optional, can be removed)
 ============================================================ -->
@@ -353,6 +372,10 @@
             <li><a class="@(IsActive("/Admin/Settings") ? "active" : "")" href="/Admin/Settings">تنظیمات</a></li>
         </ul>
 
+     <a href="/" class="home-btn" title="صفحه اصلی">
+        <i class="fas fa-home"></i>
+    </a>
+
         <div class="nav-actions">
             <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
             <button class="hamburger" @onclick="ToggleMenu">
@@ -378,7 +401,7 @@
 ============================================================ -->
 <footer class="footer">
     <div class="container">
-        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> پنل مدیریت</div>
+        <div class="footer-copy">© ۲۰۲۶ محمد پارسا کریمی · <i class="fas fa-heart"></i> پنل مدیریت</div>
         <div class="footer-links">
             <a href="/Admin">داشبورد</a>
             <a href="/Admin/Settings">تنظیمات</a>
