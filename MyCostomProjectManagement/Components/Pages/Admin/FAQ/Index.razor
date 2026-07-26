@@ -1,0 +1,1239 @@
+﻿@page "/Admin/FAQ"
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject JsAlertService _alertService
+@inject IFAQFacade _facade
+
+@using BackEnd.Core.FAQ.Commands.Create
+@using MyCostomProjectManagement.Facade.FAQ
+@using MyCostomProjectManagement.Infrastructure
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مدیریت سوالات متداول | پنل ادمین</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+                        FAQ MANAGEMENT PAGE - با پس‌زمینه #13505b
+                        ============================================================ */
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 32px;
+        padding-top: 20px;
+    }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-header h1 i {
+                color: #e8a838;
+            }
+
+        .page-header .subtitle {
+            color: rgba(232, 240, 241, 0.5);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .page-header .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 9px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+        .btn-outline:hover {
+            border-color: #e8a838;
+            color: #fff;
+            background: rgba(232, 168, 56, 0.04);
+            transform: translateY(-2px);
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-family: inherit;
+    }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(220, 53, 69, 0.15);
+        }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-family: inherit;
+    }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(82, 183, 136, 0.15);
+        }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.2);
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+    }
+
+        .btn-icon:hover {
+            border-color: rgba(232, 168, 56, 0.06);
+            color: #e8f0f1;
+            background: rgba(232, 168, 56, 0.02);
+            transform: scale(1.05);
+        }
+
+        .btn-icon.edit:hover {
+            border-color: rgba(82, 183, 136, 0.06);
+            color: #52b788;
+            background: rgba(82, 183, 136, 0.02);
+        }
+
+        .btn-icon.delete:hover {
+            border-color: rgba(220, 53, 69, 0.06);
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.02);
+        }
+
+    /* ===== STATS ROW ===== */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-mini {
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.3s ease;
+    }
+
+        .stat-mini:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(232, 168, 56, 0.06);
+        }
+
+        .stat-mini i {
+            font-size: 1.6rem;
+            color: #e8a838;
+            opacity: 0.5;
+            width: 40px;
+            text-align: center;
+        }
+
+        .stat-mini .info .number {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .stat-mini .info .label {
+            font-size: 0.75rem;
+            color: rgba(232, 240, 241, 0.3);
+        }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+        overflow-x: auto;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        padding: 4px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+        .data-table thead th {
+            text-align: right;
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #94a3b8;
+            font-weight: 500;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .data-table tbody td {
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            vertical-align: middle;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .data-table .question-cell {
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #e8edf5;
+        }
+
+        .data-table .answer-cell {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #b8c4d6;
+        }
+
+        .data-table .order-cell {
+            text-align: center;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .data-table .status-badge {
+            font-size: 0.65rem;
+            padding: 3px 12px;
+            border-radius: 30px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+            .data-table .status-badge.active {
+                background: rgba(82, 183, 136, 0.06);
+                color: #52b788;
+                border: 1px solid rgba(82, 183, 136, 0.02);
+            }
+
+            .data-table .status-badge.inactive {
+                background: rgba(127, 140, 141, 0.06);
+                color: #7f8c8d;
+                border: 1px solid rgba(127, 140, 141, 0.02);
+            }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+    @@keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .modal-box {
+        background: #0a0e17;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 28px;
+        padding: 40px 36px;
+        max-width: 540px;
+        width: 100%;
+        margin: 20px;
+        box-shadow: 0 8px 64px rgba(0, 0, 0, 0.5);
+        animation: scaleIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    @@keyframes scaleIn {
+        0% {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .modal-box .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .modal-box .modal-title i {
+            color: #e8a838;
+        }
+
+    .modal-box .modal-subtitle {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+
+    .modal-box .form-group {
+        margin-bottom: 18px;
+    }
+
+        .modal-box .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .modal-box .form-group input,
+        .modal-box .form-group textarea,
+        .modal-box .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            color: #eef2f8;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.35s ease;
+            font-family: inherit;
+        }
+
+            .modal-box .form-group input:focus,
+            .modal-box .form-group textarea:focus,
+            .modal-box .form-group select:focus {
+                border-color: #e8a838;
+                background: rgba(255, 255, 255, 0.04);
+                box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
+            }
+
+            .modal-box .form-group input::placeholder,
+            .modal-box .form-group textarea::placeholder {
+                color: #64748b;
+            }
+
+            .modal-box .form-group select option {
+                background: #0a0e17;
+                color: #eef2f8;
+            }
+
+        .modal-box .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .modal-box .form-group .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 4px 0;
+        }
+
+            .modal-box .form-group .toggle-wrapper .toggle-label {
+                font-size: 0.85rem;
+                color: #94a3b8;
+            }
+
+    .modal-box .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 40px;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+    }
+
+        .modal-box .toggle-switch.active {
+            background: rgba(82, 183, 136, 0.15);
+            border-color: rgba(82, 183, 136, 0.1);
+        }
+
+        .modal-box .toggle-switch .toggle-knob {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(232, 240, 241, 0.15);
+            transition: all 0.35s ease;
+        }
+
+        .modal-box .toggle-switch.active .toggle-knob {
+            right: 24px;
+            background: #52b788;
+            box-shadow: 0 0 16px rgba(82, 183, 136, 0.15);
+        }
+
+    .modal-box .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        flex-wrap: wrap;
+    }
+
+        .modal-box .modal-actions .btn-modal-primary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            font-family: inherit;
+            background: linear-gradient(135deg, #e8a838, #d4952e);
+            color: #0a0e17;
+            box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+        }
+
+            .modal-box .modal-actions .btn-modal-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+            }
+
+        .modal-box .modal-actions .btn-modal-secondary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            font-family: inherit;
+        }
+
+            .modal-box .modal-actions .btn-modal-secondary:hover {
+                background: rgba(255, 255, 255, 0.04);
+                border-color: rgba(255, 255, 255, 0.1);
+                color: #eef2f8;
+                transform: translateY(-2px);
+            }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state-mini {
+        text-align: center;
+        padding: 50px 20px;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+        .empty-state-mini i {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 12px;
+            color: rgba(59, 130, 246, 0.05);
+        }
+
+        .empty-state-mini h3 {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 992px) {
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .page-header .actions {
+                width: 100%;
+            }
+
+                .page-header .actions .btn-primary {
+                    flex: 1;
+                    justify-content: center;
+                }
+
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .stat-mini .info .number {
+            font-size: 1.1rem;
+        }
+
+        .stat-mini i {
+            font-size: 1.2rem;
+            width: 30px;
+        }
+
+        .modal-box {
+            padding: 28px 20px;
+            margin: 12px;
+        }
+
+            .modal-box .modal-actions {
+                flex-direction: column;
+            }
+
+                .modal-box .modal-actions .btn-modal-primary,
+                .modal-box .modal-actions .btn-modal-secondary {
+                    width: 100%;
+                }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table tbody td {
+            display: block;
+            padding: 8px 14px;
+            border-bottom: none;
+        }
+
+        .data-table tbody tr {
+            display: block;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 4px 0;
+        }
+
+            .data-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .data-table td:before {
+            content: attr(data-label);
+            display: inline-block;
+            width: 80px;
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .data-table .question-cell,
+        .data-table .answer-cell {
+            max-width: none;
+            white-space: normal;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header h1 {
+            font-size: 1.2rem;
+        }
+
+        .modal-box {
+            padding: 20px 16px;
+        }
+    }
+
+    /* ============================================================
+                        RIPPLE & FADE UP (reused)
+                        ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+
+    @@keyframes rippleAnim {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    .stagger-child {
+        transition-delay: 0s;
+    }
+
+        .stagger-child:nth-child(1) {
+            transition-delay: 0.05s;
+        }
+
+        .stagger-child:nth-child(2) {
+            transition-delay: 0.1s;
+        }
+
+        .stagger-child:nth-child(3) {
+            transition-delay: 0.15s;
+        }
+
+        .stagger-child:nth-child(4) {
+            transition-delay: 0.2s;
+        }
+</style>
+
+<!-- ============================================================
+PAGE CONTENT
+============================================================ -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-question-circle"></i>
+                    مدیریت سوالات متداول
+                </h1>
+                <div class="subtitle">مدیریت سوالات و پاسخ‌های بخش FAQ</div>
+            </div>
+            <div class="actions">
+                <button class="btn-primary ripple" @onclick="OpenAddModal">
+                    <i class="fas fa-plus"></i> سوال جدید
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row fade-up visible">
+            <div class="stat-mini">
+                <i class="fas fa-question-circle"></i>
+                <div class="info">
+                    <div class="number">@faqs.Count</div>
+                    <div class="label">کل سوالات</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-check-circle" style="color:#52b788;"></i>
+                <div class="info">
+                    <div class="number">@activeCount</div>
+                    <div class="label">فعال</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-times-circle" style="color:#7f8c8d;"></i>
+                <div class="info">
+                    <div class="number">@inactiveCount</div>
+                    <div class="label">غیرفعال</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQs Table -->
+        <div class="table-wrapper fade-up visible">
+            @if (IsLoading)
+            {
+                <div class="empty-state-mini">
+                    <i class="fas fa-question-circle"></i>
+                    <h3>در حال بارگذاری اطلاعات</h3>
+                </div>
+            }
+            else
+            {
+
+                @if (faqs.Any())
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:50px;">#</th>
+                                <th style="min-width:180px;">سوال</th>
+                                <th style="min-width:220px;">پاسخ</th>
+                                <th style="width:80px; text-align:center;">ترتیب</th>
+                                <th style="width:100px; text-align:center;">وضعیت</th>
+                                <th style="width:120px; text-align:center;">عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var faq in faqs.OrderBy(f => f.Order))
+                            {
+                                <tr>
+                                    <td data-label="#">
+                                        <span style="color:#94a3b8;">@faq.Order</span>
+                                    </td>
+                                    <td data-label="سوال" class="question-cell">@faq.Question</td>
+                                    <td data-label="پاسخ" class="answer-cell">@faq.Answer</td>
+                                    <td data-label="ترتیب" class="order-cell">
+                                        <span style="color:#94a3b8;">@faq.Order</span>
+                                    </td>
+                                    <td data-label="وضعیت" style="text-align:center;">
+                                        <span class="status-badge @(faq.IsActive ? "active" : "inactive")">
+                                            @(faq.IsActive ? "فعال" : "غیرفعال")
+                                        </span>
+                                    </td>
+                                    <td data-label="عملیات" style="text-align:center;">
+                                        <div style="display:flex; gap:4px; justify-content:center;">
+                                            <button class="btn-icon edit" title="ویرایش" @onclick='() => OpenEditModal(faq.Id)'>
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-icon delete" title="حذف" @onclick='() => DeleteFaq(faq.Id)'>
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                            @if (faq.IsActive)
+                                            {
+                                                <button class="btn-icon" title="غیرفعال" @onclick='() => ToggleStatus(faq.Id)' style="color:#7f8c8d;">
+                                                    <i class="fas fa-eye-slash"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn-icon" title="فعال" @onclick='() => ToggleStatus(faq.Id)' style="color:#52b788;">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty-state-mini">
+                        <i class="fas fa-question-circle"></i>
+                        <h3>هیچ سوالی ثبت نشده است</h3>
+                        <p>برای شروع، یک سوال جدید اضافه کنید.</p>
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
+</main>
+
+<!-- ============================================================
+MODAL (Add/Edit FAQ)
+============================================================ -->
+<div class="modal-overlay @(isModalOpen ? "active" : "")" @onclick="CloseModal">
+    <div class="modal-box" @onclick:stopPropagation="true">
+        <div class="modal-title">
+            <i class="fas @(isEditing ? "fa-edit" : "fa-plus-circle")"></i>
+            @(isEditing ? "ویرایش سوال" : "سوال جدید")
+        </div>
+        <div class="modal-subtitle">
+            @(isEditing ? "اطلاعات سوال را ویرایش کنید." : "سوال و پاسخ جدید را وارد کنید.")
+        </div>
+
+        <div class="form-group">
+            <label>سوال <span style="color:#dc3545;">*</span></label>
+            <input type="text" placeholder="مثال: چگونه می‌توانم ثبت‌نام کنم؟" @bind="modalFaq.Question" />
+        </div>
+
+        <div class="form-group">
+            <label>پاسخ <span style="color:#dc3545;">*</span></label>
+            <textarea placeholder="پاسخ کامل را وارد کنید..." @bind="modalFaq.Answer" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>ترتیب نمایش</label>
+            <input type="number" placeholder="مثال: 1" @bind="modalFaq.Order" min="1" />
+            <small style="color:#64748b; font-size:0.7rem;">اعداد کوچکتر زودتر نمایش داده می‌شوند.</small>
+        </div>
+
+        <div class="form-group">
+            <label>وضعیت</label>
+            <div class="toggle-wrapper">
+                <span class="toggle-label">غیرفعال</span>
+                <div class="toggle-switch @(modalFaq.IsActive ? "active" : "")" @onclick="ToggleModalStatus">
+                    <div class="toggle-knob"></div>
+                </div>
+                <span class="toggle-label">فعال</span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal-primary ripple" @onclick="SaveFaq" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <i class="fas fa-spinner fa-spin"></i> <p>در حال ذخیره...</p>
+                }
+                else
+                {
+                    <span><i class="fas fa-save"></i> @(isEditing ? "ذخیره تغییرات" : "ایجاد سوال")</span>
+                }
+            </button>
+            <button class="btn-modal-secondary ripple" @onclick="CloseModal">
+                <i class="fas fa-times"></i> لغو
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private bool isModalOpen = false;
+    private bool isEditing = false;
+    private bool isSubmitting = false;
+    private Guid editingId;
+
+    private List<FaqItem> faqs = new();
+    private FaqItem modalFaq = new();
+
+    private int activeCount => faqs.Count(f => f.IsActive);
+    private int inactiveCount => faqs.Count(f => !f.IsActive);
+    public bool IsLoading { get; set; } = true;
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private async Task LoadMockData(int pageId = 1, int take = 30)
+    {
+        var result = await _facade.GetFilter(new BackEnd.Core.FAQ.Queries.DTOs.FAQFilterParam
+        {
+            PageId = pageId,
+            Take = take
+        });
+        if (result == null || result.Data == null || result.Data.Count == 0)
+        {
+            faqs = new();
+        }
+        else
+        {
+            faqs = result.Data.Select(i => new FaqItem
+            {
+                Id = i.Id,
+                Answer = i.Answer,
+                IsActive = i.IsActive,
+                Order = i.Sequense,
+                Question = i.Question
+            }).ToList();
+        }
+        StateHasChanged();
+        await InitializeJsInterop();
+        // faqs = new List<FaqItem>
+        // {
+        //     new FaqItem
+        //     {
+        //         Id = Guid.NewGuid(),
+        //         Question = "آیا می‌توانم پروژه را به صورت قسطی پرداخت کنم؟",
+        //         Answer = "بله، برای پروژه‌های بالای ۵۰ میلیون تومان امکان پرداخت در دو قسط وجود دارد.",
+        //         Order = 1,
+        //         IsActive = true
+        //     },
+        //     new FaqItem
+        //     {
+        //         Id = Guid.NewGuid(),
+        //         Question = "چه مدت زمان برای تحویل پروژه نیاز است؟",
+        //         Answer = "بسته به پیچیدگی، معمولاً بین ۲ تا ۶ هفته. زمان دقیق پس از بررسی نیازمندی‌ها اعلام می‌شود.",
+        //         Order = 2,
+        //         IsActive = true
+        //     },
+        //     new FaqItem
+        //     {
+        //         Id = Guid.NewGuid(),
+        //         Question = "آیا پس از تحویل، پشتیبانی دارید؟",
+        //         Answer = "بله، یک ماه پشتیبانی رایگان و پس از آن با قرارداد نگهداری همراه است.",
+        //         Order = 3,
+        //         IsActive = true
+        //     },
+        //     new FaqItem
+        //     {
+        //         Id = Guid.NewGuid(),
+        //         Question = "آیا می‌توانم API را به صورت آزمایشی استفاده کنم؟",
+        //         Answer = "بله، طرح استارتر رایگان شامل ۱۰۰ درخواست روزانه برای تست است.",
+        //         Order = 4,
+        //         IsActive = false
+        //     }
+        // };
+    }
+
+    // ============================================================
+    // MODAL OPERATIONS
+    // ============================================================
+
+    private void OpenAddModal()
+    {
+        isEditing = false;
+        editingId = Guid.Empty;
+        modalFaq = new FaqItem
+        {
+            Order = faqs.Any() ? faqs.Max(f => f.Order) + 1 : 1,
+            IsActive = true
+        };
+        isModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void OpenEditModal(Guid id)
+    {
+        var faq = faqs.FirstOrDefault(f => f.Id == id);
+        if (faq == null) return;
+
+        isEditing = true;
+        editingId = id;
+        modalFaq = new FaqItem
+        {
+            Id = faq.Id,
+            Question = faq.Question,
+            Answer = faq.Answer,
+            Order = faq.Order,
+            IsActive = faq.IsActive
+        };
+        isModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        isModalOpen = false;
+        StateHasChanged();
+    }
+
+    private void ToggleModalStatus()
+    {
+        modalFaq.IsActive = !modalFaq.IsActive;
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // CRUD OPERATIONS
+    // ============================================================
+
+    private async Task SaveFaq()
+    {
+        if (string.IsNullOrWhiteSpace(modalFaq.Question) || string.IsNullOrWhiteSpace(modalFaq.Answer))
+        {
+            await _alertService.Warning("لطفاً سوال و پاسخ را کامل کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            if (isEditing)
+            {
+                var existing = faqs.FirstOrDefault(f => f.Id == editingId);
+                if (existing != null)
+                {
+                    existing.Question = modalFaq.Question.Trim();
+                    existing.Answer = modalFaq.Answer.Trim();
+                    existing.Order = modalFaq.Order;
+                    existing.IsActive = modalFaq.IsActive;
+                }
+
+                var editResult = await _facade.Edit(new BackEnd.Core.FAQ.Commands.Edit.EditFAQCommand
+                {
+                    Answer = existing.Answer,
+                    Id = existing.Id,
+                    IsActive = existing.IsActive,
+                    Question = existing.Question,
+                    Sequense = existing.Order
+                });
+                if (editResult.Status != BackEnd.Shared.CoreShared.OperationResultStatus.Success)
+                {
+                    await _alertService.Error(editResult.Message, "ویرایش", 4000);
+
+                }
+                else
+                {
+                    await _alertService.Success("سوال با موفقیت ویرایش شد.", "ویرایش", 4000);
+                }
+            }
+            else
+            {
+                var newFaq = new CraeteFAQCommand
+                {
+                    Question = modalFaq.Question.Trim(),
+                    Answer = modalFaq.Answer.Trim(),
+                    Sequense = modalFaq.Order,
+                    IsActive = modalFaq.IsActive
+                };
+                var createResult = await _facade.Create(newFaq);
+                if (createResult.Status != BackEnd.Shared.CoreShared.OperationResultStatus.Success)
+                {
+                    await _alertService.Error(createResult.Message, "افزودن", 4000);
+
+                }
+                else
+                {
+                    await _alertService.Success("سوال با موفقیت اضافه شد.", "افزودن", 4000);
+                }
+            }
+
+            CloseModal();
+            await LoadMockData();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در ذخیره: {ex.Message}", "خطا", 6000);
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteFaq(Guid id)
+    {
+        var faq = faqs.FirstOrDefault(f => f.Id == id);
+        if (faq == null) return;
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"آیا از حذف سوال '{faq.Question}' اطمینان دارید؟");
+        if (!confirmed) return;
+
+        var result = await _facade.Remove(new BackEnd.Core.FAQ.Commands.Remove.RemoveFAQCommand
+        {
+            Id = id
+        });
+        if (result.Status != BackEnd.Shared.CoreShared.OperationResultStatus.Success)
+        {
+            await _alertService.Success(result.Message, "حذف", 4000);
+        }
+        else
+        {
+            await _alertService.Success("سوال با موفقیت حذف شد.", "حذف", 4000);
+        }
+        await LoadMockData();
+        StateHasChanged();
+    }
+
+    private async Task ToggleStatus(Guid id)
+    {
+        var faq = faqs.FirstOrDefault(f => f.Id == id);
+        if (faq == null) return;
+
+        faq.IsActive = !faq.IsActive;
+        var result = await _facade.Edit(new BackEnd.Core.FAQ.Commands.Edit.EditFAQCommand
+        {
+            Id = faq.Id,
+            Answer = faq.Answer,
+            IsActive = faq.IsActive,
+            Sequense = faq.Order,
+            Question = faq.Question,
+        });
+        if (result.Status != BackEnd.Shared.CoreShared.OperationResultStatus.Success)
+        {
+            await _alertService.Success(result.Message, "تغییر وضعیت", 4000);
+        }
+        else
+        {
+            await _alertService.Success($"وضعیت سوال به {(faq.IsActive ? "فعال" : "غیرفعال")} تغییر کرد.", "تغییر وضعیت", 4000);
+        }
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadMockData();
+            IsLoading = false;
+            StateHasChanged();
+            // await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 400);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASSES
+    // ============================================================
+
+    public class FaqItem
+    {
+        public Guid Id { get; set; }
+        public string Question { get; set; } = "";
+        public string Answer { get; set; } = "";
+        public int Order { get; set; }
+        public bool IsActive { get; set; }
+    }
+}
+<script src="../../../../../../GlobalAlert.js"></script>

@@ -1,4 +1,5 @@
-﻿using BackEnd.Shared.CoreShared.Queries;
+﻿using BackEnd.Core.Portfolio.Queries.DTOs;
+using BackEnd.Shared.CoreShared.Queries;
 
 namespace BackEnd.Core.ContactUs.Queries.DTOs
 {
@@ -9,5 +10,13 @@ namespace BackEnd.Core.ContactUs.Queries.DTOs
         public string Subject { get; set; }
         public string Message { get; set; }
 
+    }
+
+    public class ContactUsFilterParam : BaseFilterParam
+    {
+    }
+    
+    public class ContactUsFilterResult : BaseFilter<ContactUsDto, ContactUsFilterParam>
+    {
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BackEnd.Data.Entities.ContactUs;
+using BackEnd.Data.Entities.FAQ;
 using BackEnd.Data.Entities.Package;
 using BackEnd.Data.Entities.Portfolio;
 using BackEnd.Data.Entities.Projects;
@@ -25,6 +26,7 @@ namespace BackEnd.Data.DB
         public DbSet<TechnicalSkills> TechnicalSkills { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Portfolio> Portfolios { get; set; }
+        public DbSet<FAQ> FAQs { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

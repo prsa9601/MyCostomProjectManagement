@@ -21,6 +21,7 @@ namespace BackEnd.Core.Portfolio.Queries.DTOs
     }
     public class PortfolioFilterParam : BaseFilterParam
     {
+        public bool GetForMainPage { get; set; }
         public GetPortfolioType GetPortfolioFileType { get; set; }
     }
     public class PortfolioFilterResult : BaseFilter<PortfolioDto, PortfolioFilterParam>

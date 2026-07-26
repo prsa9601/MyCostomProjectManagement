@@ -744,6 +744,44 @@
     }
 </style>
 
+<!-- ===== SPARKLE PARTICLES ===== -->
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+<div class="sparkle"></div>
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<header class="navbar" id="navbar">
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-crown"></i>
+            Admin<span>Panel</span>
+        </div>
+        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
+            <li><a href="/Admin">داشبورد</a></li>
+            <li><a href="/Admin/Projects">پروژه‌ها</a></li>
+            <li><a href="/Admin/Users">کاربران</a></li>
+            <li><a href="/Admin/ApiManagement">APIها</a></li>
+            <li><a href="/Admin/Packages">پکیج‌ها</a></li>
+            <li><a href="/Admin/PackageApiAccess">دسترسی API</a></li>
+            <li><a href="/Admin/Requests">درخواست‌ها</a></li>
+            <li><a href="/Admin/Contacts">تماس</a></li>
+            <li><a href="/Admin/Skills">مهارت‌ها</a></li>
+            <li><a href="/Admin/Portfolio">نمونه کارها</a></li>
+            <li><a href="/Admin/Settings" class="active">تنظیمات</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
+            <button class="hamburger" @onclick="ToggleMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
 
 <!-- ============================================================
      PAGE CONTENT
@@ -766,7 +804,7 @@
             </div>
         </div>
 
-        <!-- Settings Tabs -->
+        <!-- Settings Tabs (افزوده شده) -->
         <div class="settings-tabs fade-up visible">
             <button class="tab-btn @(activeTab == "general" ? "active" : "")" @onclick='() => SetTab("general")'>
                 <i class="fas fa-globe"></i> عمومی
@@ -786,10 +824,26 @@
             <button class="tab-btn @(activeTab == "backup" ? "active" : "")" @onclick='() => SetTab("backup")'>
                 <i class="fas fa-database"></i> پشتیبان‌گیری
             </button>
+            <!-- تب‌های جدید -->
+            <button class="tab-btn @(activeTab == "about" ? "active" : "")" @onclick='() => SetTab("about")'>
+                <i class="fas fa-user-tie"></i> درباره من
+            </button>
+            <button class="tab-btn @(activeTab == "seo" ? "active" : "")" @onclick='() => SetTab("seo")'>
+                <i class="fas fa-search"></i> سئو
+            </button>
+            <button class="tab-btn @(activeTab == "homepage" ? "active" : "")" @onclick='() => SetTab("homepage")'>
+                <i class="fas fa-home"></i> صفحه اصلی
+            </button>
+            <button class="tab-btn @(activeTab == "projects" ? "active" : "")" @onclick='() => SetTab("projects")'>
+                <i class="fas fa-project-diagram"></i> پروژه‌ها
+            </button>
+            <button class="tab-btn @(activeTab == "faq" ? "active" : "")" @onclick='() => SetTab("faq")'>
+                <i class="fas fa-question-circle"></i> سوالات متداول
+            </button>
         </div>
 
         <!-- ============================================================
-             TAB 1: GENERAL
+             TAB 1: GENERAL (همان)
         ============================================================ -->
         <div class="settings-section @(activeTab == "general" ? "active" : "")">
             <div class="settings-grid">
@@ -865,7 +919,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 2: SECURITY
+             TAB 2: SECURITY (همان)
         ============================================================ -->
         <div class="settings-section @(activeTab == "security" ? "active" : "")">
             <div class="settings-grid">
@@ -934,7 +988,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 3: NOTIFICATIONS
+             TAB 3: NOTIFICATIONS (همان)
         ============================================================ -->
         <div class="settings-section @(activeTab == "notifications" ? "active" : "")">
             <div class="settings-grid">
@@ -1019,7 +1073,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 4: APPEARANCE
+             TAB 4: APPEARANCE (همان)
         ============================================================ -->
         <div class="settings-section @(activeTab == "appearance" ? "active" : "")">
             <div class="settings-grid">
@@ -1102,7 +1156,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 5: API
+             TAB 5: API (همان)
         ============================================================ -->
         <div class="settings-section @(activeTab == "api" ? "active" : "")">
             <div class="settings-grid">
@@ -1158,7 +1212,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 6: BACKUP
+             TAB 6: BACKUP (همان)
         ============================================================ -->
         <div class="settings-section @(activeTab == "backup" ? "active" : "")">
             <div class="settings-grid">
@@ -1229,9 +1283,214 @@
             </div>
         </div>
 
+        <!-- ============================================================
+             TAB 7: ABOUT (درباره من)
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "about" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-user-tie"></i>
+                        <div>
+                            <h3>درباره من</h3>
+                            <div class="desc">تنظیمات بخش درباره من</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>عنوان</label>
+                        <input type="text" @bind="aboutSettings.Title" placeholder="عنوان بخش درباره من" />
+                    </div>
+                    <div class="form-group">
+                        <label>متن کامل</label>
+                        <textarea @bind="aboutSettings.Content" placeholder="متن کامل درباره من..." rows="6"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>آدرس تصویر</label>
+                        <input type="text" @bind="aboutSettings.ImageUrl" placeholder="آدرس تصویر درباره من" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("about")'><i class="fas fa-save"></i> ذخیره تغییرات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB 8: SEO
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "seo" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-search"></i>
+                        <div>
+                            <h3>تنظیمات سئو</h3>
+                            <div class="desc">بهینه‌سازی برای موتورهای جستجو</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>عنوان سایت (Meta Title)</label>
+                        <input type="text" @bind="seoSettings.MetaTitle" placeholder="عنوان اصلی سایت" />
+                    </div>
+                    <div class="form-group">
+                        <label>توضیحات (Meta Description)</label>
+                        <textarea @bind="seoSettings.MetaDescription" placeholder="توضیحات مختصر برای موتورهای جستجو" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>کلمات کلیدی (Meta Keywords)</label>
+                        <input type="text" @bind="seoSettings.MetaKeywords" placeholder="کلمات کلیدی، جدا شده با کاما" />
+                    </div>
+                    <div class="form-group">
+                        <label>تصویر شاخص (OG Image)</label>
+                        <input type="text" @bind="seoSettings.OgImage" placeholder="آدرس تصویر برای اشتراک‌گذاری" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("seo")'><i class="fas fa-save"></i> ذخیره تغییرات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB 9: HOMEPAGE (صفحه اصلی)
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "homepage" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-home"></i>
+                        <div>
+                            <h3>تنظیمات صفحه اصلی</h3>
+                            <div class="desc">عنوان، زیرنویس و محتوای صفحه اصلی</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>عنوان اصلی (Hero Title)</label>
+                        <input type="text" @bind="homepageSettings.HeroTitle" placeholder="عنوان بزرگ بالای صفحه" />
+                    </div>
+                    <div class="form-group">
+                        <label>زیرنویس (Hero Subtitle)</label>
+                        <input type="text" @bind="homepageSettings.HeroSubtitle" placeholder="زیرنویس بالای صفحه" />
+                    </div>
+                    <div class="form-group">
+                        <label>توضیحات (Hero Description)</label>
+                        <textarea @bind="homepageSettings.HeroDescription" placeholder="توضیحات اصلی صفحه" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>متن دکمه اصلی</label>
+                        <input type="text" @bind="homepageSettings.PrimaryButtonText" placeholder="متن دکمه اصلی" />
+                    </div>
+                    <div class="form-group">
+                        <label>لینک دکمه اصلی</label>
+                        <input type="text" @bind="homepageSettings.PrimaryButtonLink" placeholder="لینک دکمه اصلی" />
+                    </div>
+                    <div class="form-group">
+                        <label>متن دکمه فرعی</label>
+                        <input type="text" @bind="homepageSettings.SecondaryButtonText" placeholder="متن دکمه فرعی" />
+                    </div>
+                    <div class="form-group">
+                        <label>لینک دکمه فرعی</label>
+                        <input type="text" @bind="homepageSettings.SecondaryButtonLink" placeholder="لینک دکمه فرعی" />
+                    </div>
+                    <div class="form-group">
+                        <label>آدرس تصویر بنر</label>
+                        <input type="text" @bind="homepageSettings.BannerImage" placeholder="آدرس تصویر پس‌زمینه یا بنر" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("homepage")'><i class="fas fa-save"></i> ذخیره تغییرات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB 10: PROJECTS (پروژه‌ها)
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "projects" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-project-diagram"></i>
+                        <div>
+                            <h3>تنظیمات پروژه‌ها</h3>
+                            <div class="desc">مدیریت نمایش پروژه‌ها در صفحه اصلی</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">نمایش پروژه‌ها در صفحه اصلی</span>
+                            <div class="toggle-switch @(projectsSettings.ShowProjects ? "active" : "")" @onclick="ToggleShowProjects">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>عنوان بخش پروژه‌ها</label>
+                        <input type="text" @bind="projectsSettings.SectionTitle" placeholder="عنوان بخش پروژه‌ها" />
+                    </div>
+                    <div class="form-group">
+                        <label>تعداد پروژه‌های نمایش داده شده</label>
+                        <input type="number" @bind="projectsSettings.ProjectCount" min="1" max="20" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("projects")'><i class="fas fa-save"></i> ذخیره تغییرات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB 11: FAQ (سوالات متداول)
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "faq" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-question-circle"></i>
+                        <div>
+                            <h3>سوالات متداول</h3>
+                            <div class="desc">تنظیمات بخش سوالات متداول</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label">نمایش سوالات متداول در صفحه اصلی</span>
+                            <div class="toggle-switch @(faqSettings.ShowFaq ? "active" : "")" @onclick="ToggleShowFaq">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>عنوان بخش سوالات متداول</label>
+                        <input type="text" @bind="faqSettings.SectionTitle" placeholder="عنوان بخش سوالات متداول" />
+                    </div>
+                    <div class="form-group">
+                        <label>تعداد سوالات نمایش داده شده</label>
+                        <input type="number" @bind="faqSettings.FaqCount" min="1" max="20" />
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-save ripple" @onclick='() => SaveSection("faq")'><i class="fas fa-save"></i> ذخیره تغییرات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </main>
 
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> پنل مدیریت</div>
+        <div class="footer-links">
+            <a href="/Admin">داشبورد</a>
+            <a href="/Admin/Settings">تنظیمات</a>
+            <a href="/">خروج</a>
+        </div>
+    </div>
+</footer>
 
 @code {
     // ============================================================
@@ -1241,16 +1500,20 @@
     private bool isMenuOpen = false;
     private string activeTab = "general";
 
-    // ============================================================
-    // MODELS
-    // ============================================================
-
+    // مدل‌های موجود
     private GeneralSettings settings = new();
     private SecuritySettings security = new();
     private NotificationSettings notifications = new();
     private AppearanceSettings appearance = new();
     private ApiKeys apiKeys = new();
     private BackupSettings backup = new();
+
+    // مدل‌های جدید
+    private AboutSettings aboutSettings = new();
+    private SeoSettings seoSettings = new();
+    private HomepageSettings homepageSettings = new();
+    private ProjectsSettings projectsSettings = new();
+    private FaqSettings faqSettings = new();
 
     // ============================================================
     // INITIALIZATION
@@ -1263,7 +1526,7 @@
 
     private void LoadSettings()
     {
-        // General
+        // --- مدل‌های قبلی ---
         settings.SiteName = "پنل مدیریت";
         settings.SiteDescription = "سیستم مدیریت محتوای پیشرفته";
         settings.DefaultLanguage = "fa";
@@ -1273,7 +1536,6 @@
         settings.PrimaryColor = "#13505b";
         settings.SecondaryColor = "#e8a838";
 
-        // Security
         security.CurrentPassword = "";
         security.NewPassword = "";
         security.ConfirmPassword = "";
@@ -1282,7 +1544,6 @@
         security.SessionTimeout = 60;
         security.MaxLoginAttempts = 5;
 
-        // Notifications
         notifications.EmailEnabled = true;
         notifications.SmtpServer = "smtp.gmail.com";
         notifications.SmtpPort = 587;
@@ -1292,7 +1553,6 @@
         notifications.SystemErrors = true;
         notifications.DailyReport = false;
 
-        // Appearance
         appearance.Theme = "dark";
         appearance.FontSize = "medium";
         appearance.Layout = "default";
@@ -1300,20 +1560,45 @@
         appearance.EnglishFont = "inter";
         appearance.ShowAnimations = true;
 
-        // API Keys
         apiKeys.PublicKey = "pk_live_1234567890abcdef";
         apiKeys.SecretKey = "sk_live_9876543210fedcba";
         apiKeys.GoogleAnalytics = "UA-12345678-1";
         apiKeys.TelegramBot = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz";
         apiKeys.SendGrid = "SG.xxxxx.xxxxxxxxxxxxxxxxxxxxxxxx";
 
-        // Backup
         backup.AutoBackup = true;
         backup.BackupFrequency = "daily";
         backup.KeepVersions = 7;
         backup.StoragePath = "/backups/";
         backup.LastBackupDate = "۱۴۰۵/۰۴/۱۰ - ۲۳:۴۵";
         backup.BackupSize = "۱۲۴ MB";
+
+        // --- مدل‌های جدید ---
+        aboutSettings.Title = "درباره من";
+        aboutSettings.Content = "سلام! من محمد هستم، توسعه‌دهنده وب با بیش از ۵ سال تجربه.";
+        aboutSettings.ImageUrl = "/images/about.jpg";
+
+        seoSettings.MetaTitle = "محمد رضایی | توسعه‌دهنده وب";
+        seoSettings.MetaDescription = "طراحی و توسعه اپلیکیشن‌های مدرن و APIهای مقیاس‌پذیر.";
+        seoSettings.MetaKeywords = "برنامه‌نویس, توسعه‌دهنده, وب, API, React, Node.js";
+        seoSettings.OgImage = "/images/og-image.jpg";
+
+        homepageSettings.HeroTitle = "سلام! من محمد هستم";
+        homepageSettings.HeroSubtitle = "توسعه‌دهنده وب";
+        homepageSettings.HeroDescription = "طراحی و توسعه اپلیکیشن‌های مدرن، APIهای مقیاس‌پذیر و تجربه‌های کاربری بی‌نظیر.";
+        homepageSettings.PrimaryButtonText = "نمونه کارها";
+        homepageSettings.PrimaryButtonLink = "/portfolio";
+        homepageSettings.SecondaryButtonText = "همکاری با من";
+        homepageSettings.SecondaryButtonLink = "/contact";
+        homepageSettings.BannerImage = "/images/hero-bg.jpg";
+
+        projectsSettings.ShowProjects = true;
+        projectsSettings.SectionTitle = "پروژه‌های در حال اجرا";
+        projectsSettings.ProjectCount = 3;
+
+        faqSettings.ShowFaq = true;
+        faqSettings.SectionTitle = "سوالات متداول";
+        faqSettings.FaqCount = 4;
     }
 
     // ============================================================
@@ -1327,7 +1612,7 @@
     }
 
     // ============================================================
-    // TOGGLE FUNCTIONS
+    // TOGGLE FUNCTIONS (قدیمی + جدید)
     // ============================================================
 
     private void Toggle2FA() => security.TwoFactorAuth = !security.TwoFactorAuth;
@@ -1339,6 +1624,8 @@
     private void ToggleDailyReport() => notifications.DailyReport = !notifications.DailyReport;
     private void ToggleAnimations() => appearance.ShowAnimations = !appearance.ShowAnimations;
     private void ToggleAutoBackup() => backup.AutoBackup = !backup.AutoBackup;
+    private void ToggleShowProjects() => projectsSettings.ShowProjects = !projectsSettings.ShowProjects;
+    private void ToggleShowFaq() => faqSettings.ShowFaq = !faqSettings.ShowFaq;
 
     // ============================================================
     // SAVE FUNCTIONS
@@ -1346,15 +1633,15 @@
 
     private void SaveSection(string section)
     {
-        // In a real app, save to database
+        // در برنامه واقعی، داده‌ها را در دیتابیس ذخیره کنید
         Console.WriteLine($"Saving {section} settings...");
-        // Show a toast notification (you can add a real toast service)
+        // می‌توانید یک نوتیفیکیشن نمایش دهید
     }
 
     private void SaveAllSettings()
     {
         Console.WriteLine("Saving all settings...");
-        // Save all sections
+        // ذخیره همه بخش‌ها
     }
 
     private void ResetSettings()
@@ -1388,7 +1675,7 @@
 
     private void RestoreBackup()
     {
-        // In a real app, show file picker dialog
+        // در برنامه واقعی، دیالوگ انتخاب فایل نمایش داده شود
     }
 
     // ============================================================
@@ -1397,7 +1684,7 @@
 
     private void ToggleMenu() => isMenuOpen = !isMenuOpen;
     private void CloseMenu() => isMenuOpen = false;
-    private void GoToProfile() => NavigationManager.NavigateTo("/Profile", true);
+    private void GoToProfile() => NavigationManager.NavigateTo("/Admin/Profile", true);
 
     // ============================================================
     // JS INTEROP
@@ -1461,7 +1748,7 @@
     }
 
     // ============================================================
-    // HELPER CLASSES
+    // HELPER CLASSES (مدل‌های جدید)
     // ============================================================
 
     public class GeneralSettings
@@ -1526,5 +1813,47 @@
         public string StoragePath { get; set; } = "";
         public string LastBackupDate { get; set; } = "";
         public string BackupSize { get; set; } = "";
+    }
+
+    // ===== مدل‌های جدید =====
+    public class AboutSettings
+    {
+        public string Title { get; set; } = "";
+        public string Content { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+    }
+
+    public class SeoSettings
+    {
+        public string MetaTitle { get; set; } = "";
+        public string MetaDescription { get; set; } = "";
+        public string MetaKeywords { get; set; } = "";
+        public string OgImage { get; set; } = "";
+    }
+
+    public class HomepageSettings
+    {
+        public string HeroTitle { get; set; } = "";
+        public string HeroSubtitle { get; set; } = "";
+        public string HeroDescription { get; set; } = "";
+        public string PrimaryButtonText { get; set; } = "";
+        public string PrimaryButtonLink { get; set; } = "";
+        public string SecondaryButtonText { get; set; } = "";
+        public string SecondaryButtonLink { get; set; } = "";
+        public string BannerImage { get; set; } = "";
+    }
+
+    public class ProjectsSettings
+    {
+        public bool ShowProjects { get; set; }
+        public string SectionTitle { get; set; } = "";
+        public int ProjectCount { get; set; }
+    }
+
+    public class FaqSettings
+    {
+        public bool ShowFaq { get; set; }
+        public string SectionTitle { get; set; } = "";
+        public int FaqCount { get; set; }
     }
 }

@@ -1,0 +1,809 @@
+﻿@page "/Admin/Projects/Create"
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject JsAlertService _alertService
+
+@using MyCostomProjectManagement.Infrastructure
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ایجاد پروژه جدید | پنل ادمین</title>
+
+<style>
+    /* ============================================================
+       CREATE PROJECT PAGE - بهبود یافته با آیکون‌های برجسته
+    ============================================================ */
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 32px;
+        padding-top: 20px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h1 i { color: #e8a838; }
+
+    .page-header .subtitle {
+        color: rgba(232, 240, 241, 0.5);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    .page-header .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: #e8f0f1;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(232, 168, 56, 0.06);
+        transform: translateY(-2px);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+        font-family: inherit;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 10px 28px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
+        font-family: inherit;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: 0.3s;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+    .btn-outline:hover {
+        border-color: #e8a838;
+        color: #fff;
+        background: rgba(232, 168, 56, 0.04);
+        transform: translateY(-2px);
+    }
+
+    /* ============================================================
+       FORM CONTAINER - با آیکون‌های برجسته
+    ============================================================ */
+    .form-container {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 32px;
+        margin-bottom: 32px;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .form-container:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .form-container .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #e8edf5;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        padding-bottom: 12px;
+    }
+
+    .form-container .section-title i {
+        color: #e8a838;
+        font-size: 1.2rem;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #b8c4d6;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+    }
+
+    .form-group label .required {
+        color: #ef4444;
+        margin-right: 2px;
+    }
+
+    /* ---- input-wrapper با آیکون‌های برجسته ---- */
+    .form-group .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        transition: all 0.35s ease;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .form-group .input-wrapper:focus-within {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.04), 0 4px 16px rgba(0, 0, 0, 0.05);
+        transform: translateY(-1px);
+    }
+
+    /* آیکون‌های داخل ورودی - برجسته و طلایی */
+    .form-group .input-wrapper .input-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        height: 100%;
+        padding: 0 0 0 14px;
+        color: #e8a838;
+        font-size: 1.1rem;
+        opacity: 0.6;
+        transition: all 0.35s ease;
+        background: rgba(232, 168, 56, 0.02);
+        border-right: 1px solid rgba(255, 255, 255, 0.02);
+        padding-right: 12px;
+    }
+
+    .form-group .input-wrapper:focus-within .input-icon {
+        opacity: 1;
+        color: #e8a838;
+        background: rgba(232, 168, 56, 0.04);
+        border-right-color: rgba(232, 168, 56, 0.08);
+        transform: scale(1.02);
+    }
+
+    /* برای فیلدهای textarea که input-icon در بالا قرار می‌گیرد */
+    .form-group .input-wrapper .input-icon.textarea-icon {
+        align-self: flex-start;
+        padding-top: 14px;
+        height: 100%;
+    }
+
+    .form-group .input-wrapper input,
+    .form-group .input-wrapper select,
+    .form-group .input-wrapper textarea {
+        width: 100%;
+        padding: 12px 16px;
+        background: transparent;
+        border: none;
+        color: #eef2f8;
+        font-size: 0.95rem;
+        outline: none;
+        font-family: inherit;
+        transition: all 0.3s ease;
+    }
+
+    .form-group .input-wrapper input::placeholder,
+    .form-group .input-wrapper textarea::placeholder {
+        color: #64748b;
+        font-weight: 300;
+        letter-spacing: 0.2px;
+    }
+
+    .form-group .input-wrapper select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: left 14px center;
+        padding-left: 40px;
+    }
+
+    .form-group .input-wrapper select option {
+        background: #0a0e17;
+        color: #eef2f8;
+    }
+
+    .form-group .input-wrapper textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    /* ============================================================
+       TOGGLE SWITCH (بروز شده)
+    ============================================================ */
+    .form-group .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 6px 0;
+    }
+
+    .form-group .toggle-wrapper .toggle-label {
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 40px;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+    }
+
+    .toggle-switch.active {
+        background: rgba(82, 183, 136, 0.15);
+        border-color: rgba(82, 183, 136, 0.1);
+    }
+
+    .toggle-switch .toggle-knob {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(232, 240, 241, 0.15);
+        transition: all 0.35s ease;
+    }
+
+    .toggle-switch.active .toggle-knob {
+        right: 24px;
+        background: #52b788;
+        box-shadow: 0 0 16px rgba(82, 183, 136, 0.15);
+    }
+
+    /* ============================================================
+       FORM ACTIONS
+    ============================================================ */
+    .form-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        flex-wrap: wrap;
+    }
+
+    .form-actions .btn-success,
+    .form-actions .btn-outline {
+        font-size: 0.95rem;
+        padding: 12px 32px;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @@media (max-width: 992px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .page-header h1 { font-size: 1.5rem; }
+        .page-header .actions { width: 100%; }
+        .page-header .actions .btn-primary { flex: 1; justify-content: center; }
+
+        .form-container {
+            padding: 20px;
+        }
+        .form-actions {
+            flex-direction: column;
+        }
+        .form-actions .btn-success,
+        .form-actions .btn-outline {
+            width: 100%;
+            justify-content: center;
+        }
+        .form-group .input-wrapper .input-icon {
+            min-width: 40px;
+            font-size: 0.95rem;
+            padding-left: 10px;
+            padding-right: 8px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-header h1 { font-size: 1.2rem; }
+        .form-container { padding: 16px; }
+        .form-group .input-wrapper input { font-size: 0.85rem; }
+        .form-group .input-wrapper .input-icon {
+            min-width: 34px;
+            font-size: 0.8rem;
+            padding-left: 8px;
+            padding-right: 6px;
+        }
+        .form-group .input-wrapper select {
+            padding-left: 32px;
+        }
+    }
+
+    /* ============================================================
+       RIPPLE & FADE UP
+    ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+
+    @@keyframes rippleAnim {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+</style>
+
+<!-- ============================================================
+     PAGE CONTENT
+============================================================ -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-plus-circle"></i>
+                    ایجاد پروژه جدید
+                </h1>
+                <div class="subtitle">اطلاعات پروژه را وارد کرده و آن را به سیستم اضافه کنید</div>
+            </div>
+            <div class="actions">
+                <a href="/Admin/Projects" class="btn-back ripple">
+                    <i class="fas fa-arrow-right"></i> بازگشت
+                </a>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="form-container fade-up visible">
+            <div class="section-title">
+                <i class="fas fa-project-diagram"></i>
+                اطلاعات پروژه
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>عنوان پروژه <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-tag"></i></span>
+                        <input type="text" placeholder="مثال: فروشگاه اینترنتی" @bind="project.Title" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>دسته‌بندی <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-folder"></i></span>
+                        <select @bind="project.Category">
+                            <option value="">انتخاب کنید</option>
+                            <option value="website">وب‌سایت</option>
+                            <option value="shop">فروشگاه</option>
+                            <option value="app">اپلیکیشن</option>
+                            <option value="dashboard">داشبورد</option>
+                            <option value="api">API</option>
+                            <option value="other">سایر</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>وضعیت <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-circle"></i></span>
+                        <select @bind="project.Status">
+                            <option value="">انتخاب کنید</option>
+                            <option value="active">فعال</option>
+                            <option value="completed">تکمیل شده</option>
+                            <option value="pending">در انتظار</option>
+                            <option value="hold">متوقف</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>پیشرفت (%)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-chart-line"></i></span>
+                        <input type="number" placeholder="مثال: 75" @bind="project.Progress" min="0" max="100" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>توضیحات <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <span class="input-icon textarea-icon"><i class="fas fa-align-left"></i></span>
+                    <textarea placeholder="توضیحات کامل پروژه..." @bind="project.Description"></textarea>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>مشتری / مسئول پروژه</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-user"></i></span>
+                        <input type="text" placeholder="نام مشتری یا مسئول" @bind="project.Assignee" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>بودجه (تومان)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-dollar-sign"></i></span>
+                        <input type="text" placeholder="مثال: 45,000,000" @bind="project.Budget" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 فیلدهای تاریخ به‌صورت شمسی با انتخابگر persian-datepicker
+            ============================================================ -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>تاریخ شروع</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-calendar-alt"></i></span>
+                        <input type="text" id="startDatePicker" placeholder="انتخاب تاریخ شروع" @bind="project.StartDate" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>تاریخ پایان</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-calendar-check"></i></span>
+                        <input type="text" id="endDatePicker" placeholder="انتخاب تاریخ پایان" @bind="project.EndDate" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>لینک پروژه (اختیاری)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fas fa-link"></i></span>
+                    <input type="text" placeholder="https://example.com/project" @bind="project.Link" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>آدرس تصویر شاخص</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fas fa-image"></i></span>
+                    <input type="text" placeholder="https://example.com/image.jpg" @bind="project.ImageUrl" />
+                </div>
+                <small style="color:#64748b; font-size:0.75rem;">تصویر برای نمایش در نمونه کارها و معرفی پروژه</small>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-success ripple" @onclick="CreateProject" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <i class="fas fa-spinner fa-spin"></i><p>در حال ایجاد...</p> 
+                    }
+                    else
+                    {
+                        <span><i class="fas fa-save"></i> ایجاد پروژه</span>
+                    }
+                </button>
+                <button class="btn-outline ripple" @onclick="Cancel">
+                    <i class="fas fa-times"></i> انصراف
+                </button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private bool isSubmitting = false;
+    private ProjectModel project = new();
+
+    // ============================================================
+    // MODEL
+    // ============================================================
+
+    public class ProjectModel
+    {
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Assignee { get; set; } = "";
+        public string Budget { get; set; } = "";
+        public string Link { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public string StartDate { get; set; } = "";
+        public string EndDate { get; set; } = "";
+        public int Progress { get; set; } = 0;
+    }
+
+    // ============================================================
+    // METHODS
+    // ============================================================
+
+    private async Task CreateProject()
+    {
+        // Validation
+        if (string.IsNullOrWhiteSpace(project.Title))
+        {
+            await _alertService.Warning("لطفاً عنوان پروژه را وارد کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(project.Category))
+        {
+            await _alertService.Warning("لطفاً دسته‌بندی پروژه را انتخاب کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(project.Status))
+        {
+            await _alertService.Warning("لطفاً وضعیت پروژه را انتخاب کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(project.Description))
+        {
+            await _alertService.Warning("لطفاً توضیحات پروژه را وارد کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        if (project.Progress < 0 || project.Progress > 100)
+        {
+            await _alertService.Warning("میزان پیشرفت باید بین ۰ تا ۱۰۰ باشد.", "مقدار نامعتبر", 4000);
+            return;
+        }
+
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            // در دنیای واقعی، داده‌ها را به سرویس ارسال کنید
+            // await _projectService.CreateAsync(project);
+            await Task.Delay(1500); // شبیه‌سازی
+
+            await _alertService.Success($"پروژه '{project.Title}' با موفقیت ایجاد شد.", "ایجاد پروژه", 5000);
+            NavigationManager.NavigateTo("/Admin/Projects", true);
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در ایجاد پروژه: {ex.Message}", "خطا", 6000);
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/Admin/Projects", true);
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // بارگذاری کتابخانه‌های موردنیاز و راه‌اندازی انتخابگر تاریخ شمسی
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        // بارگذاری CSS و JS کتابخانه‌ی persian-datepicker از CDN
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // تابع کمکی برای بارگذاری داینامیک فایل‌ها
+            function loadScript(url, callback) {
+                var script = document.createElement('script');
+                script.src = url;
+                script.onload = callback;
+                document.head.appendChild(script);
+            }
+
+            function loadStyle(url) {
+                var link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = url;
+                document.head.appendChild(link);
+            }
+
+            // بارگذاری استایل‌ها
+            loadStyle('https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css');
+
+            // بارگذاری اسکریپت‌های موردنیاز (persian-date و persian-datepicker)
+            loadScript('https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js', function() {
+                loadScript('https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js', function() {
+                    // پس از بارگذاری کامل، انتخابگرها را راه‌اندازی می‌کنیم
+                    initDatePickers();
+                });
+            });
+
+            function initDatePickers() {
+                // تنظیم تاریخ شروع به امروز (به‌صورت شمسی)
+                var today = new persianDate().format('YYYY/MM/DD');
+                var startInput = document.getElementById('startDatePicker');
+                if (startInput && !startInput.value) {
+                    startInput.value = today;
+                }
+
+                // راه‌اندازی انتخابگر برای تاریخ شروع
+                if (startInput) {
+                    new persianDatepicker(startInput, {
+                        format: 'YYYY/MM/DD',
+                        initialValue: startInput.value || true,
+                        autoClose: true,
+                        onSelect: function(unix) {
+                            // مقدار انتخاب‌شده در input قرار می‌گیرد
+                        }
+                    });
+                }
+
+                // راه‌اندازی انتخابگر برای تاریخ پایان
+                var endInput = document.getElementById('endDatePicker');
+                if (endInput) {
+                    new persianDatepicker(endInput, {
+                        format: 'YYYY/MM/DD',
+                        initialValue: endInput.value || false,
+                        autoClose: true,
+                        onSelect: function(unix) {
+                            // مقدار انتخاب‌شده در input قرار می‌گیرد
+                        }
+                    });
+                }
+            }
+
+            // Ripple effect (همان‌طور که قبلاً بود)
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 400);
+        ");
+    }
+}
+<script src="../../../../../GlobalAlert.js"></script>

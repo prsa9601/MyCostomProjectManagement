@@ -1,19 +1,33 @@
 ﻿@page "/"
+@using BackEnd.Core
+@using BackEnd.Core.ContactUs.Commands.Create
+@using BackEnd.Core.Portfolio.Queries.DTOs
+@using MyCostomProjectManagement.Facade.ContactUs
+@using MyCostomProjectManagement.Facade.Portfolio
+@using MyCostomProjectManagement.Facade.Skills
+@using MyCostomProjectManagement.Facade.FAQ
 @using MyCostomProjectManagement.Infrastructure
 @layout FrontLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject IContactUsFacade _contactUsFacade
+@inject ISkillFacade _skillFacade
+@inject IPortfolioFacade _portfolioFacade
+@inject IFAQFacade _faqFacade
+@inject UserAlertService _userAlertService
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>محمد رضایی | برنامه‌نویس و توسعه‌دهنده</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/csharp.svg" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
 <style>
     /* ====================================================
-           تمام استایل‌های مورد نیاز (لندینگ + داشبورد)
-           ==================================================== */
+                                       تمام استایل‌های مورد نیاز (لندینگ + داشبورد)
+                                       ==================================================== */
 
     /* ----- RESET & BASE ----- */
     * {
@@ -1763,26 +1777,72 @@
 </section>
 
 <!-- ===== نمونه کارها ===== -->
-<section class="section" id="portfolio">
-    <div class="container">
-        <h2 class="section-title fade-up">نمونه <span>کارها</span></h2>
-        <p class="section-subtitle fade-up">برخی از پروژه‌های اخیر من</p>
-        <div class="portfolio-grid">
-            <div class="portfolio-item fade-up">
-                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=200&fit=crop&crop=center" alt="پروژه مدیریت مالی" />
-                <div class="info"><h4>داشبورد مالی</h4><p>پلتفرم تحلیل و مدیریت سرمایه</p></div>
+@{
+    if (PortfolioResult == null || PortfolioResult.Data == null || PortfolioResult.Data.Count == 0)
+    {
+
+    }
+    else
+    {
+        <section class="section" id="portfolio">
+            <div class="container">
+                <h2 class="section-title fade-up">نمونه <span>کارها</span></h2>
+                <p class="section-subtitle fade-up">برخی از پروژه‌های اخیر من</p>
+                <div class="portfolio-grid">
+                    @*foreach (var item in PortfolioResult.Data)
+                    {
+                        <div class="portfolio-item fade-up">
+                            @if (item.PortfolioFile.IsImage)
+                            {
+                                <img src="@(item.PortfolioFile.IsImage)" alt="پروژه مدیریت مالی" />
+                            }
+                            else if (!item.PortfolioFile.IsImage)
+                            {
+                                <video controls style="max-height:80px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                                    <source src="@item.PortfolioFile.FileAddress" />
+                                </video>
+                            }
+
+                            <div class="info"><h4>@item.Title</h4><p>@item.Description</p></div>
+                        </div>
+                    }*@
+                    @foreach (var item in PortfolioResult.Data)
+                    {
+                        <div class="portfolio-item fade-up">
+                            @if (item.PortfolioFile.IsImage)
+                            {
+                                <img src="@(Directories.GetPortfolioImage(item.PortfolioFile.FileAddress))" alt="@item.Title" />
+                            }
+                            else
+                            {
+                                <video controls style="width:100%; max-height:200px; border-radius:8px; background:#111; object-fit:cover;">
+                                    <source src="@(Directories.GetPortfolioVideo(item.PortfolioFile.FileAddress))" type="video/mp4" />
+                                    مرورگر شما از نمایش ویدیو پشتیبانی نمی‌کند.
+                                </video>
+                            }
+                            <div class="info">
+                                <h4>@item.Title</h4>
+                                <p>@item.Description</p>
+                            </div>
+                        </div>
+                    }
+                    @*<div class="portfolio-item fade-up">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=200&fit=crop&crop=center" alt="پروژه مدیریت مالی" />
+                        <div class="info"><h4>داشبورد مالی</h4><p>پلتفرم تحلیل و مدیریت سرمایه</p></div>
+                    </div>
+                    <div class="portfolio-item fade-up">
+                        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=200&fit=crop&crop=center" alt="اپلیکیشن فروشگاهی" />
+                        <div class="info"><h4>فروشگاه آنلاین</h4><p>راه‌اندازی سریع فروشگاه با Vue</p></div>
+                    </div>
+                    <div class="portfolio-item fade-up">
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop&crop=center" alt="سیستم مدیریت محتوا" />
+                        <div class="info"><h4>سیستم CMS</h4><p>مدیریت محتوای سازمانی با React</p></div>
+                    </div>*@
+                </div>
             </div>
-            <div class="portfolio-item fade-up">
-                <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=200&fit=crop&crop=center" alt="اپلیکیشن فروشگاهی" />
-                <div class="info"><h4>فروشگاه آنلاین</h4><p>راه‌اندازی سریع فروشگاه با Vue</p></div>
-            </div>
-            <div class="portfolio-item fade-up">
-                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop&crop=center" alt="سیستم مدیریت محتوا" />
-                <div class="info"><h4>سیستم CMS</h4><p>مدیریت محتوای سازمانی با React</p></div>
-            </div>
-        </div>
-    </div>
-</section>
+        </section>
+    }
+}
 
 <!-- ===== پروژه‌ها ===== -->
 <section class="section" id="projects">
@@ -1899,11 +1959,11 @@
         <p class="section-subtitle fade-up">برای همکاری، مشاوره یا هر سوالی خوشحال می‌شوم پاسخگو باشم</p>
         <div class="contact-wrapper">
             <form class="contact-form fade-up">
-                <input type="text" placeholder="نام و نام خانوادگی" required />
-                <input type="email" placeholder="ایمیل" required />
-                <input type="text" placeholder="موضوع" />
-                <textarea placeholder="پیام شما..."></textarea>
-                <button type="submit" class="btn-primary ripple"><i class="fas fa-paper-plane"></i> ارسال پیام</button>
+                <input @bind="ContactUsModel.FullName" type="text" placeholder="نام و نام خانوادگی" required />
+                <input @bind="ContactUsModel.PhoneNumber" type="text" maxlength="11" oninput="this.value = this.value.replace(/[^0-9۰-۹]/g, '')" placeholder="شماره تماس" required />
+                <input @bind="ContactUsModel.Subject" type="text" placeholder="موضوع" required />
+                <textarea @bind="ContactUsModel.Message" placeholder="پیام شما..." required></textarea>
+                <button type="button" @onclick="async () => await SendMessage()" class="btn-primary ripple"><i class="fas fa-paper-plane"></i> ارسال پیام</button>
             </form>
             <div class="contact-info fade-up">
                 <div class="item"><i class="fas fa-envelope float-icon"></i> <span>mohammad@example.com</span></div>
@@ -1963,6 +2023,7 @@
     private List<SkillItem> skills = new();
     private List<FaqItem> faqItems = new();
 
+    public CreateContactUsCommand ContactUsModel { get; set; } = new();
     // ---- تایمرها ----
     private System.Timers.Timer? counterTimer;
     private System.Timers.Timer? typewriterTimer;
@@ -1970,6 +2031,23 @@
     private int charIndex = 0;
     private bool isDeleting = false;
     private readonly string[] typewriterWords = { "محمد پارسا کریمی", "mohammad Parsa Karimi", "Full-Stack Developer" };
+
+    public PortfolioFilterResult PortfolioResult { get; set; }
+
+    private async Task SendMessage()
+    {
+        var result = await _contactUsFacade.Create(ContactUsModel);
+        if (result.Status == BackEnd.Shared.CoreShared.OperationResultStatus.Success)
+        {
+            await JSRuntime.InvokeVoidAsync("showUserAlert", result.Message, "success", "✅ موفقیت", 5000); ;
+            ContactUsModel = new();
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("showUserAlert", result.Message, "error", "❌ خطا", 5000);
+        }
+        StateHasChanged();
+    }
 
     // ---- متدهای چرخه زندگی ----
     protected override async Task OnInitializedAsync()
@@ -1982,27 +2060,62 @@
             new StatItem { Label = "مشتری راضی", Target = 12, CurrentValue = 0 }
         };
 
-        // مقداردهی مهارت‌ها
-        skills = new List<SkillItem>
+        PortfolioResult = await _portfolioFacade.GetFilter(new PortfolioFilterParam
         {
-            new SkillItem { Name = "React", Icon = "fab fa-react", Progress = 90 },
-            new SkillItem { Name = "Vue.js", Icon = "fab fa-vuejs", Progress = 85 },
-            new SkillItem { Name = "Node.js", Icon = "fab fa-node-js", Progress = 80 },
-            new SkillItem { Name = "Python", Icon = "fab fa-python", Progress = 75 },
-            new SkillItem { Name = "MongoDB", Icon = "fas fa-database", Progress = 85 },
-            new SkillItem { Name = "AWS", Icon = "fas fa-cloud", Progress = 70 },
-            new SkillItem { Name = "Docker", Icon = "fab fa-docker", Progress = 65 },
-            new SkillItem { Name = "TypeScript", Icon = "fas fa-code", Progress = 88 }
-        };
+            PageId = 1,
+            Take = 3,
+            GetPortfolioFileType = GetPortfolioType.GetAll,
+            GetForMainPage = true,
+        });
+
+        // مقداردهی مهارت‌ها
+        // skills = new List<SkillItem>
+        // {
+        //     new SkillItem { Name = "React", Icon = "fab fa-react", Progress = 90 },
+        //     new SkillItem { Name = "Vue.js", Icon = "fab fa-vuejs", Progress = 85 },
+        //     new SkillItem { Name = "Node.js", Icon = "fab fa-node-js", Progress = 80 },
+        //     new SkillItem { Name = "Python", Icon = "fab fa-python", Progress = 75 },
+        //     new SkillItem { Name = "MongoDB", Icon = "fas fa-database", Progress = 85 },
+        //     new SkillItem { Name = "AWS", Icon = "fas fa-cloud", Progress = 70 },
+        //     new SkillItem { Name = "Docker", Icon = "fab fa-docker", Progress = 65 },
+        //     new SkillItem { Name = "TypeScript", Icon = "fas fa-code", Progress = 88 }
+        // };
+        var getSkillResult = await _skillFacade.GetFilter(new BackEnd.Core.Skills.Queries.DTOs.SkillFilterParam
+        {
+            IsActive = true,
+            Take = 12,
+            PageId = 1
+        });
+        skills = getSkillResult.Data.Select(i => new SkillItem
+        {
+            Icon = i.Icon,
+            IsVisible = i.IsActive,
+            Name = i.Title,
+            Progress = i.SkillPercentage,
+        }).ToList();
 
         // مقداردهی سوالات متداول
-        faqItems = new List<FaqItem>
+
+        var getFAQFilterResult = await _faqFacade.GetFilter(new BackEnd.Core.FAQ.Queries.DTOs.FAQFilterParam
         {
-            new FaqItem { Question = "آیا می‌توانم پروژه را به صورت قسطی پرداخت کنم؟", Answer = "بله، برای پروژه‌های بالای ۵۰ میلیون تومان امکان پرداخت در دو قسط وجود دارد.", IsActive = true },
-            new FaqItem { Question = "چه مدت زمان برای تحویل پروژه نیاز است؟", Answer = "بسته به پیچیدگی، معمولاً بین ۲ تا ۶ هفته." },
-            new FaqItem { Question = "آیا پس از تحویل، پشتیبانی دارید؟", Answer = "بله، یک ماه پشتیبانی رایگان و پس از آن با قرارداد نگهداری همراه است." },
-            new FaqItem { Question = "آیا می‌توانم API را به صورت آزمایشی استفاده کنم؟", Answer = "بله، طرح استارتر رایگان شامل ۱۰۰ درخواست روزانه برای تست است." }
-        };
+            PageId= 1,
+            Take = 4,
+            IsActive = true
+        });
+        faqItems = getFAQFilterResult.Data.Select(i => new FaqItem
+        {
+            Question = i.Question,
+            Answer = i.Answer, 
+            IsActive = false,
+            Sequense = i.Sequense,
+        }).ToList();
+        // faqItems = new List<FaqItem>
+        // {
+        //     new FaqItem { Question = "آیا می‌توانم پروژه را به صورت قسطی پرداخت کنم؟", Answer = "بله، برای پروژه‌های بالای ۵۰ میلیون تومان امکان پرداخت در دو قسط وجود دارد.", IsActive = true },
+        //     new FaqItem { Question = "چه مدت زمان برای تحویل پروژه نیاز است؟", Answer = "بسته به پیچیدگی، معمولاً بین ۲ تا ۶ هفته." },
+        //     new FaqItem { Question = "آیا پس از تحویل، پشتیبانی دارید؟", Answer = "بله، یک ماه پشتیبانی رایگان و پس از آن با قرارداد نگهداری همراه است." },
+        //     new FaqItem { Question = "آیا می‌توانم API را به صورت آزمایشی استفاده کنم؟", Answer = "بله، طرح استارتر رایگان شامل ۱۰۰ درخواست روزانه برای تست است." }
+        // };
 
         // شروع انیمیشن‌ها
         StartCounterAnimation();
@@ -2204,5 +2317,7 @@
         public string Question { get; set; } = "";
         public string Answer { get; set; } = "";
         public bool IsActive { get; set; }
+        public int Sequense { get; set; }
     }
 }
+<script src="../../../../../js/user-alert.js"></script>

@@ -143,7 +143,7 @@ namespace BackEnd.Shared.CoreShared.Repository
         {
             try
             {
-                var Entity = await Context.Set<TEntity>().Where(expression).ToListAsync();
+                var Entity = await Context.Set<TEntity>().AsTracking().Where(expression).ToListAsync();
                 Context.Set<TEntity>().RemoveRange(Entity);
                 return true;
             }
@@ -156,7 +156,7 @@ namespace BackEnd.Shared.CoreShared.Repository
         {
             try
             {
-                var Entity = await Context.Set<TEntity>().Where(expression).FirstOrDefaultAsync();
+                var Entity = await Context.Set<TEntity>().AsTracking().Where(expression).FirstOrDefaultAsync();
                 Context.Set<TEntity>().Remove(Entity!);
                 return true;
             }

@@ -1061,7 +1061,7 @@
     private void CloseMenu() => isMenuOpen = false;
 
     private void GoToProfile() => NavigationManager.NavigateTo("/Profile", true);
-    private void CreateNewProject() => NavigationManager.NavigateTo("/NewProject", true);
+    private void CreateNewProject() => NavigationManager.NavigateTo("Admin/Projects/Create", true);
     private void RefreshProjects()
     {
         LoadProjects();

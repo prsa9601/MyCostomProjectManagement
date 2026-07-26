@@ -2,6 +2,7 @@
 using BackEnd.Core.Abstraction.Cookies.Interfaces;
 using BackEnd.Core.Abstraction.Cookies.Services;
 using BackEnd.Core.Abstraction.Jwt.Interfaces;
+using BackEnd.Core.FAQ.Queries.Mapper;
 using BackEnd.Core.Portfolio.Queries.Mappers;
 using BackEnd.Core.Portfolio.Resolver;
 using BackEnd.Core.Role.Queries.Mappers;
@@ -63,6 +64,7 @@ namespace BackEnd.Core
                 cfg.AddProfile<RoleAutoMapperProfile>();
                 cfg.AddProfile<SkillAutoMapperProfile>();
                 cfg.AddProfile<PortfolioAutoMapperProfile>();
+                cfg.AddProfile<FAQAutoMapperProfile>();
                 cfg.ConstructServicesUsing(serviceProvider.GetService);
             }, loggerFactory);
 

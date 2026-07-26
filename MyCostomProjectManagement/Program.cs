@@ -22,6 +22,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.FacadeConfig();
 builder.Services.AddScoped<AlertService>();
+builder.Services.AddScoped<UserAlertService>();
 builder.Services.AddScoped<JsAlertService>();
 builder.Services.AddScoped<FileExtensions>();
 builder.Services.CoreConfig(builder.Configuration);
