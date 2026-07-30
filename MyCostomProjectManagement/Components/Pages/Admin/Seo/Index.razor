@@ -1,0 +1,878 @@
+﻿@page "/Admin/SeoIndexing"
+@using MyCostomProjectManagement.Facade.PageManagement
+@using MyCostomProjectManagement.Infrastructure
+@using MyCostomProjectManagement.Shared.Utilities.PageManagement
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject JsAlertService _alertService
+@inject PageManagementUtil _pageManagementUtil
+@inject IPageManagementFacade _pageManagementFacade
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مدیریت ایندکس صفحات | پنل ادمین</title>
+
+<style>
+    /* ============================================================
+       SEO INDEXING PAGE - با پس‌زمینه #13505b
+    ============================================================ */
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 32px;
+        padding-top: 20px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h1 i { color: #e8a838; }
+
+    .page-header .subtitle {
+        color: rgba(232, 240, 241, 0.5);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    .page-header .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 9px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+        font-family: inherit;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
+        font-family: inherit;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+    .btn-outline:hover {
+        border-color: #e8a838;
+        color: #fff;
+        background: rgba(232, 168, 56, 0.04);
+        transform: translateY(-2px);
+    }
+
+    /* ===== STATS ROW ===== */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-mini {
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-mini:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(232, 168, 56, 0.06);
+    }
+
+    .stat-mini i {
+        font-size: 1.6rem;
+        color: #e8a838;
+        opacity: 0.5;
+        width: 40px;
+        text-align: center;
+    }
+
+    .stat-mini .info .number {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.2;
+    }
+
+    .stat-mini .info .label {
+        font-size: 0.75rem;
+        color: rgba(232, 240, 241, 0.3);
+    }
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 32px;
+        padding: 16px 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        align-items: center;
+    }
+
+    .filter-bar .search-box {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 0 16px;
+        transition: all 0.35s ease;
+    }
+
+    .filter-bar .search-box:focus-within {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+    }
+
+    .filter-bar .search-box input {
+        background: transparent;
+        border: none;
+        padding: 12px 12px;
+        color: #e8f0f1;
+        font-size: 0.9rem;
+        width: 100%;
+        outline: none;
+    }
+
+    .filter-bar .search-box input::placeholder {
+        color: rgba(232, 240, 241, 0.3);
+    }
+
+    .filter-bar .search-box i {
+        color: rgba(232, 240, 241, 0.2);
+        font-size: 0.9rem;
+    }
+
+    .filter-bar .filter-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .filter-bar .filter-group .filter-btn {
+        padding: 8px 18px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.4);
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.35s ease;
+        cursor: pointer;
+    }
+
+    .filter-bar .filter-group .filter-btn:hover {
+        border-color: rgba(232, 168, 56, 0.1);
+        color: #e8f0f1;
+    }
+
+    .filter-bar .filter-group .filter-btn.active {
+        background: rgba(232, 168, 56, 0.08);
+        border-color: rgba(232, 168, 56, 0.1);
+        color: #e8a838;
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+        overflow-x: auto;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        padding: 4px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .data-table thead th {
+        text-align: right;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        color: #94a3b8;
+        font-weight: 500;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .data-table tbody td {
+        padding: 12px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        vertical-align: middle;
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .data-table .page-name {
+        color: #e8edf5;
+        font-weight: 500;
+    }
+
+    .data-table .page-url {
+        color: #94a3b8;
+        font-size: 0.8rem;
+    }
+
+    .data-table .page-url a {
+        color: #3b82f6;
+        transition: 0.3s;
+    }
+    .data-table .page-url a:hover { color: #60a5fa; text-decoration: underline; }
+
+    .data-table .meta-tag {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 6px 10px;
+        color: #e8f0f1;
+        font-size: 0.75rem;
+        width: 160px;
+        outline: none;
+        transition: 0.3s;
+        font-family: monospace;
+    }
+
+    .data-table .meta-tag:focus {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+    }
+
+    .data-table .meta-tag::placeholder {
+        color: #64748b;
+    }
+
+    .data-table .status-badge {
+        font-size: 0.65rem;
+        padding: 3px 12px;
+        border-radius: 30px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .data-table .status-badge.index {
+        background: rgba(82, 183, 136, 0.06);
+        color: #52b788;
+        border: 1px solid rgba(82, 183, 136, 0.02);
+    }
+
+    .data-table .status-badge.noindex {
+        background: rgba(239, 68, 68, 0.06);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.02);
+    }
+
+    .data-table .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .data-table .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 40px;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+    }
+
+    .data-table .toggle-switch.active {
+        background: rgba(82, 183, 136, 0.15);
+        border-color: rgba(82, 183, 136, 0.1);
+    }
+
+    .data-table .toggle-switch .toggle-knob {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(232, 240, 241, 0.15);
+        transition: all 0.35s ease;
+    }
+
+    .data-table .toggle-switch.active .toggle-knob {
+        right: 24px;
+        background: #52b788;
+        box-shadow: 0 0 16px rgba(82, 183, 136, 0.15);
+    }
+
+    /* ============================================================
+       SEO INFO CARD
+    ============================================================ */
+    .seo-info-card {
+        padding: 20px 24px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        margin-bottom: 32px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .seo-info-card .info-text {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .seo-info-card .info-text i {
+        color: #e8a838;
+        font-size: 1rem;
+    }
+
+    .seo-info-card .info-text strong {
+        color: #e8edf5;
+    }
+
+    .seo-info-card .badge-info {
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        background: rgba(59, 130, 246, 0.06);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.04);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @@media (max-width: 992px) {
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .seo-info-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .page-header h1 { font-size: 1.5rem; }
+        .page-header .actions { width: 100%; }
+        .page-header .actions .btn-success { flex: 1; justify-content: center; }
+
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .stat-mini .info .number { font-size: 1.1rem; }
+        .stat-mini i { font-size: 1.2rem; width: 30px; }
+
+        .filter-bar {
+            flex-direction: column;
+            padding: 16px;
+        }
+        .filter-bar .search-box { width: 100%; }
+
+        .data-table thead {
+            display: none;
+        }
+        .data-table tbody td {
+            display: block;
+            padding: 8px 14px;
+            border-bottom: none;
+        }
+        .data-table tbody tr {
+            display: block;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 4px 0;
+        }
+        .data-table tbody tr:last-child { border-bottom: none; }
+        .data-table td:before {
+            content: attr(data-label);
+            display: inline-block;
+            width: 80px;
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .data-table .meta-tag {
+            width: 100%;
+        }
+        .seo-info-card {
+            flex-direction: column;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+        .page-header h1 { font-size: 1.2rem; }
+        .filter-bar .filter-group {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* ============================================================
+       RIPPLE & FADE UP
+    ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+
+    @@keyframes rippleAnim {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .stagger-child { transition-delay: 0s; }
+    .stagger-child:nth-child(1) { transition-delay: 0.05s; }
+    .stagger-child:nth-child(2) { transition-delay: 0.1s; }
+    .stagger-child:nth-child(3) { transition-delay: 0.15s; }
+    .stagger-child:nth-child(4) { transition-delay: 0.2s; }
+</style>
+
+<!-- ============================================================
+     PAGE CONTENT
+============================================================ -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-robot"></i>
+                    ایندکس صفحات در گوگل
+                </h1>
+                <div class="subtitle">مدیریت نمایش صفحات در نتایج جستجوی گوگل</div>
+            </div>
+            <div class="actions">
+                <button class="btn-success ripple" @onclick="SaveChanges" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <i class="fas fa-spinner fa-spin"></i><p> در حال ذخیره...</p>
+                    }
+                    else
+                    {
+                        <span><i class="fas fa-save"></i> ذخیره تغییرات</span>
+                    }
+                </button>
+            </div>
+        </div>
+
+        <!-- SEO Info -->
+        <div class="seo-info-card fade-up visible">
+            <div class="info-text">
+                <i class="fas fa-info-circle"></i>
+                با غیرفعال کردن ایندکس یک صفحه، متا تگ <strong>noindex</strong> به آن اضافه می‌شود و گوگل آن را در نتایج جستجو نمایش نمی‌دهد.
+            </div>
+            <span class="badge-info">
+                <i class="fas fa-check-circle"></i> @activePages صفحه قابل ایندکس
+            </span>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row fade-up visible">
+            <div class="stat-mini">
+                <i class="fas fa-file-alt"></i>
+                <div class="info">
+                    <div class="number">@pages.Count</div>
+                    <div class="label">کل صفحات</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-check-circle" style="color:#52b788;"></i>
+                <div class="info">
+                    <div class="number">@activePages</div>
+                    <div class="label">قابل ایندکس (Index)</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-times-circle" style="color:#ef4444;"></i>
+                <div class="info">
+                    <div class="number">@noindexPages</div>
+                    <div class="label">غیرقابل ایندکس (Noindex)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar fade-up visible">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="جستجوی صفحه..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn @(filterStatus == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>همه</button>
+                <button class="filter-btn @(filterStatus == "index" ? "active" : "")" @onclick='() => SetFilter("index")'>قابل ایندکس</button>
+                <button class="filter-btn @(filterStatus == "noindex" ? "active" : "")" @onclick='() => SetFilter("noindex")'>غیرقابل ایندکس</button>
+            </div>
+        </div>
+
+        <!-- Pages Table -->
+        <div class="table-wrapper fade-up visible">
+            @if (filteredPages.Any())
+            {
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="min-width:160px;">صفحه</th>
+                            <th style="min-width:140px;">آدرس</th>
+                            <th style="min-width:100px;">وضعیت ایندکس</th>
+                            <th style="min-width:180px;">متا تگ Robots (اختیاری)</th>
+                            <th style="min-width:100px; text-align:center;">پیش‌نمایش</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in filteredPages)
+                        {
+                            <tr>
+                                <td data-label="صفحه">
+                                    <div class="page-name">@item.Name</div>
+                                </td>
+                                <td data-label="آدرس">
+                                    <span class="page-url"><a href="@item.Url" target="_blank">@item.Url</a></span>
+                                </td>
+                                <td data-label="وضعیت ایندکس">
+                                    <div class="toggle-wrapper">
+                                        <span style="font-size:0.7rem; color:@(item.SeoIndexing ? "#52b788" : "#ef4444");">
+                                            @(item.SeoIndexing ? "Index" : "Noindex")
+                                        </span>
+                                        <div class="toggle-switch @(item.SeoIndexing? "active" : "")" @onclick='() => ToggleIndexStatus(item.Id)'>
+                                            <div class="toggle-knob"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label="متا تگ Robots">
+                                    <input class="meta-tag" type="text" placeholder="مثال: index, follow" @bind="item.MetaRobots" @bind:event="oninput" />
+                                </td>
+                                <td data-label="پیش‌نمایش" style="text-align:center;">
+                                    <button class="btn-outline" style="padding:4px 12px; font-size:0.7rem; border-radius:30px;" @onclick='() => PreviewPage(item.Url)'>
+                                        <i class="fas fa-eye"></i> نمایش
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div style="text-align:center; padding:40px 20px; color:#64748b;">
+                    <i class="fas fa-file-alt" style="font-size:2.5rem; display:block; margin-bottom:8px; opacity:0.3;"></i>
+                    <p>هیچ صفحه‌ای با این فیلترها یافت نشد.</p>
+                </div>
+            }
+        </div>
+
+    </div>
+</main>
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private bool isSaving = false;
+    private string searchTerm = "";
+    private string filterStatus = "all";
+
+    private List<BackEnd.Data.Entities.PageManagement.PageManagement> pages = new();
+    private List<BackEnd.Data.Entities.PageManagement.PageManagement> filteredPages = new();
+
+    private int activePages => pages.Count(p => p.SeoIndexing);
+    private int noindexPages => pages.Count(p => !p.SeoIndexing);
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMockData();
+        ApplyFilters();
+    }
+
+    private async Task LoadMockData()
+    {
+        pages = await _pageManagementUtil.GetPagesItem();
+        // pages = new List<SeoPageItem>
+        // {
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "صفحه اصلی", Url = "/", AllowIndex = true, MetaRobots = "index, follow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "درباره من", Url = "/about", AllowIndex = true, MetaRobots = "index, follow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "مهارت‌ها", Url = "/skills", AllowIndex = true, MetaRobots = "index, follow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "نمونه کارها", Url = "/portfolio", AllowIndex = true, MetaRobots = "index, follow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "پروژه‌ها", Url = "/projects", AllowIndex = true, MetaRobots = "index, follow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "خرید اشتراک", Url = "/packages", AllowIndex = true, MetaRobots = "index, follow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "تماس با من", Url = "/contact", AllowIndex = true, MetaRobots = "index, follow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "سوالات متداول", Url = "/faq", AllowIndex = true, MetaRobots = "index, follow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "داشبورد کاربری", Url = "/dashboard", AllowIndex = false, MetaRobots = "noindex, nofollow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "پنل مدیریت", Url = "/admin", AllowIndex = false, MetaRobots = "noindex, nofollow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "ورود و ثبت‌نام", Url = "/auth", AllowIndex = false, MetaRobots = "noindex, nofollow" },
+        //     new SeoPageItem { Id = Guid.NewGuid(), Name = "بلاگ", Url = "/blog", AllowIndex = true, MetaRobots = "index, follow" }
+        // };
+    }
+
+    // ============================================================
+    // FILTER & SEARCH
+    // ============================================================
+
+    private void ApplyFilters()
+    {
+        var query = pages.AsEnumerable();
+
+        if (filterStatus != "all")
+        {
+            bool allowIndex = filterStatus == "index";
+            query = query.Where(p => p.SeoIndexing == allowIndex);
+        }
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(p =>
+                p.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                p.Url.Contains(term, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        filteredPages = query.ToList();
+    }
+
+    private void SetFilter(string status)
+    {
+        filterStatus = status;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // OPERATIONS
+    // ============================================================
+
+    private async Task ToggleIndexStatus(Guid id)
+    {
+        var page = pages.FirstOrDefault(p => p.Id == id);
+        if (page != null)
+        {
+            page.SeoIndexing= !page.SeoIndexing;
+            var result = await _pageManagementFacade.Edit(new BackEnd.Core.PageManagement.Commands.EditPageManagerCommand
+            {
+                pageManagement = page
+            });
+            ApplyFilters();
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            // در دنیای واقعی، داده‌ها را به سرویس ارسال کنید
+            // await _seoService.UpdateIndexingAsync(pages);
+            await Task.Delay(1000);
+            await _alertService.Success("تنظیمات ایندکس با موفقیت ذخیره شد.", "ذخیره", 4000);
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در ذخیره تغییرات: {ex.Message}", "خطا", 6000);
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private void PreviewPage(string url)
+    {
+        NavigationManager.NavigateTo(url, true);
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 400);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASS
+    // ============================================================
+
+    // public class SeoPageItem
+    // {
+    //     public Guid Id { get; set; }
+    //     public string Name { get; set; } = "";
+    //     public string Url { get; set; } = "";
+    //     public bool AllowIndex { get; set; } = true;
+    //     public string MetaRobots { get; set; } = "index, follow";
+    // }
+}

@@ -1,8 +1,10 @@
 ﻿@page "/Admin/Settings"
+@using MyCostomProjectManagement.Infrastructure
 @layout AdminLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject JsAlertService _alertService
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -293,6 +295,48 @@
         transform: translateY(-2px);
     }
 
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
+        font-family: inherit;
+    }
+    .btn-success:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(220, 53, 69, 0.12);
+        font-family: inherit;
+    }
+    .btn-danger:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(220, 53, 69, 0.2);
+    }
+
     .avatar-btn {
         width: 38px;
         height: 38px;
@@ -482,6 +526,143 @@
     }
 
     /* ============================================================
+       LINKS MANAGEMENT (جدید)
+    ============================================================ */
+    .links-table-wrapper {
+        overflow-x: auto;
+        margin-top: 16px;
+    }
+
+    .links-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .links-table thead th {
+        text-align: right;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        color: #94a3b8;
+        font-weight: 500;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .links-table tbody td {
+        padding: 10px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        vertical-align: middle;
+    }
+
+    .links-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .links-table .link-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(232, 168, 56, 0.04);
+        color: #e8a838;
+        font-size: 1rem;
+    }
+
+    .links-table .link-title {
+        color: #e8edf5;
+        font-weight: 500;
+    }
+
+    .links-table .link-url {
+        color: #94a3b8;
+        font-size: 0.8rem;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    .links-table .link-url a {
+        color: #3b82f6;
+        transition: 0.3s;
+    }
+    .links-table .link-url a:hover { color: #60a5fa; text-decoration: underline; }
+
+    .links-table .status-badge {
+        font-size: 0.65rem;
+        padding: 3px 12px;
+        border-radius: 30px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .links-table .status-badge.active {
+        background: rgba(82, 183, 136, 0.06);
+        color: #52b788;
+        border: 1px solid rgba(82, 183, 136, 0.02);
+    }
+    .links-table .status-badge.inactive {
+        background: rgba(127, 140, 141, 0.06);
+        color: #7f8c8d;
+        border: 1px solid rgba(127, 140, 141, 0.02);
+    }
+
+    .links-table .order-cell {
+        color: #94a3b8;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .links-table .actions-cell {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+    }
+
+    .btn-icon-sm {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.2);
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+    }
+
+    .btn-icon-sm:hover {
+        border-color: rgba(232, 168, 56, 0.06);
+        color: #e8f0f1;
+        background: rgba(232, 168, 56, 0.02);
+        transform: scale(1.05);
+    }
+
+    .btn-icon-sm.edit:hover {
+        border-color: rgba(82, 183, 136, 0.06);
+        color: #52b788;
+        background: rgba(82, 183, 136, 0.02);
+    }
+    .btn-icon-sm.delete:hover {
+        border-color: rgba(220, 53, 69, 0.06);
+        color: #dc3545;
+        background: rgba(220, 53, 69, 0.02);
+    }
+    .btn-icon-sm.toggle:hover {
+        border-color: rgba(59, 130, 246, 0.06);
+        color: #3b82f6;
+        background: rgba(59, 130, 246, 0.02);
+    }
+
+    /* ============================================================
        FORM ELEMENTS
     ============================================================ */
     .form-group {
@@ -532,6 +713,56 @@
     .form-group textarea {
         min-height: 80px;
         resize: vertical;
+    }
+
+    .form-group .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        transition: all 0.35s ease;
+    }
+
+    .form-group .input-wrapper:focus-within {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
+    }
+
+    .form-group .input-wrapper .input-icon {
+        padding: 0 0 0 14px;
+        color: #64748b;
+        font-size: 0.9rem;
+        opacity: 0.4;
+        transition: 0.3s;
+    }
+
+    .form-group .input-wrapper:focus-within .input-icon {
+        opacity: 0.8;
+        color: #e8a838;
+    }
+
+    .form-group .input-wrapper input,
+    .form-group .input-wrapper select {
+        width: 100%;
+        padding: 12px 14px;
+        background: transparent;
+        border: none;
+        color: #eef2f8;
+        font-size: 0.95rem;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .form-group .input-wrapper input::placeholder {
+        color: #64748b;
+    }
+
+    .form-group .input-wrapper select option {
+        background: #0a0e17;
+        color: #eef2f8;
     }
 
     .form-group .toggle-wrapper {
@@ -634,6 +865,171 @@
     }
 
     /* ============================================================
+       MODAL
+    ============================================================ */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    @@keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+
+    .modal-box {
+        background: #0a0e17;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 28px;
+        padding: 40px 36px;
+        max-width: 520px;
+        width: 100%;
+        margin: 20px;
+        box-shadow: 0 8px 64px rgba(0, 0, 0, 0.5);
+        animation: scaleIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    @@keyframes scaleIn {
+        0% { transform: scale(0.95); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-box .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-box .modal-title i { color: #e8a838; }
+
+    .modal-box .modal-subtitle {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+
+    .modal-box .form-group {
+        margin-bottom: 18px;
+    }
+
+    .modal-box .form-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #94a3b8;
+        margin-bottom: 4px;
+    }
+
+    .modal-box .form-group input,
+    .modal-box .form-group textarea,
+    .modal-box .form-group select {
+        width: 100%;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        color: #eef2f8;
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.35s ease;
+        font-family: inherit;
+    }
+
+    .modal-box .form-group input:focus,
+    .modal-box .form-group textarea:focus,
+    .modal-box .form-group select:focus {
+        border-color: #e8a838;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
+    }
+
+    .modal-box .form-group input::placeholder,
+    .modal-box .form-group textarea::placeholder {
+        color: #64748b;
+    }
+
+    .modal-box .form-group select option {
+        background: #0a0e17;
+        color: #eef2f8;
+    }
+
+    .modal-box .form-group textarea {
+        min-height: 60px;
+        resize: vertical;
+    }
+
+    .modal-box .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        flex-wrap: wrap;
+    }
+
+    .modal-box .modal-actions .btn-modal-primary {
+        flex: 1;
+        padding: 12px;
+        border-radius: 40px;
+        border: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        font-family: inherit;
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #0a0e17;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+    }
+
+    .modal-box .modal-actions .btn-modal-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+    }
+
+    .modal-box .modal-actions .btn-modal-secondary {
+        flex: 1;
+        padding: 12px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: transparent;
+        color: #94a3b8;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        font-family: inherit;
+    }
+
+    .modal-box .modal-actions .btn-modal-secondary:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #eef2f8;
+        transform: translateY(-2px);
+    }
+
+    /* ============================================================
        FOOTER
     ============================================================ */
     .footer {
@@ -729,6 +1125,33 @@
             width: 100%;
             justify-content: center;
         }
+
+        .links-table thead {
+            display: none;
+        }
+        .links-table tbody td {
+            display: block;
+            padding: 8px 14px;
+            border-bottom: none;
+        }
+        .links-table tbody tr {
+            display: block;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 4px 0;
+        }
+        .links-table tbody tr:last-child { border-bottom: none; }
+        .links-table td:before {
+            content: attr(data-label);
+            display: inline-block;
+            width: 80px;
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .links-table .link-url {
+            max-width: none;
+            white-space: normal;
+        }
     }
 
     @@media (max-width: 480px) {
@@ -741,10 +1164,15 @@
         .form-group .toggle-wrapper {
             flex-wrap: wrap;
         }
+        .modal-box {
+            padding: 20px 16px;
+        }
     }
 </style>
 
-<!-- ===== SPARKLE PARTICLES ===== -->
+<!-- ============================================================
+     SPARKLE PARTICLES
+============================================================ -->
 <div class="sparkle"></div>
 <div class="sparkle"></div>
 <div class="sparkle"></div>
@@ -765,6 +1193,7 @@
             <li><a href="/Admin">داشبورد</a></li>
             <li><a href="/Admin/Projects">پروژه‌ها</a></li>
             <li><a href="/Admin/Users">کاربران</a></li>
+            <li><a href="/Admin/Roles">نقش‌ها</a></li>
             <li><a href="/Admin/ApiManagement">APIها</a></li>
             <li><a href="/Admin/Packages">پکیج‌ها</a></li>
             <li><a href="/Admin/PackageApiAccess">دسترسی API</a></li>
@@ -772,6 +1201,7 @@
             <li><a href="/Admin/Contacts">تماس</a></li>
             <li><a href="/Admin/Skills">مهارت‌ها</a></li>
             <li><a href="/Admin/Portfolio">نمونه کارها</a></li>
+            <li><a href="/Admin/FAQ">سوالات متداول</a></li>
             <li><a href="/Admin/Settings" class="active">تنظیمات</a></li>
         </ul>
         <div class="nav-actions">
@@ -804,7 +1234,7 @@
             </div>
         </div>
 
-        <!-- Settings Tabs (افزوده شده) -->
+        <!-- Settings Tabs -->
         <div class="settings-tabs fade-up visible">
             <button class="tab-btn @(activeTab == "general" ? "active" : "")" @onclick='() => SetTab("general")'>
                 <i class="fas fa-globe"></i> عمومی
@@ -824,7 +1254,6 @@
             <button class="tab-btn @(activeTab == "backup" ? "active" : "")" @onclick='() => SetTab("backup")'>
                 <i class="fas fa-database"></i> پشتیبان‌گیری
             </button>
-            <!-- تب‌های جدید -->
             <button class="tab-btn @(activeTab == "about" ? "active" : "")" @onclick='() => SetTab("about")'>
                 <i class="fas fa-user-tie"></i> درباره من
             </button>
@@ -840,10 +1269,13 @@
             <button class="tab-btn @(activeTab == "faq" ? "active" : "")" @onclick='() => SetTab("faq")'>
                 <i class="fas fa-question-circle"></i> سوالات متداول
             </button>
+            <button class="tab-btn @(activeTab == "links" ? "active" : "")" @onclick='() => SetTab("links")'>
+                <i class="fas fa-link"></i> لینک‌ها
+            </button>
         </div>
 
         <!-- ============================================================
-             TAB 1: GENERAL (همان)
+             TAB 1: GENERAL
         ============================================================ -->
         <div class="settings-section @(activeTab == "general" ? "active" : "")">
             <div class="settings-grid">
@@ -919,7 +1351,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 2: SECURITY (همان)
+             TAB 2: SECURITY
         ============================================================ -->
         <div class="settings-section @(activeTab == "security" ? "active" : "")">
             <div class="settings-grid">
@@ -988,7 +1420,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 3: NOTIFICATIONS (همان)
+             TAB 3: NOTIFICATIONS
         ============================================================ -->
         <div class="settings-section @(activeTab == "notifications" ? "active" : "")">
             <div class="settings-grid">
@@ -1073,7 +1505,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 4: APPEARANCE (همان)
+             TAB 4: APPEARANCE
         ============================================================ -->
         <div class="settings-section @(activeTab == "appearance" ? "active" : "")">
             <div class="settings-grid">
@@ -1156,7 +1588,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 5: API (همان)
+             TAB 5: API
         ============================================================ -->
         <div class="settings-section @(activeTab == "api" ? "active" : "")">
             <div class="settings-grid">
@@ -1212,7 +1644,7 @@
         </div>
 
         <!-- ============================================================
-             TAB 6: BACKUP (همان)
+             TAB 6: BACKUP
         ============================================================ -->
         <div class="settings-section @(activeTab == "backup" ? "active" : "")">
             <div class="settings-grid">
@@ -1475,22 +1907,183 @@
             </div>
         </div>
 
+        <!-- ============================================================
+             TAB 12: LINKS (مدیریت لینک‌ها)
+        ============================================================ -->
+        <div class="settings-section @(activeTab == "links" ? "active" : "")">
+            <div class="settings-grid">
+                <div class="settings-card fade-up stagger-child">
+                    <div class="card-header">
+                        <i class="fas fa-link"></i>
+                        <div>
+                            <h3>مدیریت لینک‌های سریع</h3>
+                            <div class="desc">افزودن، ویرایش و حذف لینک‌های نمایش داده شده در سایت</div>
+                        </div>
+                    </div>
+
+                    <!-- فرم افزودن لینک جدید -->
+                    <div style="margin-bottom: 24px; padding: 16px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid rgba(255,255,255,0.03);">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:0.8rem;">عنوان</label>
+                                <input type="text" placeholder="مثال: گیت‌هاب" @bind="newLinkTitle" />
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:0.8rem;">آیکون (FontAwesome)</label>
+                                <input type="text" placeholder="مثال: fab fa-github" @bind="newLinkIcon" />
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:12px; margin-bottom:12px;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:0.8rem;">آدرس (URL)</label>
+                                <input type="text" placeholder="https://github.com" @bind="newLinkUrl" />
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:0.8rem;">ترتیب</label>
+                                <input type="number" placeholder="۱" @bind="newLinkOrder" min="1" />
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <div class="form-group" style="margin-bottom:0; flex:1;">
+                                <div class="toggle-wrapper" style="padding:0;">
+                                    <span class="toggle-label" style="font-size:0.8rem;">فعال</span>
+                                    <div class="toggle-switch @(newLinkIsActive ? "active" : "")" @onclick="ToggleNewLinkStatus">
+                                        <div class="toggle-knob"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-success ripple" @onclick="AddLink" style="padding:8px 24px; font-size:0.85rem;">
+                                <i class="fas fa-plus"></i> افزودن
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- لیست لینک‌ها -->
+                    <div class="links-table-wrapper">
+                        @if (links.Any())
+                        {
+                            <table class="links-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;">#</th>
+                                        <th style="min-width:40px;">آیکون</th>
+                                        <th style="min-width:120px;">عنوان</th>
+                                        <th style="min-width:180px;">آدرس</th>
+                                        <th style="width:80px; text-align:center;">ترتیب</th>
+                                        <th style="width:100px; text-align:center;">وضعیت</th>
+                                        <th style="width:120px; text-align:center;">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var link in links.OrderBy(l => l.Order))
+                                    {
+                                        <tr>
+                                            <td data-label="#"><span style="color:#94a3b8;">@link.Order</span></td>
+                                            <td data-label="آیکون">
+                                                <span class="link-icon"><i class="@link.Icon"></i></span>
+                                            </td>
+                                            <td data-label="عنوان" class="link-title">@link.Title</td>
+                                            <td data-label="آدرس">
+                                                <span class="link-url"><a href="@link.Url" target="_blank">@link.Url</a></span>
+                                            </td>
+                                            <td data-label="ترتیب" class="order-cell">@link.Order</td>
+                                            <td data-label="وضعیت" style="text-align:center;">
+                                                <span class="status-badge @(link.IsActive ? "active" : "inactive")">
+                                                    @(link.IsActive ? "فعال" : "غیرفعال")
+                                                </span>
+                                            </td>
+                                            <td data-label="عملیات">
+                                                <div class="actions-cell">
+                                                    <button class="btn-icon-sm edit" title="ویرایش" @onclick='() => OpenEditLinkModal(link.Id)'>
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn-icon-sm toggle" title="تغییر وضعیت" @onclick='() => ToggleLinkStatus(link.Id)'>
+                                                        <i class="fas @(link.IsActive ? "fa-eye-slash" : "fa-eye")"></i>
+                                                    </button>
+                                                    <button class="btn-icon-sm delete" title="حذف" @onclick='() => DeleteLink(link.Id)'>
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div style="text-align:center; padding:30px 20px; color:#64748b;">
+                                <i class="fas fa-link" style="font-size:2rem; display:block; margin-bottom:8px; opacity:0.3;"></i>
+                                <p>هیچ لینکی تعریف نشده است. لطفاً یک لینک جدید اضافه کنید.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </main>
 
 <!-- ============================================================
-     FOOTER
+     MODAL: ویرایش لینک
 ============================================================ -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · <i class="fas fa-heart"></i> پنل مدیریت</div>
-        <div class="footer-links">
-            <a href="/Admin">داشبورد</a>
-            <a href="/Admin/Settings">تنظیمات</a>
-            <a href="/">خروج</a>
+<div class="modal-overlay @(isEditLinkModalOpen ? "active" : "")" @onclick="CloseEditLinkModal">
+    <div class="modal-box" @onclick:stopPropagation="true">
+        <div class="modal-title">
+            <i class="fas fa-edit"></i>
+            ویرایش لینک
+        </div>
+        <div class="modal-subtitle">اطلاعات لینک را ویرایش کنید.</div>
+
+        <div class="form-group">
+            <label>عنوان</label>
+            <input type="text" placeholder="عنوان لینک" @bind="editLink.Title" />
+        </div>
+
+        <div class="form-group">
+            <label>آیکون (FontAwesome)</label>
+            <input type="text" placeholder="مثال: fab fa-github" @bind="editLink.Icon" />
+        </div>
+
+        <div class="form-group">
+            <label>آدرس (URL)</label>
+            <input type="text" placeholder="https://example.com" @bind="editLink.Url" />
+        </div>
+
+        <div class="form-group">
+            <label>ترتیب</label>
+            <input type="number" placeholder="۱" @bind="editLink.Order" min="1" />
+        </div>
+
+        <div class="form-group">
+            <div class="toggle-wrapper">
+                <span class="toggle-label">فعال</span>
+                <div class="toggle-switch @(editLink.IsActive ? "active" : "")" @onclick="ToggleEditLinkStatus">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal-primary ripple" @onclick="SaveEditLink" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <i class="fas fa-spinner fa-spin"></i> <p>در حال ذخیره...</p>
+                }
+                else
+                {
+                    <span><i class="fas fa-save"></i> ذخیره تغییرات</span>
+                }
+            </button>
+            <button class="btn-modal-secondary ripple" @onclick="CloseEditLinkModal">
+                <i class="fas fa-times"></i> لغو
+            </button>
         </div>
     </div>
-</footer>
+</div>
+
+
 
 @code {
     // ============================================================
@@ -1500,20 +2093,30 @@
     private bool isMenuOpen = false;
     private string activeTab = "general";
 
-    // مدل‌های موجود
+    // --- مدل‌های تنظیمات ---
     private GeneralSettings settings = new();
     private SecuritySettings security = new();
     private NotificationSettings notifications = new();
     private AppearanceSettings appearance = new();
     private ApiKeys apiKeys = new();
     private BackupSettings backup = new();
-
-    // مدل‌های جدید
     private AboutSettings aboutSettings = new();
     private SeoSettings seoSettings = new();
     private HomepageSettings homepageSettings = new();
     private ProjectsSettings projectsSettings = new();
     private FaqSettings faqSettings = new();
+
+    // --- مدل‌های لینک ---
+    private List<LinkItem> links = new();
+    private string newLinkTitle = "";
+    private string newLinkIcon = "fas fa-link";
+    private string newLinkUrl = "";
+    private int newLinkOrder = 1;
+    private bool newLinkIsActive = true;
+
+    private bool isEditLinkModalOpen = false;
+    private bool isSubmitting = false;
+    private LinkItem editLink = new();
 
     // ============================================================
     // INITIALIZATION
@@ -1522,11 +2125,12 @@
     protected override void OnInitialized()
     {
         LoadSettings();
+        LoadLinks();
     }
 
     private void LoadSettings()
     {
-        // --- مدل‌های قبلی ---
+        // General
         settings.SiteName = "پنل مدیریت";
         settings.SiteDescription = "سیستم مدیریت محتوای پیشرفته";
         settings.DefaultLanguage = "fa";
@@ -1536,6 +2140,7 @@
         settings.PrimaryColor = "#13505b";
         settings.SecondaryColor = "#e8a838";
 
+        // Security
         security.CurrentPassword = "";
         security.NewPassword = "";
         security.ConfirmPassword = "";
@@ -1544,6 +2149,7 @@
         security.SessionTimeout = 60;
         security.MaxLoginAttempts = 5;
 
+        // Notifications
         notifications.EmailEnabled = true;
         notifications.SmtpServer = "smtp.gmail.com";
         notifications.SmtpPort = 587;
@@ -1553,6 +2159,7 @@
         notifications.SystemErrors = true;
         notifications.DailyReport = false;
 
+        // Appearance
         appearance.Theme = "dark";
         appearance.FontSize = "medium";
         appearance.Layout = "default";
@@ -1560,12 +2167,14 @@
         appearance.EnglishFont = "inter";
         appearance.ShowAnimations = true;
 
+        // API Keys
         apiKeys.PublicKey = "pk_live_1234567890abcdef";
         apiKeys.SecretKey = "sk_live_9876543210fedcba";
         apiKeys.GoogleAnalytics = "UA-12345678-1";
         apiKeys.TelegramBot = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz";
         apiKeys.SendGrid = "SG.xxxxx.xxxxxxxxxxxxxxxxxxxxxxxx";
 
+        // Backup
         backup.AutoBackup = true;
         backup.BackupFrequency = "daily";
         backup.KeepVersions = 7;
@@ -1573,16 +2182,18 @@
         backup.LastBackupDate = "۱۴۰۵/۰۴/۱۰ - ۲۳:۴۵";
         backup.BackupSize = "۱۲۴ MB";
 
-        // --- مدل‌های جدید ---
+        // About
         aboutSettings.Title = "درباره من";
         aboutSettings.Content = "سلام! من محمد هستم، توسعه‌دهنده وب با بیش از ۵ سال تجربه.";
         aboutSettings.ImageUrl = "/images/about.jpg";
 
+        // SEO
         seoSettings.MetaTitle = "محمد رضایی | توسعه‌دهنده وب";
         seoSettings.MetaDescription = "طراحی و توسعه اپلیکیشن‌های مدرن و APIهای مقیاس‌پذیر.";
         seoSettings.MetaKeywords = "برنامه‌نویس, توسعه‌دهنده, وب, API, React, Node.js";
         seoSettings.OgImage = "/images/og-image.jpg";
 
+        // Homepage
         homepageSettings.HeroTitle = "سلام! من محمد هستم";
         homepageSettings.HeroSubtitle = "توسعه‌دهنده وب";
         homepageSettings.HeroDescription = "طراحی و توسعه اپلیکیشن‌های مدرن، APIهای مقیاس‌پذیر و تجربه‌های کاربری بی‌نظیر.";
@@ -1592,13 +2203,26 @@
         homepageSettings.SecondaryButtonLink = "/contact";
         homepageSettings.BannerImage = "/images/hero-bg.jpg";
 
+        // Projects
         projectsSettings.ShowProjects = true;
         projectsSettings.SectionTitle = "پروژه‌های در حال اجرا";
         projectsSettings.ProjectCount = 3;
 
+        // FAQ
         faqSettings.ShowFaq = true;
         faqSettings.SectionTitle = "سوالات متداول";
         faqSettings.FaqCount = 4;
+    }
+
+    private void LoadLinks()
+    {
+        links = new List<LinkItem>
+        {
+            new LinkItem { Id = Guid.NewGuid(), Title = "گیت‌هاب", Icon = "fab fa-github", Url = "https://github.com", Order = 1, IsActive = true },
+            new LinkItem { Id = Guid.NewGuid(), Title = "لینکدین", Icon = "fab fa-linkedin", Url = "https://linkedin.com", Order = 2, IsActive = true },
+            new LinkItem { Id = Guid.NewGuid(), Title = "تلگرام", Icon = "fab fa-telegram", Url = "https://t.me", Order = 3, IsActive = true },
+            new LinkItem { Id = Guid.NewGuid(), Title = "توییتر", Icon = "fab fa-twitter", Url = "https://twitter.com", Order = 4, IsActive = false }
+        };
     }
 
     // ============================================================
@@ -1612,7 +2236,7 @@
     }
 
     // ============================================================
-    // TOGGLE FUNCTIONS (قدیمی + جدید)
+    // TOGGLE FUNCTIONS
     // ============================================================
 
     private void Toggle2FA() => security.TwoFactorAuth = !security.TwoFactorAuth;
@@ -1626,6 +2250,8 @@
     private void ToggleAutoBackup() => backup.AutoBackup = !backup.AutoBackup;
     private void ToggleShowProjects() => projectsSettings.ShowProjects = !projectsSettings.ShowProjects;
     private void ToggleShowFaq() => faqSettings.ShowFaq = !faqSettings.ShowFaq;
+    private void ToggleNewLinkStatus() => newLinkIsActive = !newLinkIsActive;
+    private void ToggleEditLinkStatus() => editLink.IsActive = !editLink.IsActive;
 
     // ============================================================
     // SAVE FUNCTIONS
@@ -1633,15 +2259,13 @@
 
     private void SaveSection(string section)
     {
-        // در برنامه واقعی، داده‌ها را در دیتابیس ذخیره کنید
         Console.WriteLine($"Saving {section} settings...");
-        // می‌توانید یک نوتیفیکیشن نمایش دهید
+        // در برنامه واقعی، داده‌ها را در دیتابیس ذخیره کنید
     }
 
     private void SaveAllSettings()
     {
         Console.WriteLine("Saving all settings...");
-        // ذخیره همه بخش‌ها
     }
 
     private void ResetSettings()
@@ -1676,6 +2300,137 @@
     private void RestoreBackup()
     {
         // در برنامه واقعی، دیالوگ انتخاب فایل نمایش داده شود
+    }
+
+    // ============================================================
+    // LINKS CRUD
+    // ============================================================
+
+    private async Task AddLink()
+    {
+        if (string.IsNullOrWhiteSpace(newLinkTitle) || string.IsNullOrWhiteSpace(newLinkUrl))
+        {
+            await _alertService.Warning("لطفاً عنوان و آدرس لینک را وارد کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        if (!newLinkUrl.StartsWith("http://") && !newLinkUrl.StartsWith("https://"))
+        {
+            await _alertService.Warning("آدرس لینک باید با http:// یا https:// شروع شود.", "قالب نامعتبر", 4000);
+            return;
+        }
+
+        var newLink = new LinkItem
+        {
+            Id = Guid.NewGuid(),
+            Title = newLinkTitle.Trim(),
+            Icon = string.IsNullOrWhiteSpace(newLinkIcon) ? "fas fa-link" : newLinkIcon.Trim(),
+            Url = newLinkUrl.Trim(),
+            Order = newLinkOrder > 0 ? newLinkOrder : links.Count + 1,
+            IsActive = newLinkIsActive
+        };
+
+        links.Add(newLink);
+        await _alertService.Success("لینک با موفقیت اضافه شد.", "افزودن لینک", 4000);
+
+        // Reset form
+        newLinkTitle = "";
+        newLinkIcon = "fas fa-link";
+        newLinkUrl = "";
+        newLinkOrder = links.Count + 1;
+        newLinkIsActive = true;
+        StateHasChanged();
+    }
+
+    private void OpenEditLinkModal(Guid id)
+    {
+        var link = links.FirstOrDefault(l => l.Id == id);
+        if (link == null) return;
+
+        editLink = new LinkItem
+        {
+            Id = link.Id,
+            Title = link.Title,
+            Icon = link.Icon,
+            Url = link.Url,
+            Order = link.Order,
+            IsActive = link.IsActive
+        };
+        isEditLinkModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseEditLinkModal()
+    {
+        isEditLinkModalOpen = false;
+        StateHasChanged();
+    }
+
+    private async Task SaveEditLink()
+    {
+        if (string.IsNullOrWhiteSpace(editLink.Title) || string.IsNullOrWhiteSpace(editLink.Url))
+        {
+            await _alertService.Warning("لطفاً عنوان و آدرس لینک را وارد کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        if (!editLink.Url.StartsWith("http://") && !editLink.Url.StartsWith("https://"))
+        {
+            await _alertService.Warning("آدرس لینک باید با http:// یا https:// شروع شود.", "قالب نامعتبر", 4000);
+            return;
+        }
+
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            var existing = links.FirstOrDefault(l => l.Id == editLink.Id);
+            if (existing != null)
+            {
+                existing.Title = editLink.Title.Trim();
+                existing.Icon = string.IsNullOrWhiteSpace(editLink.Icon) ? "fas fa-link" : editLink.Icon.Trim();
+                existing.Url = editLink.Url.Trim();
+                existing.Order = editLink.Order > 0 ? editLink.Order : 1;
+                existing.IsActive = editLink.IsActive;
+            }
+
+            await _alertService.Success("لینک با موفقیت ویرایش شد.", "ویرایش لینک", 4000);
+            CloseEditLinkModal();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در ویرایش لینک: {ex.Message}", "خطا", 6000);
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleLinkStatus(Guid id)
+    {
+        var link = links.FirstOrDefault(l => l.Id == id);
+        if (link == null) return;
+
+        link.IsActive = !link.IsActive;
+        await _alertService.Success($"وضعیت لینک به {(link.IsActive ? "فعال" : "غیرفعال")} تغییر کرد.", "تغییر وضعیت", 4000);
+        StateHasChanged();
+    }
+
+    private async Task DeleteLink(Guid id)
+    {
+        var link = links.FirstOrDefault(l => l.Id == id);
+        if (link == null) return;
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"آیا از حذف لینک '{link.Title}' اطمینان دارید؟");
+        if (!confirmed) return;
+
+        links.RemoveAll(l => l.Id == id);
+        await _alertService.Success("لینک با موفقیت حذف شد.", "حذف لینک", 4000);
+        StateHasChanged();
     }
 
     // ============================================================
@@ -1748,7 +2503,7 @@
     }
 
     // ============================================================
-    // HELPER CLASSES (مدل‌های جدید)
+    // HELPER CLASSES
     // ============================================================
 
     public class GeneralSettings
@@ -1815,7 +2570,6 @@
         public string BackupSize { get; set; } = "";
     }
 
-    // ===== مدل‌های جدید =====
     public class AboutSettings
     {
         public string Title { get; set; } = "";
@@ -1856,4 +2610,15 @@
         public string SectionTitle { get; set; } = "";
         public int FaqCount { get; set; }
     }
+
+    public class LinkItem
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Icon { get; set; } = "fas fa-link";
+        public string Url { get; set; } = "";
+        public int Order { get; set; }
+        public bool IsActive { get; set; }
+    }
 }
+<script src="../../../../../../../GlobalAlert.js"></script>

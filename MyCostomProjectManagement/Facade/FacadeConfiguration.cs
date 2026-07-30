@@ -1,8 +1,10 @@
 ﻿using MyCostomProjectManagement.Facade.Auth;
 using MyCostomProjectManagement.Facade.ContactUs;
 using MyCostomProjectManagement.Facade.FAQ;
+using MyCostomProjectManagement.Facade.PageManagement;
 using MyCostomProjectManagement.Facade.Portfolio;
 using MyCostomProjectManagement.Facade.Role;
+using MyCostomProjectManagement.Facade.SiteSettings;
 using MyCostomProjectManagement.Facade.Skills;
 using MyCostomProjectManagement.Facade.User;
 
@@ -19,6 +21,8 @@ namespace MyCostomProjectManagement.Facade
             services.AddScoped<IPortfolioFacade, PortfolioFacade>();
             services.AddScoped<IContactUsFacade, ContactUsFacade>();
             services.AddScoped<IFAQFacade, FAQFacade>();
+            services.AddScoped<ISiteSettingFacade, SiteSettingFacade>();
+            services.AddScoped<IPageManagementFacade, PageManagementFacade>();
 
             return services;
         }

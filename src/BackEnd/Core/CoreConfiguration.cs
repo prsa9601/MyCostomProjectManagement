@@ -6,6 +6,7 @@ using BackEnd.Core.FAQ.Queries.Mapper;
 using BackEnd.Core.Portfolio.Queries.Mappers;
 using BackEnd.Core.Portfolio.Resolver;
 using BackEnd.Core.Role.Queries.Mappers;
+using BackEnd.Core.SiteSetting.Queries.Mappers;
 using BackEnd.Core.Skills.Queries.Mappers;
 using BackEnd.Core.User.Commands.Register;
 using BackEnd.Core.User.Queries.GetId;
@@ -63,6 +64,7 @@ namespace BackEnd.Core
                 cfg.AddProfile<UserAutoMapperProfile>();
                 cfg.AddProfile<RoleAutoMapperProfile>();
                 cfg.AddProfile<SkillAutoMapperProfile>();
+                cfg.AddProfile<SiteSettingAutoMapperProfile>();
                 cfg.AddProfile<PortfolioAutoMapperProfile>();
                 cfg.AddProfile<FAQAutoMapperProfile>();
                 cfg.ConstructServicesUsing(serviceProvider.GetService);

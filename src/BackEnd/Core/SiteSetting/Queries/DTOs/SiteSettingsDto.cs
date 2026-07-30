@@ -12,6 +12,7 @@ namespace BackEnd.Core.SiteSetting.Queries.DTOs
         public ProjectSectionSettingDto ProjectSectionSetting { get; set; }
         public SpecializedServicesSectionDto SpecializedServicesSection { get; set; }
         public AboutMeSectionDto AboutMeSection { get; set; }
+        public List<SiteLinksDto> SiteLinks { get; set; }
     }
  
 }

@@ -6,6 +6,8 @@ using MyCostomProjectManagement.Components;
 using MyCostomProjectManagement.Facade;
 using MyCostomProjectManagement.Infrastructure;
 using MyCostomProjectManagement.Shared.Extensions;
+using MyCostomProjectManagement.Shared.Middleware;
+using MyCostomProjectManagement.Shared.Utilities.PageManagement;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +18,7 @@ builder.Services.AddRazorPages();   // <-- این خط را اضافه کنید
 builder.Services.AddServerSideBlazor();
 
 builder.Services.AddScoped<UserAuthentication>();
+builder.Services.AddScoped<PageManagementUtil>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 builder.Services.AddHttpContextAccessor();
@@ -40,9 +43,22 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 
 app.UseHttpsRedirection();
 
-//app.UseRouting();
+app.UseRouting();
 //app.MapControllers();
 app.UseAntiforgery();
+
+
+app.Use(async (context, next) =>
+{
+    var service = context.RequestServices.GetRequiredService<PageManagementUtil>();
+    var pagesUnderConstruction = await service.GetPagesItem();
+    var result = pagesUnderConstruction.Where(i => i.IsUnderConstruction == true).ToList();
+    if (result.Any(i => i.Url.Equals(context.Request.Path.Value, StringComparison.OrdinalIgnoreCase)))
+    {
+        context.Response.Redirect("/PageUpgrading");
+    }
+    await next();
+});
 
 app.UseMiddleware<AuthRefreshTokenMiddleware>();
 app.UseAuthentication();
@@ -52,6 +68,8 @@ app.UseStaticFiles();
 
 //کامنت کردم این رو ویدیو کامل و درست پلی شد
 //app.MapStaticAssets();
+
+app.UseMiddleware<RobotsMiddleware>();
 
 app.MapRazorPages();
 app.MapRazorComponents<App>()

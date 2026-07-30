@@ -44,8 +44,10 @@ namespace BackEnd.Data.DB.Initializer
 
 
                 await context.TechnicalSkills.AddRangeAsync(allSkills);
+
                 await context.SaveChangesAsync();
             }
+            await SetSiteSetting.SiteSettingInitializeAsync(serviceProvider);
         }
     }
 }

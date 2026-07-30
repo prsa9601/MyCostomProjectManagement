@@ -12,11 +12,15 @@
     <Folder Include="Core\ContactUs\Commands\Edit\" />
     <Folder Include="Core\Package\Commands\" />
     <Folder Include="Core\Package\Queries\Mappers\" />
+    <Folder Include="Core\PageManagement\Queries\DTOs\" />
     <Folder Include="Core\Project\Commands\" />
     <Folder Include="Core\Project\Queries\DTOs\" />
     <Folder Include="Core\Project\Queries\Mappers\" />
-    <Folder Include="Core\SiteSetting\Commands\" />
-    <Folder Include="Core\SiteSetting\Queries\Mappers\" />
+    <Folder Include="Core\SiteSetting\Commands\Create\" />
+    <Folder Include="Core\SiteSetting\Commands\Edit\" />
+    <Folder Include="Core\SiteSetting\Commands\SiteSettingLinks\Create\" />
+    <Folder Include="Core\SiteSetting\Commands\SiteSettingLinks\Edit\" />
+    <Folder Include="Core\SiteSetting\Commands\SiteSettingLinks\Remove\" />
     <Folder Include="Core\User\Commands\Edit\" />
     <Folder Include="Data\DB\Migrations\" />
     <Folder Include="Data\Entities\ApiProducts\Repository\" />
@@ -25,11 +29,9 @@
     <Folder Include="Data\Entities\Package\Repository\" />
     <Folder Include="Data\Entities\Projects\Repository\" />
     <Folder Include="Data\Entities\Project\" />
-    <Folder Include="Data\Entities\SiteSettings\Repository\" />
     <Folder Include="Infrastructure\InternalAPIs\" />
     <Folder Include="Infrastructure\Repositories\ApiProduct\" />
     <Folder Include="Infrastructure\Repositories\Project\" />
-    <Folder Include="Infrastructure\Repositories\SiteSettings\" />
     <Folder Include="Infrastructure\Repositories\Package\" />
   </ItemGroup>
 

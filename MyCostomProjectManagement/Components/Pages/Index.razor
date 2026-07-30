@@ -28,7 +28,94 @@
     /* ====================================================
                                        تمام استایل‌های مورد نیاز (لندینگ + داشبورد)
                                        ==================================================== */
+    /* ====================================================
+       LOADING OVERLAY
+       ==================================================== */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(10, 14, 23, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
 
+        .loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+    .loader-spinner {
+        width: 60px;
+        height: 60px;
+        border: 3px solid rgba(59, 130, 246, 0.15);
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+        margin-bottom: 24px;
+    }
+
+    .loader-text {
+        font-size: 1.1rem;
+        color: #94a3b8;
+        font-weight: 500;
+        letter-spacing: 1px;
+    }
+
+    .loader-progress {
+        width: 200px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        margin-top: 16px;
+        overflow: hidden;
+    }
+
+        .loader-progress .bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            animation: loadingProgress 1.8s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes loadingProgress {
+        0% {
+            width: 0%;
+            transform: translateX(0);
+        }
+
+        50% {
+            width: 70%;
+            transform: translateX(0);
+        }
+
+        100% {
+            width: 100%;
+            transform: translateX(0);
+        }
+    }
     /* ----- RESET & BASE ----- */
     * {
         margin: 0;
@@ -1708,6 +1795,16 @@
     </div>
 </header>
 
+<!-- ===== LOADING OVERLAY ===== -->
+@* <div class="loading-overlay @(IsLoading ? "" : "hidden")">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">در حال بارگذاری اطلاعات...</div>
+    <div class="loader-progress">
+        <div class="bar"></div>
+    </div>
+</div> *@
+
+
 <!-- ===== HERO ===== -->
 <section class="hero">
     <div class="container">
@@ -1722,12 +1819,33 @@
         </h1>
         <p>طراحی و توسعه اپلیکیشن‌های مدرن، API‌های مقیاس‌پذیر و تجربه‌های کاربری بی‌نظیر. بیش از ۵ سال تجربه در تیم‌های فنی.</p>
         <div class="hero-actions">
-            <a href="#" class="btn-primary ripple"><i class="fas fa-eye"></i> مشاهده نمونه‌کارها</a>
-            <a href="#" class="btn-outline ripple"><i class="fas fa-paper-plane"></i> همکاری با من</a>
+        
+           
+            <button @onclick='() => ScrollToSection("portfolio")' class="btn-primary ripple"><i class="fas fa-eye"></i> مشاهده نمونه‌کارها</button>
+             @* <a href="#" class="btn-primary ripple"><i class="fas fa-eye"></i> مشاهده نمونه‌کارها</a>  *@
+            <button @onclick='() => ScrollToSection("contact")' class="btn-outline ripple">
+                <i class="fas fa-paper-plane"></i> همکاری با من
+            </button>
+            @* <a href="#" class="btn-outline ripple"><i class="fas fa-paper-plane"></i> همکاری با من</a> *@
         </div>
     </div>
 </section>
+@code{
+    private DateTime birthDate = new DateTime(2004, 7, 1); // تیر ۱۳۸۲ ≈ July 2003
 
+private int GetAge()
+{
+    var today = DateTime.Today;
+    var age = today.Year - birthDate.Year;
+    if (birthDate.Date > today.AddYears(-age)) age--;
+    return age;
+}
+
+private int GetExperience()
+{
+    return GetAge() - 18; // از ۱۸ سالگی شروع کرده
+}
+}
 <!-- ===== درباره من ===== -->
 <section class="section" id="about">
     <div class="container">
@@ -1735,9 +1853,15 @@
         <p class="section-subtitle fade-up">برنامه‌نویس خلاق با عشق به کد و حل مسئله</p>
         <div class="about-grid">
             <div class="about-text fade-up">
-                <p>سلام! من محمد هستم، توسعه‌دهنده فرانت‌اند و بک‌اند با تمرکز بر اکوسیستم جاوااسکریپت. از سال ۲۰۱۹ مشغول ساخت اپلیکیشن‌های وب برای استارتاپ‌ها و کسب‌وکارهای بزرگ بوده‌ام.</p>
-                <p>عاشق یادگیری تکنولوژی‌های جدید، بهینه‌سازی عملکرد و طراحی رابط‌های کاربری زیبا و کارآمد هستم. در کنار برنامه‌نویسی، به تدریس و منتورینگ نیز علاقه دارم.</p>
-                <div class="about-stats">
+                <p>
+                    سلام! من محمد پارسا کریمی هستم، برنامه‌نویس و توسعه‌دهنده‌ی <strong>سی‌شارپ</strong> و <strong>دات‌نت</strong> با بیش از @GetExperience() سال تجربه در ساخت اپلیکیشن‌های وب و سیستمی.
+                    از سال ۲۰۲۲ برنامه‌نویسی رو به‌صورت حرفه‌ای شروع کردم و تا الان توی پروژه‌های شخصی، فریلنسری و تیم‌های کوچک، تجربه‌ی ارزشمندی جمع کردم.
+                    عاشق خلق راه‌حل‌های کارآمد و مقیاس‌پذیر هستم و همیشه دنبال چالش‌های جدید می‌گردم.
+                </p>
+                <p>
+                    تخصص من در <strong>بک‌اند</strong> با <strong>ASP.NET Core</strong>، طراحی <strong>API</strong>های قدرتمند و ساخت <strong>داشبورد</strong>های مدیریتی است،
+                    و همیشه به دنبال یادگیری فناوری‌های جدید هستم.
+                </p><div class="about-stats">
                     @foreach (var stat in stats)
                     {
                         <div class="stat-item">
@@ -1806,9 +1930,11 @@
                             <div class="info"><h4>@item.Title</h4><p>@item.Description</p></div>
                         </div>
                     }*@
+
                     @foreach (var item in PortfolioResult.Data)
                     {
-                        <div class="portfolio-item fade-up">
+                        
+                        <div class="portfolio-item fade-up" @key="item.Title">
                             @if (item.PortfolioFile.IsImage)
                             {
                                 <img src="@(Directories.GetPortfolioImage(item.PortfolioFile.FileAddress))" alt="@item.Title" />
@@ -1984,7 +2110,7 @@
         <div class="faq-list">
             @foreach (var faq in faqItems)
             {
-                <div class="faq-item @(faq.IsActive ? "active" : "") fade-up">
+                <div class="faq-item  @(faq.IsActive ? "active" : "")" @key="faq.Sequense" fade-up">
                     <div class="faq-question" @onclick="() => ToggleFaq(faq)">
                         <span>@faq.Question</span>
                         <i class="fas fa-chevron-down"></i>
@@ -2018,6 +2144,8 @@
     private bool isMenuOpen = false;
     private string typewriterText = "محمد پارسا کریمی";
 
+    private bool isLoading = true;
+
     // ---- داده‌های آماری ----
     private List<StatItem> stats = new();
     private List<SkillItem> skills = new();
@@ -2050,82 +2178,86 @@
     }
 
     // ---- متدهای چرخه زندگی ----
-    protected override async Task OnInitializedAsync()
+    // protected override async Task OnInitializedAsync()
+    // {
+
+
+    // }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // مقداردهی آمار
-        stats = new List<StatItem>
+        if (firstRender)
+        {
+            // await InitializeJsInterop();
+            // مقداردهی آمار
+            stats = new List<StatItem>
         {
             new StatItem { Label = "سال تجربه", Target = 5, CurrentValue = 0 },
             new StatItem { Label = "پروژه موفق", Target = 40, CurrentValue = 0 },
             new StatItem { Label = "مشتری راضی", Target = 12, CurrentValue = 0 }
         };
 
-        PortfolioResult = await _portfolioFacade.GetFilter(new PortfolioFilterParam
-        {
-            PageId = 1,
-            Take = 3,
-            GetPortfolioFileType = GetPortfolioType.GetAll,
-            GetForMainPage = true,
-        });
+            PortfolioResult = await _portfolioFacade.GetFilter(new PortfolioFilterParam
+            {
+                PageId = 1,
+                Take = 3,
+                GetPortfolioFileType = GetPortfolioType.GetAll,
+                GetForMainPage = true,
+            });
 
-        // مقداردهی مهارت‌ها
-        // skills = new List<SkillItem>
-        // {
-        //     new SkillItem { Name = "React", Icon = "fab fa-react", Progress = 90 },
-        //     new SkillItem { Name = "Vue.js", Icon = "fab fa-vuejs", Progress = 85 },
-        //     new SkillItem { Name = "Node.js", Icon = "fab fa-node-js", Progress = 80 },
-        //     new SkillItem { Name = "Python", Icon = "fab fa-python", Progress = 75 },
-        //     new SkillItem { Name = "MongoDB", Icon = "fas fa-database", Progress = 85 },
-        //     new SkillItem { Name = "AWS", Icon = "fas fa-cloud", Progress = 70 },
-        //     new SkillItem { Name = "Docker", Icon = "fab fa-docker", Progress = 65 },
-        //     new SkillItem { Name = "TypeScript", Icon = "fas fa-code", Progress = 88 }
-        // };
-        var getSkillResult = await _skillFacade.GetFilter(new BackEnd.Core.Skills.Queries.DTOs.SkillFilterParam
-        {
-            IsActive = true,
-            Take = 12,
-            PageId = 1
-        });
-        skills = getSkillResult.Data.Select(i => new SkillItem
-        {
-            Icon = i.Icon,
-            IsVisible = i.IsActive,
-            Name = i.Title,
-            Progress = i.SkillPercentage,
-        }).ToList();
+            // مقداردهی مهارت‌ها
+            // skills = new List<SkillItem>
+            // {
+            //     new SkillItem { Name = "React", Icon = "fab fa-react", Progress = 90 },
+            //     new SkillItem { Name = "Vue.js", Icon = "fab fa-vuejs", Progress = 85 },
+            //     new SkillItem { Name = "Node.js", Icon = "fab fa-node-js", Progress = 80 },
+            //     new SkillItem { Name = "Python", Icon = "fab fa-python", Progress = 75 },
+            //     new SkillItem { Name = "MongoDB", Icon = "fas fa-database", Progress = 85 },
+            //     new SkillItem { Name = "AWS", Icon = "fas fa-cloud", Progress = 70 },
+            //     new SkillItem { Name = "Docker", Icon = "fab fa-docker", Progress = 65 },
+            //     new SkillItem { Name = "TypeScript", Icon = "fas fa-code", Progress = 88 }
+            // };
+            var getSkillResult = await _skillFacade.GetFilter(new BackEnd.Core.Skills.Queries.DTOs.SkillFilterParam
+            {
+                IsActive = true,
+                Take = 12,
+                PageId = 1
+            });
+            skills = getSkillResult.Data.Select(i => new SkillItem
+            {
+                Icon = i.Icon,
+                IsVisible = i.IsActive,
+                Name = i.Title,
+                Progress = i.SkillPercentage,
+            }).ToList();
 
-        // مقداردهی سوالات متداول
+            // مقداردهی سوالات متداول
 
-        var getFAQFilterResult = await _faqFacade.GetFilter(new BackEnd.Core.FAQ.Queries.DTOs.FAQFilterParam
-        {
-            PageId= 1,
-            Take = 4,
-            IsActive = true
-        });
-        faqItems = getFAQFilterResult.Data.Select(i => new FaqItem
-        {
-            Question = i.Question,
-            Answer = i.Answer, 
-            IsActive = false,
-            Sequense = i.Sequense,
-        }).ToList();
-        // faqItems = new List<FaqItem>
-        // {
-        //     new FaqItem { Question = "آیا می‌توانم پروژه را به صورت قسطی پرداخت کنم؟", Answer = "بله، برای پروژه‌های بالای ۵۰ میلیون تومان امکان پرداخت در دو قسط وجود دارد.", IsActive = true },
-        //     new FaqItem { Question = "چه مدت زمان برای تحویل پروژه نیاز است؟", Answer = "بسته به پیچیدگی، معمولاً بین ۲ تا ۶ هفته." },
-        //     new FaqItem { Question = "آیا پس از تحویل، پشتیبانی دارید؟", Answer = "بله، یک ماه پشتیبانی رایگان و پس از آن با قرارداد نگهداری همراه است." },
-        //     new FaqItem { Question = "آیا می‌توانم API را به صورت آزمایشی استفاده کنم؟", Answer = "بله، طرح استارتر رایگان شامل ۱۰۰ درخواست روزانه برای تست است." }
-        // };
+            var getFAQFilterResult = await _faqFacade.GetFilter(new BackEnd.Core.FAQ.Queries.DTOs.FAQFilterParam
+            {
+                PageId = 1,
+                Take = 4,
+                IsActive = true
+            });
+            faqItems = getFAQFilterResult.Data.Select(i => new FaqItem
+            {
+                Question = i.Question,
+                Answer = i.Answer,
+                IsActive = false,
+                Sequense = i.Sequense,
+            }).ToList();
+            // faqItems = new List<FaqItem>
+            // {
+            //     new FaqItem { Question = "آیا می‌توانم پروژه را به صورت قسطی پرداخت کنم؟", Answer = "بله، برای پروژه‌های بالای ۵۰ میلیون تومان امکان پرداخت در دو قسط وجود دارد.", IsActive = true },
+            //     new FaqItem { Question = "چه مدت زمان برای تحویل پروژه نیاز است؟", Answer = "بسته به پیچیدگی، معمولاً بین ۲ تا ۶ هفته." },
+            //     new FaqItem { Question = "آیا پس از تحویل، پشتیبانی دارید؟", Answer = "بله، یک ماه پشتیبانی رایگان و پس از آن با قرارداد نگهداری همراه است." },
+            //     new FaqItem { Question = "آیا می‌توانم API را به صورت آزمایشی استفاده کنم؟", Answer = "بله، طرح استارتر رایگان شامل ۱۰۰ درخواست روزانه برای تست است." }
+            // };
 
-        // شروع انیمیشن‌ها
-        StartCounterAnimation();
-        StartTypewriter();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
+            // شروع انیمیشن‌ها
+            StartCounterAnimation();
+            StartTypewriter();
+            StateHasChanged();
             await InitializeJsInterop();
         }
     }
