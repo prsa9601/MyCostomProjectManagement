@@ -10,8 +10,10 @@
 
         public const string PortfolioVideo = "wwwroot/Files/Portfolio/Video";
         public const string PortfolioImage = "wwwroot/Files/Portfolio/Image";
+        public const string BlogFiles = "wwwroot/Files/Blog";
         public static string GetPortfolioImage(string path) => $"{SiteSettings.ServerPath}/{PortfolioImage.Replace("wwwroot/","")}/{path}";
         public static string GetPortfolioVideo(string path) => $"{SiteSettings.ServerPath}/{PortfolioVideo.Replace("wwwroot/", "")}/{path}";
+        public static string GetBlogFiles(string path) => $"{SiteSettings.ServerPath}/{BlogFiles.Replace("wwwroot/", "")}/{path}";
 
     }
 }

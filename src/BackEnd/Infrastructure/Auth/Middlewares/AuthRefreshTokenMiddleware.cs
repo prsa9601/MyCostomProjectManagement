@@ -4,10 +4,12 @@ using BackEnd.Core.Abstraction.Jwt.Enum;
 using BackEnd.Core.Abstraction.Jwt.Interfaces;
 using BackEnd.Data.DB;
 using BackEnd.Data.Entities.User;
+using BackEnd.Infrastructure.Auth.Jwt;
 using BackEnd.Infrastructure.Security.Hash.service;
 using BackEnd.Infrastructure.Security.Hash.strategies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -57,7 +59,7 @@ namespace BackEnd.Infrastructure.Auth.Middlewares
                         {
                             _cokkieService.DeleteCookie(context.Response, refreshTokenCookieKey);
                         }
-                        if (result.claim == null) 
+                        if (result.claim == null)
                         {
                             _cokkieService.DeleteCookie(context.Response, authTokenCookieKey);
                             _cokkieService.DeleteCookie(context.Response, refreshTokenCookieKey);
@@ -87,7 +89,7 @@ namespace BackEnd.Infrastructure.Auth.Middlewares
                         await _next(context);
                         return;
                     }
-                    
+
                 }
             }
 
@@ -148,7 +150,7 @@ namespace BackEnd.Infrastructure.Auth.Middlewares
             }
             if (tokenType == Core.Abstraction.Jwt.Enum.TokenType.AuthRefreshToken)
             {
-                var user = _context.Users.FirstOrDefault(i => i.Id == userId);
+                var user = _context.Users.Include(i => i.UserSessionBlackList).FirstOrDefault(i => i.Id == userId);
                 bool userIsBlocked = user.UserBlackList.Any(i => i.ExpireDate > DateTime.Now);
                 bool userSessionIsBlocked = user.UserSessionBlackList.Any(i => i.HashToken == _hashManager.Hash(token) &&
                 i.UserId == userId);
@@ -162,7 +164,10 @@ namespace BackEnd.Infrastructure.Auth.Middlewares
                 }
             }
 
+
+
             return ($"{tokenType} Token Invalid", true, validateResult);
         }
+
     }
 }

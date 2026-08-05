@@ -1,0 +1,1475 @@
+﻿@page "/Admin/Blog"
+@using MyCostomProjectManagement.Infrastructure
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject JsAlertService _alertService
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مدیریت وبلاگ | پنل ادمین</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+           BLOG MANAGEMENT PAGE
+        ============================================================ */
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 32px;
+        padding-top: 20px;
+    }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-header h1 i {
+                color: #e8a838;
+            }
+
+        .page-header .subtitle {
+            color: rgba(232, 240, 241, 0.5);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .page-header .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        padding: 9px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+        .btn-outline:hover {
+            border-color: #e8a838;
+            color: #fff;
+            background: rgba(232, 168, 56, 0.04);
+            transform: translateY(-2px);
+        }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-success:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(220, 53, 69, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-danger:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(220, 53, 69, 0.2);
+        }
+
+    .btn-icon-sm {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(232, 240, 241, 0.2);
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+    }
+
+        .btn-icon-sm:hover {
+            border-color: rgba(232, 168, 56, 0.06);
+            color: #e8f0f1;
+            background: rgba(232, 168, 56, 0.02);
+            transform: scale(1.05);
+        }
+
+        .btn-icon-sm.edit:hover {
+            border-color: rgba(82, 183, 136, 0.06);
+            color: #52b788;
+            background: rgba(82, 183, 136, 0.02);
+        }
+
+        .btn-icon-sm.delete:hover {
+            border-color: rgba(220, 53, 69, 0.06);
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.02);
+        }
+
+        .btn-icon-sm.view:hover {
+            border-color: rgba(59, 130, 246, 0.06);
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.02);
+        }
+
+    /* ===== STATS ROW ===== */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-mini {
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.3s ease;
+    }
+
+        .stat-mini:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(232, 168, 56, 0.06);
+        }
+
+        .stat-mini i {
+            font-size: 1.6rem;
+            color: #e8a838;
+            opacity: 0.5;
+            width: 40px;
+            text-align: center;
+        }
+
+        .stat-mini .info .number {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .stat-mini .info .label {
+            font-size: 0.75rem;
+            color: rgba(232, 240, 241, 0.3);
+        }
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 32px;
+        padding: 16px 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        align-items: center;
+    }
+
+        .filter-bar .search-box {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 0 16px;
+            transition: all 0.35s ease;
+        }
+
+            .filter-bar .search-box:focus-within {
+                border-color: #e8a838;
+                background: rgba(255, 255, 255, 0.04);
+                box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+            }
+
+            .filter-bar .search-box input {
+                background: transparent;
+                border: none;
+                padding: 12px 12px;
+                color: #e8f0f1;
+                font-size: 0.9rem;
+                width: 100%;
+                outline: none;
+            }
+
+                .filter-bar .search-box input::placeholder {
+                    color: rgba(232, 240, 241, 0.3);
+                }
+
+            .filter-bar .search-box i {
+                color: rgba(232, 240, 241, 0.2);
+                font-size: 0.9rem;
+            }
+
+        .filter-bar .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+            .filter-bar .filter-group .filter-btn {
+                padding: 8px 18px;
+                border-radius: 40px;
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                background: rgba(255, 255, 255, 0.02);
+                color: rgba(232, 240, 241, 0.4);
+                font-size: 0.8rem;
+                font-weight: 500;
+                transition: all 0.35s ease;
+                cursor: pointer;
+            }
+
+                .filter-bar .filter-group .filter-btn:hover {
+                    border-color: rgba(232, 168, 56, 0.1);
+                    color: #e8f0f1;
+                }
+
+                .filter-bar .filter-group .filter-btn.active {
+                    background: rgba(232, 168, 56, 0.08);
+                    border-color: rgba(232, 168, 56, 0.1);
+                    color: #e8a838;
+                }
+
+    /* ===== BLOG TABLE ===== */
+    .table-wrapper {
+        overflow-x: auto;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        padding: 4px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+        .data-table thead th {
+            text-align: right;
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #94a3b8;
+            font-weight: 500;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .data-table tbody td {
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            vertical-align: middle;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .data-table .post-title {
+            color: #e8edf5;
+            font-weight: 500;
+        }
+
+        .data-table .post-excerpt {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            max-width: 200px;
+        }
+
+        .data-table .status-badge {
+            font-size: 0.65rem;
+            padding: 3px 12px;
+            border-radius: 30px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+            .data-table .status-badge.published {
+                background: rgba(82, 183, 136, 0.06);
+                color: #52b788;
+                border: 1px solid rgba(82, 183, 136, 0.02);
+            }
+
+            .data-table .status-badge.draft {
+                background: rgba(232, 168, 56, 0.06);
+                color: #e8a838;
+                border: 1px solid rgba(232, 168, 56, 0.02);
+            }
+
+        .data-table .lang-badge {
+            font-size: 0.6rem;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+
+            .data-table .lang-badge.fa {
+                background: rgba(59, 130, 246, 0.06);
+                color: #3b82f6;
+                border: 1px solid rgba(59, 130, 246, 0.02);
+            }
+
+            .data-table .lang-badge.en {
+                background: rgba(139, 92, 246, 0.06);
+                color: #a78bfa;
+                border: 1px solid rgba(139, 92, 246, 0.02);
+            }
+
+        .data-table .actions-cell {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+    /* ============================================================
+           MODAL (Add/Edit Post)
+        ============================================================ */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+    @@keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .modal-box {
+        background: #0a0e17;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 28px;
+        padding: 40px 36px;
+        max-width: 720px;
+        width: 100%;
+        margin: 20px;
+        box-shadow: 0 8px 64px rgba(0, 0, 0, 0.5);
+        animation: scaleIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+        max-height: 95vh;
+        overflow-y: auto;
+    }
+
+    @@keyframes scaleIn {
+        0% {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .modal-box .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .modal-box .modal-title i {
+            color: #e8a838;
+        }
+
+    .modal-box .modal-subtitle {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+
+    .modal-box .form-group {
+        margin-bottom: 18px;
+    }
+
+        .modal-box .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .modal-box .form-group input,
+        .modal-box .form-group textarea,
+        .modal-box .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            color: #eef2f8;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.35s ease;
+            font-family: inherit;
+        }
+
+            .modal-box .form-group input:focus,
+            .modal-box .form-group textarea:focus,
+            .modal-box .form-group select:focus {
+                border-color: #e8a838;
+                background: rgba(255, 255, 255, 0.04);
+                box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
+            }
+
+            .modal-box .form-group input::placeholder,
+            .modal-box .form-group textarea::placeholder {
+                color: #64748b;
+            }
+
+            .modal-box .form-group select option {
+                background: #0a0e17;
+                color: #eef2f8;
+            }
+
+        .modal-box .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .modal-box .form-group .code-editor {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #eef2f8;
+            font-size: 0.9rem;
+            width: 100%;
+            min-height: 150px;
+            outline: none;
+            transition: all 0.35s ease;
+            font-family: 'Consolas', 'Courier New', monospace;
+            resize: vertical;
+            background: rgba(0, 0, 0, 0.2);
+            tab-size: 2;
+            line-height: 1.6;
+        }
+
+            .modal-box .form-group .code-editor:focus {
+                border-color: #e8a838;
+                background: rgba(0, 0, 0, 0.3);
+                box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
+            }
+
+        .modal-box .form-group .editor-toolbar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+            .modal-box .form-group .editor-toolbar button {
+                padding: 4px 10px;
+                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                background: rgba(255, 255, 255, 0.02);
+                color: #94a3b8;
+                font-size: 0.7rem;
+                cursor: pointer;
+                transition: 0.3s;
+                font-family: inherit;
+            }
+
+                .modal-box .form-group .editor-toolbar button:hover {
+                    border-color: rgba(232, 168, 56, 0.06);
+                    color: #e8f0f1;
+                    background: rgba(232, 168, 56, 0.02);
+                }
+
+                .modal-box .form-group .editor-toolbar button i {
+                    margin-left: 4px;
+                }
+
+        .modal-box .form-group .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 4px 0;
+        }
+
+            .modal-box .form-group .toggle-wrapper .toggle-label {
+                font-size: 0.85rem;
+                color: #94a3b8;
+            }
+
+    .modal-box .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 40px;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+    }
+
+        .modal-box .toggle-switch.active {
+            background: rgba(82, 183, 136, 0.15);
+            border-color: rgba(82, 183, 136, 0.1);
+        }
+
+        .modal-box .toggle-switch .toggle-knob {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(232, 240, 241, 0.15);
+            transition: all 0.35s ease;
+        }
+
+        .modal-box .toggle-switch.active .toggle-knob {
+            right: 24px;
+            background: #52b788;
+            box-shadow: 0 0 16px rgba(82, 183, 136, 0.15);
+        }
+
+    .modal-box .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        flex-wrap: wrap;
+    }
+
+        .modal-box .modal-actions .btn-modal-primary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            font-family: inherit;
+            background: linear-gradient(135deg, #e8a838, #d4952e);
+            color: #0a0e17;
+            box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+        }
+
+            .modal-box .modal-actions .btn-modal-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+            }
+
+        .modal-box .modal-actions .btn-modal-secondary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            font-family: inherit;
+        }
+
+            .modal-box .modal-actions .btn-modal-secondary:hover {
+                background: rgba(255, 255, 255, 0.04);
+                border-color: rgba(255, 255, 255, 0.1);
+                color: #eef2f8;
+                transform: translateY(-2px);
+            }
+
+    /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+    @@media (max-width: 992px) {
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .modal-box {
+            max-width: 90%;
+            padding: 28px 20px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .page-header .actions {
+                width: 100%;
+            }
+
+                .page-header .actions .btn-primary {
+                    flex: 1;
+                    justify-content: center;
+                }
+
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .stat-mini .info .number {
+            font-size: 1.1rem;
+        }
+
+        .stat-mini i {
+            font-size: 1.2rem;
+            width: 30px;
+        }
+
+        .filter-bar {
+            flex-direction: column;
+            padding: 16px;
+        }
+
+            .filter-bar .search-box {
+                width: 100%;
+            }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table tbody td {
+            display: block;
+            padding: 8px 14px;
+            border-bottom: none;
+        }
+
+        .data-table tbody tr {
+            display: block;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 4px 0;
+        }
+
+            .data-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .data-table td:before {
+            content: attr(data-label);
+            display: inline-block;
+            width: 80px;
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .data-table .post-excerpt {
+            max-width: none;
+        }
+
+        .modal-box {
+            padding: 20px 16px;
+            max-height: 95vh;
+        }
+
+            .modal-box .form-group .editor-toolbar {
+                flex-wrap: wrap;
+            }
+
+            .modal-box .modal-actions {
+                flex-direction: column;
+            }
+
+                .modal-box .modal-actions .btn-modal-primary,
+                .modal-box .modal-actions .btn-modal-secondary {
+                    width: 100%;
+                }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header h1 {
+            font-size: 1.2rem;
+        }
+
+        .filter-bar .filter-group {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .modal-box {
+            padding: 16px 12px;
+        }
+    }
+
+    /* ============================================================
+           RIPPLE & FADE UP
+        ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+
+    @@keyframes rippleAnim {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    .stagger-child {
+        transition-delay: 0s;
+    }
+
+        .stagger-child:nth-child(1) {
+            transition-delay: 0.05s;
+        }
+
+        .stagger-child:nth-child(2) {
+            transition-delay: 0.1s;
+        }
+
+        .stagger-child:nth-child(3) {
+            transition-delay: 0.15s;
+        }
+
+        .stagger-child:nth-child(4) {
+            transition-delay: 0.2s;
+        }
+
+    /* ============================================================
+           SCROLLBAR
+        ============================================================ */
+    .modal-box::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .modal-box::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .modal-box::-webkit-scrollbar-thumb {
+        background: rgba(232, 168, 56, 0.2);
+        border-radius: 10px;
+    }
+
+        .modal-box::-webkit-scrollbar-thumb:hover {
+            background: rgba(232, 168, 56, 0.3);
+        }
+</style>
+
+<!-- ============================================================
+     PAGE CONTENT
+============================================================ -->
+<main class="dashboard">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header fade-up visible">
+            <div>
+                <h1>
+                    <i class="fas fa-blog"></i>
+                    مدیریت وبلاگ
+                </h1>
+                <div class="subtitle">ایجاد، ویرایش و مدیریت مطالب وبلاگ (پشتیبانی از فارسی و انگلیسی)</div>
+            </div>
+            <div class="actions">
+                <button class="btn-primary ripple" @onclick="OpenAddModal">
+                    <i class="fas fa-plus"></i> مطلب جدید
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row fade-up visible">
+            <div class="stat-mini">
+                <i class="fas fa-file-alt"></i>
+                <div class="info">
+                    <div class="number">@posts.Count</div>
+                    <div class="label">کل مطالب</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-check-circle" style="color:#52b788;"></i>
+                <div class="info">
+                    <div class="number">@publishedCount</div>
+                    <div class="label">منتشر شده</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-pen" style="color:#e8a838;"></i>
+                <div class="info">
+                    <div class="number">@draftCount</div>
+                    <div class="label">پیش‌نویس</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <i class="fas fa-globe" style="color:#8264c8;"></i>
+                <div class="info">
+                    <div class="number">@langCount</div>
+                    <div class="label">زبان‌ها</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar fade-up visible">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="جستجوی مطلب..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn @(filterStatus == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>همه</button>
+                <button class="filter-btn @(filterStatus == "published" ? "active" : "")" @onclick='() => SetFilter("published")'>منتشر شده</button>
+                <button class="filter-btn @(filterStatus == "draft" ? "active" : "")" @onclick='() => SetFilter("draft")'>پیش‌نویس</button>
+            </div>
+            <div class="filter-group" style="margin-right:auto;">
+                <button class="filter-btn @(filterLang == "all" ? "active" : "")" @onclick='() => SetLang("all")'>همه زبان‌ها</button>
+                <button class="filter-btn @(filterLang == "fa" ? "active" : "")" @onclick='() => SetLang("fa")'>فارسی</button>
+                <button class="filter-btn @(filterLang == "en" ? "active" : "")" @onclick='() => SetLang("en")'>انگلیسی</button>
+            </div>
+        </div>
+
+        <!-- Posts Table -->
+        <div class="table-wrapper fade-up visible">
+            @if (filteredPosts.Any())
+            {
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="min-width:160px;">عنوان</th>
+                            <th style="min-width:120px;">زبان</th>
+                            <th style="min-width:120px;">وضعیت</th>
+                            <th style="min-width:180px;">خلاصه</th>
+                            <th style="min-width:120px;">تاریخ</th>
+                            <th style="width:120px; text-align:center;">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var post in filteredPosts)
+                        {
+                            <tr>
+                                <td data-label="عنوان">
+                                    <div class="post-title">@post.Title</div>
+                                </td>
+                                <td data-label="زبان">
+                                    <span class="lang-badge @post.Lang">@(post.Lang == "fa" ? "فارسی" : "English")</span>
+                                </td>
+                                <td data-label="وضعیت">
+                                    <span class="status-badge @(post.IsPublished ? "published" : "draft")">
+                                        @(post.IsPublished ? "منتشر شده" : "پیش‌نویس")
+                                    </span>
+                                </td>
+                                <td data-label="خلاصه">
+                                    <div class="post-excerpt">@post.Excerpt</div>
+                                </td>
+                                <td data-label="تاریخ">@post.Date</td>
+                                <td data-label="عملیات">
+                                    <div class="actions-cell">
+                                        <button class="btn-icon-sm view" title="مشاهده" @onclick='() => ViewPost(post.Id)'>
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-icon-sm edit" title="ویرایش" @onclick='() => OpenEditModal(post.Id)'>
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon-sm delete" title="حذف" @onclick='() => DeletePost(post.Id)'>
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div style="text-align:center; padding:40px 20px; color:#64748b;">
+                    <i class="fas fa-blog" style="font-size:2.5rem; display:block; margin-bottom:8px; opacity:0.3;"></i>
+                    <p>هیچ مطلبی با این فیلترها یافت نشد.</p>
+                </div>
+            }
+        </div>
+
+    </div>
+</main>
+
+<!-- ============================================================
+     MODAL (Add/Edit Post)
+============================================================ -->
+<div class="modal-overlay @(isModalOpen ? "active" : "")" @onclick="CloseModal">
+    <div class="modal-box" @onclick:stopPropagation="true">
+        <div class="modal-title">
+            <i class="fas @(isEditing ? "fa-edit" : "fa-plus-circle")"></i>
+            @(isEditing ? "ویرایش مطلب" : "مطلب جدید")
+        </div>
+        <div class="modal-subtitle">
+            @(isEditing ? "اطلاعات مطلب را ویرایش کنید." : "مطلب جدید را با محتوای کامل ایجاد کنید.")
+        </div>
+
+        <div class="form-group">
+            <label>عنوان <span style="color:#dc3545;">*</span></label>
+            <input type="text" placeholder="عنوان مطلب..." @bind="modalPost.Title" />
+        </div>
+
+        <div class="form-group">
+            <label>زبان <span style="color:#dc3545;">*</span></label>
+            <select @bind="modalPost.Lang">
+                <option value="fa">فارسی</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>وضعیت</label>
+            <div class="toggle-wrapper">
+                <span class="toggle-label">پیش‌نویس</span>
+                <div class="toggle-switch @(modalPost.IsPublished ? "active" : "")" @onclick="ToggleModalStatus">
+                    <div class="toggle-knob"></div>
+                </div>
+                <span class="toggle-label">منتشر شده</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>خلاصه</label>
+            <textarea placeholder="خلاصه‌ای از مطلب..." @bind="modalPost.Excerpt" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>محتوای کامل</label>
+            <div class="editor-toolbar">
+                <button @onclick='() => InsertText("**", "**")'><i class="fas fa-bold"></i> پررنگ</button>
+                <button @onclick='() => InsertText("_", "_")'><i class="fas fa-italic"></i> مورب</button>
+                <button @onclick='() => InsertText("```", "```")'><i class="fas fa-code"></i> کد</button>
+                <button @onclick='() => InsertText("> ", "")'><i class="fas fa-quote-right"></i> نقل قول</button>
+                <button @onclick='() => InsertText("# ", "")'><i class="fas fa-heading"></i> عنوان</button>
+                <button @onclick='() => InsertText("### ", "")'><i class="fas fa-heading"></i> عنوان کوچک</button>
+                <button @onclick='() => InsertText("* ", "")'><i class="fas fa-list-ul"></i> لیست</button>
+                <button @onclick='() => InsertText("1. ", "")'><i class="fas fa-list-ol"></i> لیست شماره‌دار</button>
+                <button @onclick='() => InsertText("[متن](", ")")'><i class="fas fa-link"></i> لینک</button>
+            </div>
+            <textarea class="code-editor" placeholder="محتوای مطلب را با Markdown یا HTML بنویسید..." @bind="modalPost.Content" rows="10"></textarea>
+            <div style="font-size:0.7rem; color:#64748b; margin-top:4px;">
+                <i class="fas fa-info-circle"></i> پشتیبانی از Markdown و HTML
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>تصویر شاخص (URL)</label>
+            <input type="text" placeholder="https://example.com/image.jpg" @bind="modalPost.ImageUrl" />
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal-primary ripple" @onclick="SavePost" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <i class="fas fa-spinner fa-spin"></i> <span>در حال ذخیره...</span>
+                }
+                else
+                {
+                    <span><i class="fas fa-save"></i> @(isEditing ? "ذخیره تغییرات" : "ایجاد مطلب")</span>
+                }
+            </button>
+            <button class="btn-modal-secondary ripple" @onclick="CloseModal">
+                <i class="fas fa-times"></i> لغو
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    private bool isModalOpen = false;
+    private bool isEditing = false;
+    private bool isSubmitting = false;
+    private Guid editingId;
+
+    private string searchTerm = "";
+    private string filterStatus = "all";
+    private string filterLang = "all";
+
+    private List<PostItem> posts = new();
+    private List<PostItem> filteredPosts = new();
+
+    private PostItem modalPost = new();
+
+    private int publishedCount => posts.Count(p => p.IsPublished);
+    private int draftCount => posts.Count(p => !p.IsPublished);
+    private int langCount => posts.Select(p => p.Lang).Distinct().Count();
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    protected override void OnInitialized()
+    {
+        LoadMockData();
+        ApplyFilters();
+    }
+
+    private void LoadMockData()
+    {
+        posts = new List<PostItem>
+        {
+            new PostItem
+            {
+                Id = Guid.NewGuid(),
+                Title = "آموزش React.js از صفر تا صد",
+                Lang = "fa",
+                IsPublished = true,
+                Excerpt = "در این مقاله به صورت کامل و گام‌به‌گام با React.js آشنا می‌شوید.",
+                Content = "# آموزش React.js\n\nReact یک کتابخانه جاوااسکریپت برای ساخت رابط‌های کاربری است.\n\n```jsx\nfunction App() {\n  return <h1>سلام دنیا!</h1>;\n}\n```",
+                ImageUrl = "https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=400&h=200&fit=crop",
+                Date = "۱۴۰۵/۰۴/۱۵"
+            },
+            new PostItem
+            {
+                Id = Guid.NewGuid(),
+                Title = "How to Use TypeScript with Node.js",
+                Lang = "en",
+                IsPublished = true,
+                Excerpt = "A complete guide to setting up TypeScript with Node.js for production.",
+                Content = "# TypeScript + Node.js\n\nThis guide will help you set up a production-ready Node.js project with TypeScript.\n\n```typescript\nimport express from 'express';\n\nconst app = express();\napp.listen(3000);\n```",
+                ImageUrl = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=200&fit=crop",
+                Date = "۱۴۰۵/۰۴/۱۲"
+            },
+            new PostItem
+            {
+                Id = Guid.NewGuid(),
+                Title = "بهترین روش‌های بهینه‌سازی سئو",
+                Lang = "fa",
+                IsPublished = false,
+                Excerpt = "۲۰ روش کاربردی برای بهبود سئو و افزایش بازدید سایت.",
+                Content = "# بهینه‌سازی سئو\n\nدر این مقاله به بررسی بهترین روش‌های سئو می‌پردازیم.\n\n> سئو یک فرآیند مداوم است.",
+                ImageUrl = "",
+                Date = "۱۴۰۵/۰۴/۱۰"
+            },
+            new PostItem
+            {
+                Id = Guid.NewGuid(),
+                Title = "Advanced Python Programming",
+                Lang = "en",
+                IsPublished = false,
+                Excerpt = "Learn advanced Python concepts including decorators, generators, and more.",
+                Content = "# Advanced Python\n\nThis article covers advanced Python concepts.\n\n```python\ndef decorator(func):\n    def wrapper():\n        print('Before')\n        func()\n        print('After')\n    return wrapper\n```",
+                ImageUrl = "",
+                Date = "۱۴۰۵/۰۴/۰۸"
+            }
+        };
+    }
+
+    // ============================================================
+    // FILTER & SEARCH
+    // ============================================================
+
+    private void ApplyFilters()
+    {
+        var query = posts.AsEnumerable();
+
+        if (filterStatus != "all")
+        {
+            bool isPublished = filterStatus == "published";
+            query = query.Where(p => p.IsPublished == isPublished);
+        }
+
+        if (filterLang != "all")
+        {
+            query = query.Where(p => p.Lang == filterLang);
+        }
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(p =>
+                p.Title.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                p.Content.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                p.Excerpt.Contains(term, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        filteredPosts = query.ToList();
+    }
+
+    private void SetFilter(string status)
+    {
+        filterStatus = status;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void SetLang(string lang)
+    {
+        filterLang = lang;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // MODAL OPERATIONS
+    // ============================================================
+
+    private void OpenAddModal()
+    {
+        isEditing = false;
+        editingId = Guid.Empty;
+        modalPost = new PostItem
+        {
+            Lang = "fa",
+            IsPublished = true,
+            Date = DateTime.Now.ToString("yyyy/MM/dd")
+        };
+        isModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void OpenEditModal(Guid id)
+    {
+        var post = posts.FirstOrDefault(p => p.Id == id);
+        if (post == null) return;
+
+        isEditing = true;
+        editingId = id;
+        modalPost = new PostItem
+        {
+            Id = post.Id,
+            Title = post.Title,
+            Lang = post.Lang,
+            IsPublished = post.IsPublished,
+            Excerpt = post.Excerpt,
+            Content = post.Content,
+            ImageUrl = post.ImageUrl,
+            Date = post.Date
+        };
+        isModalOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        isModalOpen = false;
+        StateHasChanged();
+    }
+
+    private void ToggleModalStatus()
+    {
+        modalPost.IsPublished = !modalPost.IsPublished;
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // EDITOR TOOLS (اصلاح شده با کوتیشن‌های صحیح)
+    // ============================================================
+
+    private async Task InsertText(string prefix, string suffix)
+    {
+        await JSRuntime.InvokeVoidAsync("eval", $@"
+            const textarea = document.querySelector('.code-editor');
+            if (!textarea) return;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selected = text.substring(start, end);
+            const before = text.substring(0, start);
+            const after = text.substring(end);
+            const newText = before + '{prefix}' + selected + '{suffix}' + after;
+            textarea.value = newText;
+            textarea.focus();
+            const newPos = start + '{prefix}'.length + selected.length + '{suffix}'.length;
+            textarea.setSelectionRange(newPos, newPos);
+            textarea.dispatchEvent(new Event('input'));
+        ");
+    }
+
+    // ============================================================
+    // CRUD OPERATIONS
+    // ============================================================
+
+    private async Task SavePost()
+    {
+        if (string.IsNullOrWhiteSpace(modalPost.Title) || string.IsNullOrWhiteSpace(modalPost.Content))
+        {
+            await _alertService.Warning("لطفاً عنوان و محتوای مطلب را وارد کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            if (isEditing)
+            {
+                var existing = posts.FirstOrDefault(p => p.Id == editingId);
+                if (existing != null)
+                {
+                    existing.Title = modalPost.Title.Trim();
+                    existing.Lang = modalPost.Lang;
+                    existing.IsPublished = modalPost.IsPublished;
+                    existing.Excerpt = modalPost.Excerpt?.Trim() ?? "";
+                    existing.Content = modalPost.Content.Trim();
+                    existing.ImageUrl = modalPost.ImageUrl?.Trim() ?? "";
+                    existing.Date = DateTime.Now.ToString("yyyy/MM/dd");
+                }
+                await _alertService.Success("مطلب با موفقیت ویرایش شد.", "ویرایش", 4000);
+            }
+            else
+            {
+                var newPost = new PostItem
+                {
+                    Id = Guid.NewGuid(),
+                    Title = modalPost.Title.Trim(),
+                    Lang = modalPost.Lang,
+                    IsPublished = modalPost.IsPublished,
+                    Excerpt = modalPost.Excerpt?.Trim() ?? "",
+                    Content = modalPost.Content.Trim(),
+                    ImageUrl = modalPost.ImageUrl?.Trim() ?? "",
+                    Date = DateTime.Now.ToString("yyyy/MM/dd")
+                };
+                posts.Add(newPost);
+                await _alertService.Success("مطلب با موفقیت ایجاد شد.", "ایجاد", 4000);
+            }
+
+            CloseModal();
+            ApplyFilters();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در ذخیره: {ex.Message}", "خطا", 6000);
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeletePost(Guid id)
+    {
+        var post = posts.FirstOrDefault(p => p.Id == id);
+        if (post == null) return;
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"آیا از حذف مطلب '{post.Title}' اطمینان دارید؟");
+        if (!confirmed) return;
+
+        posts.RemoveAll(p => p.Id == id);
+        await _alertService.Success("مطلب با موفقیت حذف شد.", "حذف", 4000);
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ViewPost(Guid id)
+    {
+        NavigationManager.NavigateTo($"/blog/{id}", true);
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            // Ripple effect
+            document.querySelectorAll('.ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.width = '40px';
+                    ripple.style.height = '40px';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Fade-up observer
+            const fadeEls = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            fadeEls.forEach(el => observer.observe(el));
+
+            // Trigger visible for elements already in view
+            setTimeout(() => {
+                fadeEls.forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                });
+            }, 400);
+        ");
+    }
+
+    // ============================================================
+    // HELPER CLASS
+    // ============================================================
+
+    public class PostItem
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Lang { get; set; } = "fa";
+        public bool IsPublished { get; set; }
+        public string Excerpt { get; set; } = "";
+        public string Content { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public string Date { get; set; } = "";
+    }
+}

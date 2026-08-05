@@ -1,5 +1,9 @@
 ﻿using BackEnd.Core.Abstraction.Jwt.Interfaces;
+using BackEnd.Data.DB;
+using BackEnd.Infrastructure.Security.Hash.service;
+using BackEnd.Infrastructure.Security.Hash.strategies;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyCostomProjectManagement.Facade.Role;
 using MyCostomProjectManagement.Facade.User;
@@ -14,15 +18,19 @@ namespace MyCostomProjectManagement.Infrastructure
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IJwtSettingsFactory _jwtSettingsFactory;
         private readonly IUserFacade _useracade;
+        private readonly IDbContextFactory<Context> _dbContextFactory;
         private readonly IRoleFacade _roleFacade;
+        private readonly HashManager _hashManager;
 
         public CustomAuthenticationStateProvider(IHttpContextAccessor httpContextAccessor,
-            IJwtSettingsFactory jwtSettingsFactory, IUserFacade useracade, IRoleFacade roleFacade)
+            IJwtSettingsFactory jwtSettingsFactory, IUserFacade useracade, IRoleFacade roleFacade, IDbContextFactory<Context> dbContextFactory)
         {
             _httpContextAccessor = httpContextAccessor;
             _jwtSettingsFactory = jwtSettingsFactory;
             _useracade = useracade;
             _roleFacade = roleFacade;
+            _dbContextFactory = dbContextFactory;
+            _hashManager = new HashManager(new Sha256Hasher());
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -38,6 +46,14 @@ namespace MyCostomProjectManagement.Infrastructure
             if (string.IsNullOrEmpty(token))
             {
                 var refreshtoken = context.Request.Cookies["refresh-Token"];
+                if(!await CheckTokenInBlacList(refreshtoken))
+                {
+                    //fixed
+                    //context.Response.Cookies.Delete("auth-Token");
+                    //context.Response.Cookies.Delete("refresh-Token");
+
+                    return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+                }
                 var jwtRefreshTokenFacory = _jwtSettingsFactory.CreateSetting(BackEnd.Core.Abstraction.Jwt.Enum.TokenType.AuthRefreshToken);
                 if (string.IsNullOrWhiteSpace(refreshtoken))
                 {
@@ -88,7 +104,14 @@ namespace MyCostomProjectManagement.Infrastructure
             {
                 var refreshtoken = context.Request.Cookies["refresh-Token"];
                 var jwtRefreshTokenFacory = _jwtSettingsFactory.CreateSetting(BackEnd.Core.Abstraction.Jwt.Enum.TokenType.AuthRefreshToken);
+                if (!await CheckTokenInBlacList(refreshtoken))
+                {
+                    //fixed
+                    //context.Response.Cookies.Delete("auth-Token");
+                    //context.Response.Cookies.Delete("refresh-Token");
 
+                    return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+                }
                 if (string.IsNullOrWhiteSpace(refreshtoken))
                 {
                     context.Response.Cookies.Delete("auth-Token");
@@ -110,7 +133,7 @@ namespace MyCostomProjectManagement.Infrastructure
 
                     Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id);
                     var userDto = await _useracade.GetId(id);
-                    var roles = await _roleFacade.GetRolesByRoleIds(userDto.UserRoles.Select(i=>i.RoleId).ToList());
+                    var roles = await _roleFacade.GetRolesByRoleIds(userDto.UserRoles.Select(i => i.RoleId).ToList());
 
                     if (userDto == null)
                     {
@@ -186,6 +209,29 @@ namespace MyCostomProjectManagement.Infrastructure
         {
             var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(anonymous)));
+        }
+        public async Task<bool> CheckTokenInBlacList(string refreshToken)
+        {
+            var service = _jwtSettingsFactory.CreateSetting(BackEnd.Core.Abstraction.Jwt.Enum.TokenType.AuthRefreshToken);
+            var user = service.ValidateToken(refreshToken);
+            if (user == null)
+            {
+                return false;
+            }
+
+            Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id);
+            var context = await _dbContextFactory.CreateDbContextAsync();
+            var userFromDB = await context.Users.AsNoTracking().Include(i => i.UserSessionBlackList).SingleOrDefaultAsync(i => i.Id == id);
+            if (userFromDB == null)
+            {
+                return false;
+            }
+            var hashToken = _hashManager.Hash(refreshToken);
+            if (userFromDB.UserSessionBlackList.Any(i => i.HashToken == hashToken))
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

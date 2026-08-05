@@ -51,7 +51,7 @@ namespace BackEnd.Core.User.Queries.GetId
             if (source == null || source.Id == Guid.Empty || source.UserRoles.Count() == 0)
                 return new List<UserRoleDto>();
 
-            var roles = _context.Roles.AsNoTracking()
+            var roles = _context.Roles.AsNoTracking().Include(i => i.RolePermissions)
                 .Where(i => source.UserRoles.Select(i => i.RoleId)
                 .Contains(i.Id)).Include(i => i.RolePermissions).ToList();
 

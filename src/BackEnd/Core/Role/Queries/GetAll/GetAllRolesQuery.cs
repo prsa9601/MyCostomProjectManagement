@@ -23,8 +23,8 @@ namespace BackEnd.Core.Role.Queries.GetAll
         public async Task<List<RoleDto>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
         {
             var context = await _dbContextFactory.CreateDbContextAsync();
-            
-            var roles = await context.Roles.OrderByDescending(i => i.CreationDate).ToListAsync();
+
+            var roles = await context.Roles.Include(i => i.RolePermissions).OrderByDescending(i => i.CreationDate).ToListAsync();
             if (roles == null || roles.Count == 0) return new();
 
             return _mapper.Map<List<Data.Entities.Role.Role>, List<RoleDto>>(roles);

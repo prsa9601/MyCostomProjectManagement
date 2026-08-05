@@ -1,0 +1,1141 @@
+﻿@page "/Admin/Blog/Edit/{Id?}"
+@using MyCostomProjectManagement.Infrastructure
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject JsAlertService _alertService
+@inject IWebHostEnvironment WebHostEnvironment
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>@(IsEditMode ? "ویرایش مطلب" : "مطلب جدید") | پنل ادمین</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+           تمام استایل‌های صفحه (همان‌های قبلی)
+        ============================================================ */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 32px;
+        padding-top: 20px;
+    }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-header h1 i {
+                color: #e8a838;
+            }
+
+        .page-header .subtitle {
+            color: rgba(232, 240, 241, 0.5);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .page-header .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: #e8f0f1;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.35s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(232, 168, 56, 0.06);
+            transform: translateY(-2px);
+        }
+
+    .btn-success {
+        background: linear-gradient(135deg, #52b788, #409f73);
+        color: #fff;
+        padding: 10px 28px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.35s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
+        font-family: inherit;
+    }
+
+        .btn-success:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: 0.3s;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+        .btn-outline:hover {
+            border-color: #e8a838;
+            color: #fff;
+            background: rgba(232, 168, 56, 0.04);
+            transform: translateY(-2px);
+        }
+
+    .form-container {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 32px;
+        margin-bottom: 32px;
+        transition: all 0.3s ease;
+    }
+
+        .form-container:hover {
+            border-color: rgba(232, 168, 56, 0.06);
+        }
+
+        .form-container .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e8edf5;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding-bottom: 12px;
+        }
+
+            .form-container .section-title i {
+                color: #e8a838;
+            }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #b8c4d6;
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+
+            .form-group label .required {
+                color: #ef4444;
+                margin-right: 2px;
+            }
+
+        .form-group .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            transition: all 0.35s ease;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+            .form-group .input-wrapper:focus-within {
+                border-color: #e8a838;
+                background: rgba(255, 255, 255, 0.05);
+                box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.04), 0 4px 16px rgba(0, 0, 0, 0.05);
+                transform: translateY(-1px);
+            }
+
+            .form-group .input-wrapper .input-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 48px;
+                height: 100%;
+                padding: 0 0 0 14px;
+                color: #e8a838;
+                font-size: 1.1rem;
+                opacity: 0.6;
+                transition: all 0.35s ease;
+                background: rgba(232, 168, 56, 0.02);
+                border-right: 1px solid rgba(255, 255, 255, 0.02);
+                padding-right: 12px;
+            }
+
+            .form-group .input-wrapper:focus-within .input-icon {
+                opacity: 1;
+                color: #e8a838;
+                background: rgba(232, 168, 56, 0.04);
+                border-right-color: rgba(232, 168, 56, 0.08);
+                transform: scale(1.02);
+            }
+
+            .form-group .input-wrapper input,
+            .form-group .input-wrapper select,
+            .form-group .input-wrapper textarea {
+                width: 100%;
+                padding: 12px 16px;
+                background: transparent;
+                border: none;
+                color: #eef2f8;
+                font-size: 0.95rem;
+                outline: none;
+                font-family: inherit;
+                transition: all 0.3s ease;
+            }
+
+                .form-group .input-wrapper input::placeholder,
+                .form-group .input-wrapper textarea::placeholder {
+                    color: #64748b;
+                    font-weight: 300;
+                    letter-spacing: 0.2px;
+                }
+
+            .form-group .input-wrapper select {
+                cursor: pointer;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: left 14px center;
+                padding-left: 40px;
+            }
+
+                .form-group .input-wrapper select option {
+                    background: #0a0e17;
+                    color: #eef2f8;
+                }
+
+            .form-group .input-wrapper textarea {
+                min-height: 80px;
+                resize: vertical;
+            }
+    /* CKEditor Container & Dark Theme */
+    .ck-editor-container {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: all 0.35s ease;
+    }
+
+        .ck-editor-container:focus-within {
+            border-color: #e8a838;
+            box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.04);
+        }
+
+    .ck.ck-editor__editable:not(.ck-editor__nested-editable) {
+        min-height: 350px;
+        background: rgba(0, 0, 0, 0.2) !important;
+        color: #eef2f8 !important;
+        border: none !important;
+    }
+
+    .ck.ck-editor__editable_inline {
+        border: none !important;
+    }
+
+    .ck.ck-toolbar {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+    }
+
+    .ck.ck-button {
+        color: #94a3b8 !important;
+    }
+
+        .ck.ck-button:hover {
+            background: rgba(232, 168, 56, 0.08) !important;
+            color: #e8f0f1 !important;
+        }
+
+        .ck.ck-button.ck-on {
+            background: rgba(232, 168, 56, 0.12) !important;
+            color: #e8a838 !important;
+        }
+
+    .ck.ck-dropdown__panel {
+        background: #0a0e17 !important;
+        border: 1px solid rgba(255, 255, 255, 0.04) !important;
+    }
+
+        .ck.ck-dropdown__panel .ck-button {
+            color: #94a3b8 !important;
+        }
+
+            .ck.ck-dropdown__panel .ck-button:hover {
+                background: rgba(232, 168, 56, 0.08) !important;
+                color: #e8f0f1 !important;
+            }
+    /* Toggle Switch */
+    .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 4px 0;
+    }
+
+        .toggle-wrapper .toggle-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+    .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 40px;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+    }
+
+        .toggle-switch.active {
+            background: rgba(82, 183, 136, 0.15);
+            border-color: rgba(82, 183, 136, 0.1);
+        }
+
+        .toggle-switch .toggle-knob {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(232, 240, 241, 0.15);
+            transition: all 0.35s ease;
+        }
+
+        .toggle-switch.active .toggle-knob {
+            right: 24px;
+            background: #52b788;
+            box-shadow: 0 0 16px rgba(82, 183, 136, 0.15);
+        }
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        flex-wrap: wrap;
+    }
+
+        .form-actions .btn-success,
+        .form-actions .btn-outline {
+            font-size: 0.95rem;
+            padding: 12px 32px;
+        }
+    /* Upload Area */
+    .upload-area {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 10px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+    }
+
+        .upload-area .file-input-wrapper {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+            .upload-area .file-input-wrapper label {
+                background: rgba(232, 168, 56, 0.08);
+                color: #e8a838;
+                padding: 6px 18px;
+                border-radius: 30px;
+                font-size: 0.8rem;
+                cursor: pointer;
+                transition: 0.3s;
+                border: 1px solid rgba(232, 168, 56, 0.1);
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+                .upload-area .file-input-wrapper label:hover {
+                    background: rgba(232, 168, 56, 0.15);
+                    transform: translateY(-2px);
+                }
+
+            .upload-area .file-input-wrapper input[type="file"] {
+                display: none;
+            }
+
+        .upload-area .file-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+            .upload-area .file-preview img {
+                max-width: 120px;
+                max-height: 80px;
+                border-radius: 8px;
+                object-fit: cover;
+                border: 1px solid rgba(255,255,255,0.05);
+            }
+
+            .upload-area .file-preview .file-name {
+                color: #94a3b8;
+                font-size: 0.8rem;
+                direction: ltr;
+                word-break: break-all;
+            }
+
+        .upload-area .btn-remove {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.1);
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+            .upload-area .btn-remove:hover {
+                background: rgba(220, 53, 69, 0.2);
+                transform: translateY(-2px);
+            }
+    /* Custom upload buttons */
+    .custom-upload-btn {
+        background: rgba(232, 168, 56, 0.08) !important;
+        color: #e8a838 !important;
+        border: 1px solid rgba(232, 168, 56, 0.1) !important;
+        border-radius: 4px !important;
+        padding: 4px 12px !important;
+        margin: 0 2px !important;
+        cursor: pointer !important;
+        font-size: 0.75rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        transition: 0.3s !important;
+        font-family: inherit !important;
+    }
+
+        .custom-upload-btn:hover {
+            background: rgba(232, 168, 56, 0.15) !important;
+            transform: translateY(-1px) !important;
+        }
+
+    .hidden-input {
+        display: none;
+    }
+    /* Ripple & Fade-up */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0);
+        animation: rippleAnim 0.6s linear;
+        pointer-events: none;
+    }
+
+    @@keyframes rippleAnim {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .page-header .actions {
+                width: 100%;
+            }
+
+        .form-container {
+            padding: 20px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+            .form-actions .btn-success,
+            .form-actions .btn-outline {
+                width: 100%;
+                justify-content: center;
+            }
+
+        .form-group .input-wrapper .input-icon {
+            min-width: 40px;
+            font-size: 0.95rem;
+            padding-left: 10px;
+            padding-right: 8px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-header h1 {
+            font-size: 1.2rem;
+        }
+
+        .form-container {
+            padding: 16px;
+        }
+
+        .form-group .input-wrapper input {
+            font-size: 0.85rem;
+        }
+
+        .form-group .input-wrapper .input-icon {
+            min-width: 34px;
+            font-size: 0.8rem;
+            padding-left: 8px;
+            padding-right: 6px;
+        }
+    }
+</style>
+
+@code {
+    // ============================================================
+    // پارامترها و متغیرها
+    // ============================================================
+    [Parameter] public string? Id { get; set; }
+    private bool IsEditMode => !string.IsNullOrEmpty(Id) && Id != "new";
+    private bool isSubmitting = false;
+    private PostItem post = new();
+    private List<PostItem> posts = new();
+    private string uploadFolder = "uploads";
+    private static Edit? _currentPage;
+
+    // ============================================================
+    // مقداردهی اولیه
+    // ============================================================
+    protected override void OnInitialized()
+    {
+        _currentPage = this;
+        var uploadPath = Path.Combine(WebHostEnvironment.WebRootPath, uploadFolder);
+        if (!Directory.Exists(uploadPath))
+            Directory.CreateDirectory(uploadPath);
+
+        LoadMockData();
+        if (IsEditMode) LoadPostForEdit();
+        else post = new PostItem { Lang = "fa", IsPublished = true, Date = DateTime.Now.ToString("yyyy/MM/dd") };
+    }
+
+    private void LoadMockData()
+    {
+        posts = new List<PostItem>
+        {
+            new PostItem { Id = "blog-001", Title = "آموزش React.js از صفر تا صد", Lang = "fa", IsPublished = true, Excerpt = "در این مقاله به صورت کامل و گام‌به‌گام با React.js آشنا می‌شوید.", Content = "<h1>آموزش React.js</h1><p>React یک کتابخانه جاوااسکریپت برای ساخت رابط‌های کاربری است.</p>", ImageUrl = "/uploads/react.jpg", Date = "۱۴۰۵/۰۴/۱۵" },
+            new PostItem { Id = "blog-002", Title = "How to Use TypeScript with Node.js", Lang = "en", IsPublished = true, Excerpt = "A complete guide to setting up TypeScript with Node.js for production.", Content = "<h1>TypeScript + Node.js</h1><p>This guide will help you set up a production-ready Node.js project with TypeScript.</p>", ImageUrl = "/uploads/typescript.jpg", Date = "۱۴۰۵/۰۴/۱۲" },
+            new PostItem { Id = "blog-003", Title = "بهترین روش‌های بهینه‌سازی سئو", Lang = "fa", IsPublished = false, Excerpt = "۲۰ روش کاربردی برای بهبود سئو و افزایش بازدید سایت.", Content = "<h1>بهینه‌سازی سئو</h1><p>در این مقاله به بررسی بهترین روش‌های سئو می‌پردازیم.</p>", ImageUrl = "", Date = "۱۴۰۵/۰۴/۱۰" }
+        };
+    }
+
+    private void LoadPostForEdit()
+    {
+        var existing = posts.FirstOrDefault(p => p.Id == Id);
+        if (existing != null)
+            post = new PostItem
+            {
+                Id = existing.Id,
+                Title = existing.Title,
+                Lang = existing.Lang,
+                IsPublished = existing.IsPublished,
+                Excerpt = existing.Excerpt,
+                Content = existing.Content,
+                ImageUrl = existing.ImageUrl,
+                Date = existing.Date
+            };
+        else
+            NavigationManager.NavigateTo("/Admin/Blog", true);
+    }
+
+    // ============================================================
+    // تغییر وضعیت انتشار
+    // ============================================================
+    private void ToggleStatus() { post.IsPublished = !post.IsPublished; StateHasChanged(); }
+
+    // ============================================================
+    // آپلود تصویر شاخص
+    // ============================================================
+    private async Task HandleFeaturedImageUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+        if (file.Size > 2 * 1024 * 1024)
+        {
+            await _alertService.Warning("حجم فایل نباید بیشتر از ۲ مگابایت باشد.", "خطا", 4000);
+            return;
+        }
+        try
+        {
+            var fileName = $"{Guid.NewGuid()}_{file.Name}";
+            var filePath = Path.Combine(WebHostEnvironment.WebRootPath, uploadFolder, fileName);
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024).CopyToAsync(stream);
+            post.ImageUrl = $"/{uploadFolder}/{fileName}";
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در آپلود تصویر: {ex.Message}", "خطا", 6000);
+        }
+    }
+
+    private void RemoveFeaturedImage()
+    {
+        if (!string.IsNullOrEmpty(post.ImageUrl) && post.ImageUrl.StartsWith($"/{uploadFolder}/"))
+        {
+            var fileName = post.ImageUrl.Replace($"/{uploadFolder}/", "");
+            var filePath = Path.Combine(WebHostEnvironment.WebRootPath, uploadFolder, fileName);
+            if (File.Exists(filePath))
+                try { File.Delete(filePath); } catch { }
+        }
+        post.ImageUrl = "";
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // دکمه‌های سفارشی آپلود در ویرایشگر
+    // ============================================================
+    private async Task TriggerImageUpload()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('inlineImageInput').click();");
+    }
+
+    private async Task TriggerVideoUpload()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('videoInput').click();");
+    }
+
+    // ============================================================
+    // هندلر آپلود تصویر درون‌خطی (در ویرایشگر) - با دستور imageInsert
+    // ============================================================
+    private async Task HandleInlineImageUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+        if (file.Size > 2 * 1024 * 1024)
+        {
+            await _alertService.Warning("حجم تصویر نباید بیشتر از ۲ مگابایت باشد.", "خطا", 4000);
+            return;
+        }
+        try
+        {
+            var fileName = $"{Guid.NewGuid()}_{file.Name}";
+            var filePath = Path.Combine(WebHostEnvironment.WebRootPath, uploadFolder, fileName);
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024).CopyToAsync(stream);
+            var imageUrl = $"/{uploadFolder}/{fileName}";
+
+            // درج تصویر با استفاده از دستور imageInsert
+            await JSRuntime.InvokeVoidAsync("eval", $@"
+                if (window.editor) {{
+                    window.editor.execute('imageInsert', {{ source: '{imageUrl}' }});
+                }}
+            ");
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در آپلود تصویر: {ex.Message}", "خطا", 6000);
+        }
+    }
+
+    // ============================================================
+    // ✅ هندلر آپلود ویدیو (نسخه نهایی با mediaEmbed)
+    // ============================================================
+ 
+
+
+    private async Task HandleVideoUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+        const long maxVideoSize = 100 * 1024 * 1024; // 100 MB
+        if (file.Size > maxVideoSize)
+        {
+            await _alertService.Warning("حجم ویدیو نباید بیشتر از ۱۰۰ مگابایت باشد.", "خطا", 4000);
+            return;
+        }
+        try
+        {
+            var fileName = $"{Guid.NewGuid()}_{file.Name}";
+            var filePath = Path.Combine(WebHostEnvironment.WebRootPath, uploadFolder, fileName);
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await file.OpenReadStream(maxAllowedSize: maxVideoSize).CopyToAsync(stream);
+
+            // ساخت آدرس کامل (مطلق)
+            var baseUri = NavigationManager.BaseUri.TrimEnd('/');
+            var videoUrl = $"{baseUri}/{uploadFolder}/{fileName}";
+
+            // استفاده از mediaEmbed با آدرس کامل
+            await JSRuntime.InvokeVoidAsync("eval", $@"
+            if (window.editor) {{
+                window.editor.execute('mediaEmbed', '{videoUrl}');
+            }}
+        ");
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در آپلود ویدیو: {ex.Message}", "خطا", 6000);
+        }
+    }
+
+    // private async Task HandleVideoUpload(InputFileChangeEventArgs e)
+    // {
+    //     var file = e.File;
+    //     if (file == null) return;
+    //     const long maxVideoSize = 100 * 1024 * 1024; // 100 MB
+    //     if (file.Size > maxVideoSize)
+    //     {
+    //         await _alertService.Warning("حجم ویدیو نباید بیشتر از ۱۰۰ مگابایت باشد.", "خطا", 4000);
+    //         return;
+    //     }
+    //     try
+    //     {
+    //         var fileName = $"{Guid.NewGuid()}_{file.Name}";
+    //         var filePath = Path.Combine(WebHostEnvironment.WebRootPath, uploadFolder, fileName);
+    //         using var stream = new FileStream(filePath, FileMode.Create);
+    //         await file.OpenReadStream(maxAllowedSize: maxVideoSize).CopyToAsync(stream);
+    //         var videoUrl = $"/{uploadFolder}/{fileName}";
+
+    //         // درج ویدیو با استفاده از mediaEmbed
+    //         await JSRuntime.InvokeVoidAsync("eval", $@"
+    //             if (window.editor) {{
+    //                 window.editor.execute('mediaEmbed', {{ url: '{videoUrl}' }});
+    //             }}
+    //         ");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await _alertService.Error($"خطا در آپلود ویدیو: {ex.Message}", "خطا", 6000);
+    //     }
+    // }
+
+    // ============================================================
+    // راه‌اندازی CKEditor (با ارائه‌دهنده سفارشی برای ویدیو)
+    // ============================================================
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await InitializeCKEditor();
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task InitializeCKEditor()
+    {
+        var content = (post.Content ?? "").Replace("\\", "\\\\")
+                                          .Replace("`", "\\`")
+                                          .Replace("$", "\\$");
+
+        await JSRuntime.InvokeVoidAsync("eval", $@"
+            (async function() {{
+                const loadCKEditor = () => new Promise(resolve => {{
+                    if (window.CKEditor) {{ resolve(); return; }}
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js';
+                    script.onload = resolve;
+                    document.head.appendChild(script);
+                }});
+                const loadTranslation = () => new Promise(resolve => {{
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/translations/fa.js';
+                    script.onload = resolve;
+                    document.head.appendChild(script);
+                }});
+                await loadCKEditor();
+                await loadTranslation();
+
+                // آداپتور آپلود برای دکمه داخلی تصویر CKEditor
+                class UploadAdapter {{
+                    constructor(loader) {{ this.loader = loader; }}
+                    upload() {{
+                        return this.loader.file.then(file => new Promise((resolve, reject) => {{
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            fetch('/api/upload', {{ method: 'POST', body: formData }})
+                                .then(async response => {{
+                                    const text = await response.text();
+                                    try {{
+                                        const data = JSON.parse(text);
+                                        if (data.url) resolve({{ default: data.url }});
+                                        else reject(data.error || 'آپلود ناموفق');
+                                    }} catch (e) {{
+                                        reject('پاسخ سرور معتبر نیست: ' + text.substring(0, 100));
+                                    }}
+                                }})
+                                .catch(reject);
+                        }}));
+                    }}
+                    abort() {{}}
+                }}
+                function uploadPlugin(editor) {{
+                    editor.plugins.get('FileRepository').createUploadAdapter = (loader) => new UploadAdapter(loader);
+                }}
+
+                const container = document.getElementById('editorContainer');
+                if (container) {{
+                    ClassicEditor
+                        .create(container, {{
+                            language: 'fa',
+                            toolbar: {{
+                                items: [
+                                    'heading', '|',
+                                    'bold', 'italic', 'underline', 'strikethrough', '|',
+                                    'link', '|',
+                                    'bulletedList', 'numberedList', '|',
+                                    'blockQuote', '|',
+                                    'imageUpload', 'mediaEmbed', '|',
+                                    'undo', 'redo'
+                                ]
+                            }},
+                            image: {{ toolbar: [ 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'imageTextAlternative' ] }},
+                            extraPlugins: [uploadPlugin],
+                            mediaEmbed: {{
+                                providers: [
+                                    {{
+                                        name: 'youtube',
+                                        url: /^https?:\/\/(?:m\.)?youtube\.com\/watch\?v=([\w-]+)/,
+                                        html: match => `<div style='position:relative;padding-bottom:56.25%;height:0;'><iframe src='https://www.youtube.com/embed/${{match[1]}}' style='position:absolute;top:0;left:0;width:100%;height:100%;' frameborder='0' allowfullscreen></iframe></div>`
+                                    }},
+                                    {{
+                                        name: 'vimeo',
+                                        url: /^https?:\/\/(?:www\.)?vimeo\.com\/(\d+)/,
+                                        html: match => `<div style='position:relative;padding-bottom:56.25%;height:0;'><iframe src='https://player.vimeo.com/video/${{match[1]}}' style='position:absolute;top:0;left:0;width:100%;height:100%;' frameborder='0' allowfullscreen></iframe></div>`
+                                    }},
+                                    {{
+                                        name: 'uploaded-video',
+                                        url: /^https?:\/\/.+\/uploads\/.+\.(mp4|webm|ogg|mov)$/,
+                                        html: match => `<video controls style='max-width:100%; width:800px; height:auto; border-radius:8px; margin:8px 0;'><source src='${{match.input}}' type='video/${{match[1]}}'></video>`
+                                    }}
+                                ]
+                            }},
+                            initialData: `{content}` || ''
+                        }})
+                        .then(editor => {{
+                            window.editor = editor;
+                            editor.model.document.on('change:data', () => {{
+                                const data = editor.getData();
+                                DotNet.invokeMethodAsync('{this.GetType().Assembly.GetName().Name}', 'UpdatePostContent', data);
+                            }});
+                        }})
+                        .catch(error => console.error('CKEditor init error:', error));
+                }}
+            }})();
+        ");
+    }
+
+    [JSInvokable]
+    public static void UpdatePostContent(string content)
+    {
+        if (_currentPage != null)
+        {
+            _currentPage.post.Content = content;
+            _currentPage.StateHasChanged();
+        }
+    }
+
+    // ============================================================
+    // عملیات CRUD
+    // ============================================================
+    private async Task SavePost()
+    {
+        if (string.IsNullOrWhiteSpace(post.Title) || string.IsNullOrWhiteSpace(post.Content))
+        {
+            await _alertService.Warning("لطفاً عنوان و محتوای مطلب را وارد کنید.", "تکمیل فیلدها", 4000);
+            return;
+        }
+
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            if (IsEditMode)
+            {
+                var existing = posts.FirstOrDefault(p => p.Id == Id);
+                if (existing != null)
+                {
+                    existing.Title = post.Title.Trim();
+                    existing.Lang = post.Lang;
+                    existing.IsPublished = post.IsPublished;
+                    existing.Excerpt = post.Excerpt?.Trim() ?? "";
+                    existing.Content = post.Content.Trim();
+                    existing.ImageUrl = post.ImageUrl?.Trim() ?? "";
+                    existing.Date = DateTime.Now.ToString("yyyy/MM/dd");
+                }
+                await _alertService.Success("مطلب با موفقیت ویرایش شد.", "ویرایش", 4000);
+            }
+            else
+            {
+                var newPost = new PostItem
+                {
+                    Id = "blog-" + (posts.Count + 1).ToString("D3"),
+                    Title = post.Title.Trim(),
+                    Lang = post.Lang,
+                    IsPublished = post.IsPublished,
+                    Excerpt = post.Excerpt?.Trim() ?? "",
+                    Content = post.Content.Trim(),
+                    ImageUrl = post.ImageUrl?.Trim() ?? "",
+                    Date = DateTime.Now.ToString("yyyy/MM/dd")
+                };
+                posts.Add(newPost);
+                await _alertService.Success("مطلب با موفقیت ایجاد شد.", "ایجاد", 4000);
+            }
+            NavigationManager.NavigateTo("/Admin/Blog", true);
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در ذخیره: {ex.Message}", "خطا", 6000);
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeletePost()
+    {
+        if (!IsEditMode) return;
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"آیا از حذف مطلب '{post.Title}' اطمینان دارید؟");
+        if (!confirmed) return;
+        try
+        {
+            if (!string.IsNullOrEmpty(post.ImageUrl) && post.ImageUrl.StartsWith($"/{uploadFolder}/"))
+            {
+                var fileName = post.ImageUrl.Replace($"/{uploadFolder}/", "");
+                var filePath = Path.Combine(WebHostEnvironment.WebRootPath, uploadFolder, fileName);
+                if (File.Exists(filePath))
+                    try { File.Delete(filePath); } catch { }
+            }
+            posts.RemoveAll(p => p.Id == Id);
+            await _alertService.Success("مطلب با موفقیت حذف شد.", "حذف", 4000);
+            NavigationManager.NavigateTo("/Admin/Blog", true);
+        }
+        catch (Exception ex)
+        {
+            await _alertService.Error($"خطا در حذف: {ex.Message}", "خطا", 6000);
+        }
+    }
+
+    private void Cancel() => NavigationManager.NavigateTo("/Admin/Blog", true);
+
+    // ============================================================
+    // کلاس مدل
+    // ============================================================
+    public class PostItem
+    {
+        public string? Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Lang { get; set; } = "fa";
+        public bool IsPublished { get; set; }
+        public string Excerpt { get; set; } = "";
+        public string Content { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public string Date { get; set; } = "";
+    }
+}
+
+<!-- ============================================================
+     بخش HTML صفحه
+     ============================================================ -->
+<main class="dashboard">
+    <div class="container">
+        <div class="page-header fade-up visible">
+            <div>
+                <h1><i class="fas @(IsEditMode ? "fa-edit" : "fa-plus-circle")"></i> @(IsEditMode ? "ویرایش مطلب" : "مطلب جدید")</h1>
+                <div class="subtitle">@(IsEditMode ? "اطلاعات مطلب را ویرایش کنید." : "مطلب جدید با محتوای کامل ایجاد کنید.")</div>
+            </div>
+            <div class="actions">
+                <a href="/Admin/Blog" class="btn-back ripple"><i class="fas fa-arrow-right"></i> بازگشت</a>
+            </div>
+        </div>
+
+        <div class="form-container fade-up visible">
+            <div class="section-title">
+                <i class="fas @(IsEditMode ? "fa-pen" : "fa-feather")"></i>
+                @(IsEditMode ? "ویرایش مطلب" : "نوشتن مطلب جدید")
+            </div>
+
+            <div class="form-group">
+                <label>عنوان مطلب <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fas fa-tag"></i></span>
+                    <input type="text" placeholder="عنوان مطلب را وارد کنید..." @bind="post.Title" />
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                <div class="form-group">
+                    <label>زبان <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-globe"></i></span>
+                        <select @bind="post.Lang">
+                            <option value="fa">فارسی</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>وضعیت انتشار</label>
+                    <div class="toggle-wrapper">
+                        <span class="toggle-label">پیش‌نویس</span>
+                        <div class="toggle-switch @(post.IsPublished ? "active" : "")" @onclick="ToggleStatus">
+                            <div class="toggle-knob"></div>
+                        </div>
+                        <span class="toggle-label">منتشر شده</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>خلاصه مطلب</label>
+                <div class="input-wrapper" style="align-items:stretch;">
+                    <span class="input-icon" style="align-self:flex-start; padding-top:14px;"><i class="fas fa-align-left"></i></span>
+                    <textarea placeholder="خلاصه‌ای از مطلب را وارد کنید..." @bind="post.Excerpt" rows="2"></textarea>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>محتوای کامل <span class="required">*</span></label>
+                <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+                    <button class="custom-upload-btn" @onclick="TriggerImageUpload">
+                        <i class="fas fa-image"></i> افزودن تصویر
+                    </button>
+                    <button class="custom-upload-btn" @onclick="TriggerVideoUpload">
+                        <i class="fas fa-video"></i> افزودن ویدیو
+                    </button>
+                </div>
+                <div class="ck-editor-container">
+                    <div id="editorContainer"></div>
+                </div>
+                <InputFile id="inlineImageInput" class="hidden-input" OnChange="HandleInlineImageUpload" accept="image/*" />
+                <InputFile id="videoInput" class="hidden-input" OnChange="HandleVideoUpload" accept="video/*" />
+                <div style="font-size:0.7rem; color:#64748b; margin-top:6px;">
+                    <i class="fas fa-info-circle"></i> برای افزودن تصویر یا ویدیو، از دکمه‌های بالای ویرایشگر استفاده کنید.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>تصویر شاخص</label>
+                <div class="upload-area">
+                    <div class="file-input-wrapper">
+                        <label for="featuredImageInput">
+                            <i class="fas fa-cloud-upload-alt"></i> انتخاب تصویر شاخص
+                        </label>
+                        <InputFile id="featuredImageInput" OnChange="HandleFeaturedImageUpload" accept="image/*" />
+                        <span style="color:#94a3b8;font-size:0.75rem;">(حداکثر ۲ مگابایت)</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(post.ImageUrl))
+                    {
+                        <div class="file-preview">
+                            <img src="@post.ImageUrl" alt="تصویر شاخص" />
+                            <span class="file-name">@(post.ImageUrl.Length > 30 ? post.ImageUrl.Substring(0, 30) + "..." : post.ImageUrl)</span>
+                            <button class="btn-remove" @onclick="RemoveFeaturedImage"><i class="fas fa-times"></i> حذف</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="color:#64748b;font-size:0.75rem;">هیچ تصویری انتخاب نشده است.</div>
+                    }
+                </div>
+                <div style="font-size:0.7rem; color:#64748b; margin-top:4px;">
+                    <i class="fas fa-info-circle"></i> تصویر برای نمایش در خلاصه و کارت‌های وبلاگ
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-success ripple" @onclick="SavePost" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>در حال ذخیره...</span>
+                    }
+                    else
+                    {
+                        <span><i class="fas fa-save"></i> @(IsEditMode ? "ذخیره تغییرات" : "ایجاد مطلب")</span>
+                    }
+                </button>
+                <button class="btn-outline ripple" @onclick="Cancel"><i class="fas fa-times"></i> انصراف</button>
+                @if (IsEditMode)
+                {
+                    <button class="btn-outline ripple" @onclick="DeletePost" style="border-color:rgba(220,53,69,0.2); color:#dc3545;">
+                        <i class="fas fa-trash-alt"></i> حذف مطلب
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</main>
+<script src="../../../../../../../GlobalAlert.js"></script>

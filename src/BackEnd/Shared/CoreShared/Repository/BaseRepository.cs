@@ -1,6 +1,7 @@
 ﻿using BackEnd.Data.DB;
 using BackEnd.Shared.DataShared;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using System.Linq.Expressions;
 
 namespace BackEnd.Shared.CoreShared.Repository
@@ -23,7 +24,7 @@ namespace BackEnd.Shared.CoreShared.Repository
         {
             return await Context.Set<TEntity>().Where(expression).AsTracking().ToListAsync();
         }
-        
+
         public async Task<TEntity?> GetByFilterAsync(Expression<Func<TEntity, bool>> expression)
         {
             return await Context.Set<TEntity>().AsTracking().FirstOrDefaultAsync(expression);
@@ -50,8 +51,25 @@ namespace BackEnd.Shared.CoreShared.Repository
         public async Task<TEntity?> GetTracking(Guid id)
         {
             return await Context.Set<TEntity>().AsTracking().FirstOrDefaultAsync(t => t.Id.Equals(id));
-
         }
+
+        public async Task<TEntity?> GetTracking(Guid id, params string[] includs)
+        {
+            IQueryable<TEntity> query = Context.Set<TEntity>().AsTracking();
+
+            // اعمال Include‌ها (اگر آرایه خالی نباشد)
+            if (includs != null && includs.Length > 0)
+            {
+                foreach (var include in includs)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            return await query.FirstOrDefaultAsync(i => i.Id == id);
+        }
+
+ 
         public async Task<List<TEntity>?> GetListTrackingAsync()
         {
             return await Context.Set<TEntity>().AsTracking().Select(i => i).ToListAsync();

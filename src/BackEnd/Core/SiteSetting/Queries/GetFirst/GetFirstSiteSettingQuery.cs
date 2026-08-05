@@ -11,7 +11,7 @@ using System.Text;
 
 namespace BackEnd.Core.SiteSetting.Queries.GetFirst
 {
-    public class GetFirstSiteSettingQuery:IQuery<SiteSettingsDto>
+    public class GetFirstSiteSettingQuery : IQuery<SiteSettingsDto>
     {
     }
 
@@ -29,7 +29,8 @@ namespace BackEnd.Core.SiteSetting.Queries.GetFirst
         public async Task<SiteSettingsDto> Handle(GetFirstSiteSettingQuery request, CancellationToken cancellationToken)
         {
             var context = await _dbContextFactory.CreateDbContextAsync();
-            var result = await context.SiteSettings.FirstOrDefaultAsync();
+            var result = await context.SiteSettings.Include(i => i.SiteLinks)
+                .Include(i => i.AboutMeSection).ThenInclude(i => i.AboutStats).FirstOrDefaultAsync();
             if (result == null) return default;
 
             return _mapper.Map<Data.Entities.SiteSettings.SiteSetting, SiteSettingsDto>(result);

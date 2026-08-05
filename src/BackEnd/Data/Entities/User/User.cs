@@ -22,13 +22,13 @@ namespace BackEnd.Data.Entities.User
             userOtp.UserId = Id;
             UserOtps.Add(userOtp);
         }
-        
+
         public void VerifyPhoneNumber()
         {
             PhoneNumberIsVerify = true;
         }
-        
-        
+
+
         public void Register(string fullname, string? email, string hashPassword)
         {
             FullName = fullname;
@@ -38,24 +38,33 @@ namespace BackEnd.Data.Entities.User
                 Email = email;
             }
         }
-        
+
         public void AddOtpSession(UserOtpSession userOtpSession)
         {
             userOtpSession.UserId = Id;
             UserOtpSessions.Add(userOtpSession);
         }
-        
-        
+
+
         public void SetUserRoles(List<Guid> roleIds)
         {
-            UserRoles = roleIds.Select(i=>new UserRole
+            UserRoles = roleIds.Select(i => new UserRole
             {
-                UserId=Id,
+                UserId = Id,
                 RoleId = i
             }).ToList();
-
         }
-        
+
+
+        public void AddUserRoles(Guid roleId)
+        {
+            UserRoles.Add(new UserRole
+            {
+                UserId = Id,
+                RoleId = roleId
+            });
+        }
+
         public void AddSession(UserSession userSession)
         {
             userSession.UserId = Id;

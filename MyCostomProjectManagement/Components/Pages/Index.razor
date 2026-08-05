@@ -2,11 +2,16 @@
 @using BackEnd.Core
 @using BackEnd.Core.ContactUs.Commands.Create
 @using BackEnd.Core.Portfolio.Queries.DTOs
+@using BackEnd.Core.SiteSetting.Queries.DTOs
+@using BackEnd.Data.Entities.Role
 @using MyCostomProjectManagement.Facade.ContactUs
-@using MyCostomProjectManagement.Facade.Portfolio
-@using MyCostomProjectManagement.Facade.Skills
 @using MyCostomProjectManagement.Facade.FAQ
+@using MyCostomProjectManagement.Facade.Portfolio
+@using MyCostomProjectManagement.Facade.SiteSettings
+@using MyCostomProjectManagement.Facade.Skills
+@using MyCostomProjectManagement.Facade.User
 @using MyCostomProjectManagement.Infrastructure
+@using MyCostomProjectManagement.Shared.Attributes
 @layout FrontLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
@@ -16,6 +21,10 @@
 @inject IPortfolioFacade _portfolioFacade
 @inject IFAQFacade _faqFacade
 @inject UserAlertService _userAlertService
+@inject ISiteSettingFacade _siteSettingFacade
+@inject IUserFacade _userFacade
+@inject GetUserPermission _getUserPermission
+@inject UserAuthentication _userAuthentication
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,11 +35,11 @@
 
 <style>
     /* ====================================================
-                                       تمام استایل‌های مورد نیاز (لندینگ + داشبورد)
-                                       ==================================================== */
+                تمام استایل‌های مورد نیاز (لندینگ + داشبورد)
+                ==================================================== */
     /* ====================================================
-       LOADING OVERLAY
-       ==================================================== */
+                LOADING OVERLAY
+                ==================================================== */
     .loading-overlay {
         position: fixed;
         top: 0;
@@ -1769,6 +1778,29 @@
     <span></span><span></span><span></span><span></span>
 </div>
 
+@code {
+    private bool _hasAdminAccess { get; set; } = false;
+    private bool UserIsAuthenticate { get; set; } = false;
+    private async Task GetUserPermission(Permissions permissions)
+    {
+        _hasAdminAccess = await _getUserPermission.CheckAccess(permissions);
+    }
+
+    private async Task GetUser()
+    {
+        Guid userId = await _userAuthentication.GetCurrentUserId();
+        if (userId == Guid.Empty)
+        {
+            UserIsAuthenticate = false;
+            return;
+        }
+        var user = await _userFacade.GetId(userId);
+        if (user == null) UserIsAuthenticate = false;
+
+        else UserIsAuthenticate = true;
+        
+    }
+}
 <!-- ===== NAVBAR ===== -->
 <header class="navbar" id="navbar">
     <div class="container">
@@ -1783,10 +1815,21 @@
             <li><a @onclick='() => ScrollToSection("contact")' @onclick:preventDefault="true">تماس</a></li>
         </ul>
         <div class="nav-actions">
-            <button class="btn-login" @onclick="NavigateToLogin"><i class="fas fa-sign-in-alt"></i> ورود</button>
-            <button class="btn-logout" @onclick="Logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
+
+            @if (!UserIsAuthenticate)
+            {
+                <button class="btn-login" @onclick="NavigateToLogin"><i class="fas fa-sign-in-alt"></i> ورود</button>
+            }
+            @if (UserIsAuthenticate)
+            {
+                <button class="btn-logout" @onclick="Logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
+            }
             <button class="btn-dashboard" @onclick="NavigateToDashboard"><i class="fas fa-chart-pie"></i> داشبورد</button>
-            <button class="btn-admin" @onclick="NavigateToAdminDashboard"><i class="fas fa-user-cog"></i> ادمین</button>
+
+            @if (_hasAdminAccess)
+            {
+                <button class="btn-admin" @onclick="NavigateToAdminDashboard"><i class="fas fa-user-cog"></i> ادمین</button>
+            }
             <a href="/Packages" class="btn-primary"><i class="fas fa-rocket"></i> خرید اشتراک</a>
             <button class="hamburger" @onclick="ToggleMenu">
                 <span></span><span></span><span></span>
@@ -1819,10 +1862,10 @@
         </h1>
         <p>طراحی و توسعه اپلیکیشن‌های مدرن، API‌های مقیاس‌پذیر و تجربه‌های کاربری بی‌نظیر. بیش از ۵ سال تجربه در تیم‌های فنی.</p>
         <div class="hero-actions">
-        
-           
+
+
             <button @onclick='() => ScrollToSection("portfolio")' class="btn-primary ripple"><i class="fas fa-eye"></i> مشاهده نمونه‌کارها</button>
-             @* <a href="#" class="btn-primary ripple"><i class="fas fa-eye"></i> مشاهده نمونه‌کارها</a>  *@
+            @* <a href="#" class="btn-primary ripple"><i class="fas fa-eye"></i> مشاهده نمونه‌کارها</a>  *@
             <button @onclick='() => ScrollToSection("contact")' class="btn-outline ripple">
                 <i class="fas fa-paper-plane"></i> همکاری با من
             </button>
@@ -1830,21 +1873,21 @@
         </div>
     </div>
 </section>
-@code{
+@code {
     private DateTime birthDate = new DateTime(2004, 7, 1); // تیر ۱۳۸۲ ≈ July 2003
 
-private int GetAge()
-{
-    var today = DateTime.Today;
-    var age = today.Year - birthDate.Year;
-    if (birthDate.Date > today.AddYears(-age)) age--;
-    return age;
-}
+    private int GetAge()
+    {
+        var today = DateTime.Today;
+        var age = today.Year - birthDate.Year;
+        if (birthDate.Date > today.AddYears(-age)) age--;
+        return age;
+    }
 
-private int GetExperience()
-{
-    return GetAge() - 18; // از ۱۸ سالگی شروع کرده
-}
+    private int GetExperience()
+    {
+        return GetAge() - 18; // از ۱۸ سالگی شروع کرده
+    }
 }
 <!-- ===== درباره من ===== -->
 <section class="section" id="about">
@@ -1862,20 +1905,20 @@ private int GetExperience()
                     تخصص من در <strong>بک‌اند</strong> با <strong>ASP.NET Core</strong>، طراحی <strong>API</strong>های قدرتمند و ساخت <strong>داشبورد</strong>های مدیریتی است،
                     و همیشه به دنبال یادگیری فناوری‌های جدید هستم.
                 </p><div class="about-stats">
-                    @foreach (var stat in stats)
-                    {
-                        <div class="stat-item">
-                            <div class="number">@stat.CurrentValue</div>
-                            <div class="label">@stat.Label</div>
-                        </div>
-                    }
-                </div>
-            </div>
-            <div class="about-image fade-up">
-                <i class="fas fa-user-astronaut float-icon"></i>
+                @foreach (var stat in stats)
+                {
+                    <div class="stat-item">
+                        <div class="number">@stat.CurrentValue</div>
+                        <div class="label">@stat.Label</div>
+                    </div>
+                }
             </div>
         </div>
+        <div class="about-image fade-up">
+            <i class="fas fa-user-astronaut float-icon"></i>
+        </div>
     </div>
+</div>
 </section>
 
 <!-- ===== مهارت‌ها ===== -->
@@ -1933,7 +1976,7 @@ private int GetExperience()
 
                     @foreach (var item in PortfolioResult.Data)
                     {
-                        
+
                         <div class="portfolio-item fade-up" @key="item.Title">
                             @if (item.PortfolioFile.IsImage)
                             {
@@ -2125,13 +2168,19 @@ private int GetExperience()
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
     <div class="container">
-        <div class="footer-copy">© ۲۰۲۶ محمد رضایی · تمامی حقوق محفوظ است</div>
+        <div class="footer-copy">© @(DateTime.Now.Year) محمد پارسا کریمی · تمامی حقوق محفوظ است</div>
         <div class="footer-links">
-            <a href="#">حریم خصوصی</a>
-            <a href="#">قوانین</a>
-            <a href="#"><i class="fab fa-github"></i></a>
+            @* <a href="#">حریم خصوصی</a>
+            <a href="#">قوانین</a> *@
+            @{
+                foreach (var item in siteLinksDtos)
+                {
+                    <a href="@item.Address"><i class="@item.Icon"></i></a>
+                }
+            }
+            @* <a href="#"><i class="fab fa-github"></i></a>
             <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-telegram"></i></a>
+            <a href="#"><i class="fab fa-telegram"></i></a> *@
         </div>
     </div>
 </footer>
@@ -2150,6 +2199,10 @@ private int GetExperience()
     private List<StatItem> stats = new();
     private List<SkillItem> skills = new();
     private List<FaqItem> faqItems = new();
+    private List<SiteLinksDto> siteLinksDtos = new();
+    private SiteSettingsDto siteSetting { get; set; }
+    private AboutMeSectionDto AboutMeSection { get; set; }
+
 
     public CreateContactUsCommand ContactUsModel { get; set; } = new();
     // ---- تایمرها ----
@@ -2178,11 +2231,23 @@ private int GetExperience()
     }
 
     // ---- متدهای چرخه زندگی ----
-    // protected override async Task OnInitializedAsync()
-    // {
-
-
-    // }
+    protected override async Task OnInitializedAsync()
+    {
+        await GetUserPermission(Permissions.AccessToAdminPanel);
+        await GetUser();
+    }
+    private async Task GetSetting()
+    {
+        siteSetting = await _siteSettingFacade.Get();
+        siteLinksDtos = siteSetting.SiteLinks.Where(i => i.IsActive == true).ToList();
+        AboutMeSection = siteSetting.AboutMeSection;
+        stats = new List<StatItem>
+            {
+                new StatItem { Label = "سال تجربه", Target = AboutMeSection.AboutStats.ExperienceYears, CurrentValue = 0 },
+                new StatItem { Label = "پروژه موفق", Target = AboutMeSection.AboutStats.SuccessProjects, CurrentValue = 0 },
+                new StatItem { Label = "مشتری راضی", Target = AboutMeSection.AboutStats.CustomerSatisfaction, CurrentValue = 0 }
+            };
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -2190,12 +2255,12 @@ private int GetExperience()
         {
             // await InitializeJsInterop();
             // مقداردهی آمار
-            stats = new List<StatItem>
-        {
-            new StatItem { Label = "سال تجربه", Target = 5, CurrentValue = 0 },
-            new StatItem { Label = "پروژه موفق", Target = 40, CurrentValue = 0 },
-            new StatItem { Label = "مشتری راضی", Target = 12, CurrentValue = 0 }
-        };
+            // stats = new List<StatItem>
+            // {
+            //     new StatItem { Label = "سال تجربه", Target = 5, CurrentValue = 0 },
+            //     new StatItem { Label = "پروژه موفق", Target = 40, CurrentValue = 0 },
+            //     new StatItem { Label = "مشتری راضی", Target = 12, CurrentValue = 0 }
+            // };
 
             PortfolioResult = await _portfolioFacade.GetFilter(new PortfolioFilterParam
             {
@@ -2204,6 +2269,8 @@ private int GetExperience()
                 GetPortfolioFileType = GetPortfolioType.GetAll,
                 GetForMainPage = true,
             });
+
+            await GetSetting();
 
             // مقداردهی مهارت‌ها
             // skills = new List<SkillItem>
@@ -2357,7 +2424,7 @@ private int GetExperience()
     private void Logout()
     {
         // در دنیای واقعی، اینجا باید توکن یا نشست را پاک کنید
-        NavigationManager.NavigateTo("/", true);
+        NavigationManager.NavigateTo("/Auth/Logout", true);
     }
 
     // ---- متدهای UI ----
@@ -2451,5 +2518,7 @@ private int GetExperience()
         public bool IsActive { get; set; }
         public int Sequense { get; set; }
     }
+
+    
 }
 <script src="../../../../../js/user-alert.js"></script>

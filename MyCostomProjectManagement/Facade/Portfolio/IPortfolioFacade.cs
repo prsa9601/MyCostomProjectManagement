@@ -5,6 +5,7 @@ using BackEnd.Core.Portfolio.Queries.DTOs;
 using BackEnd.Core.Portfolio.Queries.GetFilter;
 using BackEnd.Shared.CoreShared;
 using MediatR;
+using MyCostomProjectManagement.Shared.Attributes;
 
 namespace MyCostomProjectManagement.Facade.Portfolio
 {
@@ -25,11 +26,13 @@ namespace MyCostomProjectManagement.Facade.Portfolio
             _mediator = mediator;
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.CreatePortfolio)]
         public async Task<OperationResult> Create(CreatePortfoliCommand command)
         {
             return await _mediator.Send(command);
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.EditPortfolio)]
         public async Task<OperationResult> Edit(EditPortfoliCommand command)
         {
             return await _mediator.Send(command);
@@ -40,6 +43,7 @@ namespace MyCostomProjectManagement.Facade.Portfolio
             return await _mediator.Send(new GetPortfolioFilterQuery(filterParam));
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.DeletePortfolio)]
         public async Task<OperationResult> Remove(RemovePortfolioCommand command)
         {
             return await _mediator.Send(command);

@@ -26,7 +26,7 @@ namespace BackEnd.Core.Auth.Commands.SendOtpCode
 
         public async Task<OperationResult> Handle(SendOtpCodeCommand request, CancellationToken cancellationToken)
         {
-            var user = await _repository.GetByFilterAsync(i => i.PhoneNumber == request.PhoneNumber);
+            var user = await _repository.GetTrackingWithPhoneNumber(request.PhoneNumber, "UserOtps");
             var smsService = await _factory.CreateService(SmsServiceTypes.sms_ir);
 
             if (user == null)

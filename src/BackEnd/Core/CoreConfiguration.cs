@@ -73,6 +73,7 @@ namespace BackEnd.Core
             IMapper mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);
 
+
             return services;
         }
     }

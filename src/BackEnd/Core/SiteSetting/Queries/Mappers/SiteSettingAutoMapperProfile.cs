@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BackEnd.Core.SiteSetting.Queries.DTOs;
+using BackEnd.Data.Entities.SiteSettings;
 
 namespace BackEnd.Core.SiteSetting.Queries.Mappers
 {
@@ -14,6 +15,8 @@ namespace BackEnd.Core.SiteSetting.Queries.Mappers
             CreateMap<Data.Entities.SiteSettings.SpecializedServicesSection, SpecializedServicesSectionDto>();
             CreateMap<Data.Entities.SiteSettings.ProjectSectionSetting, ProjectSectionSettingDto>();
             CreateMap<Data.Entities.SiteSettings.SpecializedServicesSection, SpecializedServicesSectionDto>();
+            CreateMap<Data.Entities.SiteSettings.AboutMeSection, AboutMeSectionDto>();
+            CreateMap<Data.Entities.SiteSettings.AboutStats, AboutStatsDto>();
            
             CreateMap<Data.Entities.SiteSettings.SpecializedServicesSectionOptions, SpecializedServicesSectionOptionsDto>();
             CreateMap<Data.Entities.SiteSettings.ProjectSectionSettingOption, ProjectSectionSettingOptionDto>();

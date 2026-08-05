@@ -4,6 +4,7 @@ using BackEnd.Core.ContactUs.Queries.DTOs;
 using BackEnd.Core.ContactUs.Queries.GetFilter;
 using BackEnd.Shared.CoreShared;
 using MediatR;
+using MyCostomProjectManagement.Shared.Attributes;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace MyCostomProjectManagement.Facade.ContactUs
@@ -24,6 +25,7 @@ namespace MyCostomProjectManagement.Facade.ContactUs
             _mediator = mediator;
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.CreateContactUs)]
         public async Task<OperationResult> Create(CreateContactUsCommand command)
         {
             return await _mediator.Send(command);
@@ -34,6 +36,7 @@ namespace MyCostomProjectManagement.Facade.ContactUs
             return await _mediator.Send(new GetContactUsFilterQuery(filterParams));
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.DeleteContactUs)]
         public async Task<OperationResult> Remove(RemoveContactUsCommand command)
         {
             return await _mediator.Send(command);

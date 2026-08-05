@@ -5,6 +5,7 @@ using BackEnd.Core.FAQ.Queries.DTOs;
 using BackEnd.Core.FAQ.Queries.GetFilter;
 using BackEnd.Shared.CoreShared;
 using MediatR;
+using MyCostomProjectManagement.Shared.Attributes;
 using System.Runtime.CompilerServices;
 
 namespace MyCostomProjectManagement.Facade.FAQ
@@ -26,11 +27,13 @@ namespace MyCostomProjectManagement.Facade.FAQ
             _mediator = mediator;
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.CreateFAQ)]
         public async Task<OperationResult> Create(CraeteFAQCommand command)
         {
             return await _mediator.Send(command);
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.EditFAQ)]
         public async Task<OperationResult> Edit(EditFAQCommand command)
         {
             return await _mediator.Send(command);
@@ -41,6 +44,7 @@ namespace MyCostomProjectManagement.Facade.FAQ
             return await _mediator.Send(new GetFAQFilterQuery(filterParam));
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.DeleteFAQ)]
         public async Task<OperationResult> Remove(RemoveFAQCommand command)
         {
             return await _mediator.Send(command);

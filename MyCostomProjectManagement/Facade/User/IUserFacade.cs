@@ -7,6 +7,7 @@ using BackEnd.Core.User.Queries.GetFilter;
 using BackEnd.Core.User.Queries.GetId;
 using BackEnd.Shared.CoreShared;
 using MediatR;
+using MyCostomProjectManagement.Shared.Attributes;
 
 namespace MyCostomProjectManagement.Facade.User
 {
@@ -48,6 +49,7 @@ namespace MyCostomProjectManagement.Facade.User
             return await _mediator.Send(command);
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.GetUser)]
         public async Task<OperationResult> SetUserRole(SetUserRoleCommand command)
         {
             return await _mediator.Send(command);

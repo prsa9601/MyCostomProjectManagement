@@ -1,5 +1,8 @@
-﻿using BackEnd.Data.Entities.Skills;
+﻿using BackEnd.Data.Entities.Role;
+using BackEnd.Data.Entities.Skills;
+using BackEnd.Data.Entities.User;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -18,7 +21,80 @@ namespace BackEnd.Data.DB.Initializer
             // اگر دیتابیس وجود نداشته باشد، ایجادش کن
             await context.Database.EnsureCreatedAsync();
 
-            // بررسی کن که آیا جدول Coupon (یا هر جدول دیگر) خالی است
+            if (!context.Roles.Any())
+            {
+                List<Permissions> permissions = new List<Permissions>
+                {
+                    Permissions.AccessToAdminPanel,
+                    Permissions.CreateApi,
+                    Permissions.CreateContactUs,
+                    Permissions.CreateCustomProject,
+                    Permissions.CreateFAQ,
+                    Permissions.CreatePageManagement,
+                    Permissions.CreatePortfolio,
+                    Permissions.CreateRole,
+                    Permissions.CreateSiteSetting,
+                    Permissions.CreateSkills,
+                    Permissions.CreateUser,
+                    Permissions.DeleteApi,
+                    Permissions.DeleteContactUs,
+                    Permissions.DeleteCustomProject,
+                    Permissions.DeleteFAQ,
+                    Permissions.DeletePortfolio,
+                    Permissions.DeleteRole,
+                    Permissions.DeleteSiteSetting,
+                    Permissions.DeleteSkills,
+                    Permissions.DeleteUser,
+                    Permissions.EditApi,
+                    Permissions.EditContactUs,
+                    Permissions.EditCustomProject,
+                    Permissions.EditFAQ,
+                    Permissions.EditPageManagement,
+                    Permissions.EditPortfolio,
+                    Permissions.EditRole,
+                    Permissions.EditSiteSetting,
+                    Permissions.EditSkills,
+                    Permissions.EditUser,
+                    Permissions.GetApi,
+                    Permissions.GetContactUs,
+                    Permissions.GetCustomProject,
+                    Permissions.GetFAQ,
+                    Permissions.GetPageManagement,
+                    Permissions.GetPortfolio,
+                    Permissions.GetRole,
+                    Permissions.GetSiteSetting,
+                    Permissions.GetSkills,
+                    Permissions.GetUser,
+                };
+
+                List<RolePermission> rolePermissions = new();
+                foreach (var item in permissions)
+                {
+                    rolePermissions.Add(new RolePermission()
+                    {
+                        Permissions = item,
+                    });
+                }
+                var programmerRole = new Role("Programmer", rolePermissions, "fa-users-cog", "#dc3545", "برنامه نویس سایت");
+                await context.Roles.AddAsync(programmerRole);
+                await context.SaveChangesAsync();
+            }
+            if (!context.Users.Any())
+            {
+                var role = await context.Roles.FirstOrDefaultAsync(i=>i.Name.Equals("Programmer"));
+                var user = new User() 
+                {
+                    PhoneNumber = "09368823398",
+                    FullName="محمد پارسا کریمی",
+                    Email = "parsa9601m@gmail.com",
+                    PhoneNumberIsVerify = true,
+                };
+
+                user.AddUserRoles(role.Id);
+                await context.AddAsync(user);
+                await context.SaveChangesAsync();
+            }
+
             if (!context.TechnicalSkills.Any())
             {
                 var allSkills = new List<TechnicalSkills>

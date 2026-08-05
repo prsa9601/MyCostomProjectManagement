@@ -7,6 +7,7 @@ using BackEnd.Core.Role.Queries.GetFilter;
 using BackEnd.Core.Role.Queries.GetRoles;
 using BackEnd.Shared.CoreShared;
 using MediatR;
+using MyCostomProjectManagement.Shared.Attributes;
 
 namespace MyCostomProjectManagement.Facade.Role
 {
@@ -29,11 +30,13 @@ namespace MyCostomProjectManagement.Facade.Role
             _mediator = mediator;
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.CreateRole)]
         public async Task<OperationResult> Create(CreateRoleCommand command)
         {
             return await _mediator.Send(command);
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.EditRole)]
         public async Task<OperationResult> Edit(EditRoleCommand command)
         {
             return await _mediator.Send(command);
@@ -54,6 +57,7 @@ namespace MyCostomProjectManagement.Facade.Role
             return await _mediator.Send(new GetRolesByRoleIdsQuery(roleIds));
         }
 
+        [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.DeleteRole)]
         public async Task<OperationResult> Remove(RemoveRoleCommand command)
         {
             return await _mediator.Send(command);
