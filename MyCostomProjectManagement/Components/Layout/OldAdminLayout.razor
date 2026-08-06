@@ -10,8 +10,8 @@
 
 <style>
     /* ============================================================
-               ADMIN LAYOUT - با پس‌زمینه #13505b
-            ============================================================ */
+           ADMIN LAYOUT - با پس‌زمینه #13505b
+        ============================================================ */
 
     * {
         margin: 0;
@@ -43,8 +43,8 @@
     }
 
     /* ============================================================
-               GLASS EFFECT
-            ============================================================ */
+           GLASS EFFECT
+        ============================================================ */
     .glass {
         background: rgba(255, 255, 255, 0.06);
         backdrop-filter: blur(14px);
@@ -63,8 +63,8 @@
         }
 
     /* ============================================================
-               ANIMATIONS
-            ============================================================ */
+           ANIMATIONS
+        ============================================================ */
     @@keyframes rotateBorder {
         0% {
             background-position: 0% 50%;
@@ -76,8 +76,8 @@
     }
 
     /* ============================================================
-               NAVBAR
-            ============================================================ */
+           NAVBAR
+        ============================================================ */
     .navbar {
         position: fixed;
         top: 0;
@@ -121,7 +121,6 @@
             font-size: 1.3rem;
         }
 
-    /* منوی دسکتاپ */
     .nav-links {
         display: flex;
         gap: 28px;
@@ -216,99 +215,8 @@
         }
 
     /* ============================================================
-               OVERLAY MENU (موبایل)
-            ============================================================ */
-    /* پس‌زمینه تیره برای overlay */
-    .menu-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        z-index: 1000;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-        .menu-overlay.open {
-            display: block;
-            opacity: 1;
-        }
-
-    /* منوی کناری */
-    .nav-links-mobile {
-        position: fixed;
-        top: 0;
-        right: -100%;
-        width: 280px;
-        max-width: 80%;
-        height: 100%;
-        background: rgba(19, 80, 91, 0.98);
-        backdrop-filter: blur(16px);
-        box-shadow: -4px 0 30px rgba(0, 0, 0, 0.3);
-        z-index: 1001;
-        padding: 20px 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        overflow-y: auto;
-        transition: right 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
-        border-radius: 0 20px 20px 0;
-    }
-
-        .nav-links-mobile.open {
-            right: 0;
-        }
-
-        /* دکمه بستن */
-        .nav-links-mobile .close-btn {
-            align-self: flex-end;
-            background: none;
-            border: none;
-            color: #e8f0f1;
-            font-size: 1.8rem;
-            padding: 8px 20px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-            .nav-links-mobile .close-btn:hover {
-                color: #e8a838;
-                transform: rotate(90deg);
-            }
-
-        .nav-links-mobile a {
-            color: rgba(232, 240, 241, 0.7);
-            padding: 12px 24px;
-            font-size: 1rem;
-            transition: 0.2s;
-            border-right: 3px solid transparent;
-        }
-
-            .nav-links-mobile a:hover {
-                background: rgba(255, 255, 255, 0.05);
-                color: #ffffff;
-                border-right-color: #e8a838;
-            }
-
-            .nav-links-mobile a.active {
-                color: #e8a838;
-                background: rgba(232, 168, 56, 0.05);
-                border-right-color: #e8a838;
-            }
-
-        .nav-links-mobile .separator {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.05);
-            margin: 8px 20px;
-        }
-
-    /* ============================================================
-               PAGE CONTENT
-            ============================================================ */
+           PAGE CONTENT
+        ============================================================ */
     .page-wrapper {
         padding-top: 90px;
         padding-bottom: 40px;
@@ -316,8 +224,8 @@
     }
 
     /* ============================================================
-               FOOTER
-            ============================================================ */
+           FOOTER
+        ============================================================ */
     .footer {
         position: relative;
         padding: 28px 0 20px;
@@ -357,8 +265,8 @@
         }
 
     /* ============================================================
-               RESPONSIVE
-            ============================================================ */
+           RESPONSIVE
+        ============================================================ */
     @@media (max-width: 992px) {
         .nav-links {
             gap: 16px;
@@ -367,10 +275,23 @@
     }
 
     @@media (max-width: 768px) {
-        /* مخفی کردن منوی دسکتاپ */
         .nav-links {
             display: none;
+            flex-direction: column;
+            width: 100%;
+            background: rgba(19, 80, 91, 0.95);
+            backdrop-filter: blur(16px);
+            padding: 20px 0;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            margin-top: 12px;
+            border-radius: 20px;
+            align-items: center;
         }
+
+            .nav-links.open {
+                display: flex;
+            }
 
         .hamburger {
             display: flex;
@@ -392,45 +313,37 @@
     }
 
     @@media (max-width: 480px) {
+        .nav-links a {
+            font-size: 0.8rem;
+        }
+
         .logo {
             font-size: 1.2rem;
         }
-
-        .nav-links-mobile {
-            width: 260px;
-        }
-
-            .nav-links-mobile a {
-                padding: 10px 20px;
-                font-size: 0.9rem;
-            }
     }
-
-    /* ============================================================
-               HOME BUTTON
-            ============================================================ */
-    .home-btn {
-        background: none;
-        border: none;
-        color: #cbd5e1;
-        font-size: 20px;
-        cursor: pointer;
-        padding: 6px 10px;
-        border-radius: 6px;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        transition: 0.2s;
-    }
-
-        .home-btn:hover {
-            background: #334155;
-            color: white;
-        }
 </style>
 
+<style>
+.home-btn {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none; /* برای حذف خط زیر لینک */
+    display: inline-flex;
+    align-items: center;
+    transition: 0.2s;
+}
+.home-btn:hover {
+    background: #334155;
+    color: white;
+}
+</style>
 <!-- ============================================================
-     SPARKLE PARTICLES (optional)
+     SPARKLE PARTICLES (optional, can be removed)
 ============================================================ -->
 <div class="sparkle" style="display:none;"></div>
 
@@ -443,9 +356,7 @@
             <i class="fas fa-crown"></i>
             Admin<span>Panel</span>
         </div>
-
-        <!-- منوی دسکتاپ -->
-        <ul class="nav-links">
+        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
             <li><a class="@(IsActive("/Admin") ? "active" : "")" href="/Admin">داشبورد</a></li>
             <li><a class="@(IsActive("/Admin/Projects") ? "active" : "")" href="/Admin/Projects">پروژه‌ها</a></li>
             <li><a class="@(IsActive("/Admin/Users") ? "active" : "")" href="/Admin/Users">کاربران</a></li>
@@ -462,9 +373,9 @@
             <li><a class="@(IsActive("/Admin/Settings") ? "active" : "")" href="/Admin/Settings">تنظیمات</a></li>
         </ul>
 
-        <a href="/" class="home-btn" title="صفحه اصلی">
-            <i class="fas fa-home"></i>
-        </a>
+     <a href="/" class="home-btn" title="صفحه اصلی">
+        <i class="fas fa-home"></i>
+    </a>
 
         <div class="nav-actions">
             <div class="avatar-btn" @onclick="GoToProfile"><i class="fas fa-user-cog"></i></div>
@@ -476,38 +387,12 @@
 </header>
 
 <!-- ============================================================
-     OVERLAY & MENU MOBILE
-============================================================ -->
-<!-- پس‌زمینه تیره -->
-<div class="menu-overlay @(isMenuOpen ? "open" : "")" @onclick="CloseMenu"></div>
-
-<!-- منوی موبایل (کناری) -->
-<div class="nav-links-mobile @(isMenuOpen ? "open" : "")">
-    <button class="close-btn" @onclick="CloseMenu">
-        <i class="fas fa-times"></i>
-    </button>
-
-    <a class="@(IsActive("/Admin") ? "active" : "")" href="/Admin" @onclick="CloseMenu">داشبورد</a>
-    <a class="@(IsActive("/Admin/Projects") ? "active" : "")" href="/Admin/Projects" @onclick="CloseMenu">پروژه‌ها</a>
-    <a class="@(IsActive("/Admin/Users") ? "active" : "")" href="/Admin/Users" @onclick="CloseMenu">کاربران</a>
-    <a class="@(IsActive("/Admin/Roles") ? "active" : "")" href="/Admin/Roles" @onclick="CloseMenu">نقش‌ها</a>
-    <a class="@(IsActive("/Admin/ApiManagement") ? "active" : "")" href="/Admin/ApiManagement" @onclick="CloseMenu">APIها</a>
-    <a class="@(IsActive("/Admin/Packages") ? "active" : "")" href="/Admin/Packages" @onclick="CloseMenu">پکیج‌ها</a>
-    <a class="@(IsActive("/Admin/PackageApiAccess") ? "active" : "")" href="/Admin/PackageApiAccess" @onclick="CloseMenu">دسترسی API</a>
-    <a class="@(IsActive("/Admin/Projects/Requests") ? "active" : "")" href="/Admin/Projects/Requests" @onclick="CloseMenu">درخواست‌ها</a>
-    <a class="@(IsActive("/Admin/Contacts") ? "active" : "")" href="/Admin/Contacts" @onclick="CloseMenu">تماس</a>
-    <a class="@(IsActive("/Admin/Skills") ? "active" : "")" href="/Admin/Skills" @onclick="CloseMenu">مهارت‌ها</a>
-    <a class="@(IsActive("/Admin/Portfolio") ? "active" : "")" href="/Admin/Portfolio" @onclick="CloseMenu">نمونه کارها</a>
-    <a class="@(IsActive("/Admin/FAQ") ? "active" : "")" href="/Admin/FAQ" @onclick="CloseMenu">سوالات متداول</a>
-    <a class="@(IsActive("/Admin/PageManagement") ? "active" : "")" href="/Admin/PageManagement" @onclick="CloseMenu">مدیریت صفحات</a>
-    <a class="@(IsActive("/Admin/Settings") ? "active" : "")" href="/Admin/Settings" @onclick="CloseMenu">تنظیمات</a>
-</div>
-
-<!-- ============================================================
      PAGE CONTENT
 ============================================================ -->
 <div class="page-wrapper">
     <div class="container">
+        @* <Alert /> *@
+
         @Body
     </div>
 </div>
@@ -557,11 +442,13 @@
         var baseUri = Navigation.BaseUri.TrimEnd('/');
         var relativePath = currentUri.Replace(baseUri, "").TrimStart('/');
 
+        // حذف اسلش انتهایی
         if (relativePath.EndsWith("/"))
             relativePath = relativePath[..^1];
 
         var targetPath = path.TrimStart('/');
 
+        // برای مسیر اصلی Admin
         if (targetPath == "admin" && (relativePath == "admin" || relativePath == ""))
             return true;
 
@@ -569,17 +456,6 @@
     }
 
     // ---- متدهای UI ----
-    private void ToggleMenu()
-    {
-        isMenuOpen = !isMenuOpen;
-        StateHasChanged();
-    }
-
-    private void CloseMenu()
-    {
-        isMenuOpen = false;
-        StateHasChanged();
-    }
-
+    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
     private void GoToProfile() => Navigation.NavigateTo("/Admin/Profile", true);
 }

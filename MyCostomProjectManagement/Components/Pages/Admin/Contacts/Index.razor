@@ -175,6 +175,7 @@
         border-radius: 14px;
         text-align: center;
         transition: all 0.3s ease;
+        position: relative;
     }
 
         .contact-info-card:hover {
@@ -203,6 +204,75 @@
             margin-top: 4px;
             word-break: break-word;
         }
+
+        .contact-info-card .edit-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: rgba(232, 240, 241, 0.15);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: color 0.3s ease;
+            padding: 4px;
+        }
+
+            .contact-info-card .edit-btn:hover {
+                color: #e8a838;
+            }
+
+        .contact-info-card .edit-input {
+            margin-top: 8px;
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            color: #e8f0f1;
+            font-size: 0.9rem;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+            .contact-info-card .edit-input:focus {
+                border-color: #e8a838;
+            }
+
+        .contact-info-card .edit-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+            .contact-info-card .edit-actions button {
+                padding: 4px 16px;
+                border-radius: 30px;
+                font-size: 0.75rem;
+                border: none;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .contact-info-card .edit-actions .save-btn {
+                background: #e8a838;
+                color: #fff;
+            }
+
+                .contact-info-card .edit-actions .save-btn:hover {
+                    background: #d4952e;
+                }
+
+            .contact-info-card .edit-actions .cancel-btn {
+                background: rgba(255, 255, 255, 0.05);
+                color: rgba(232, 240, 241, 0.5);
+            }
+
+                .contact-info-card .edit-actions .cancel-btn:hover {
+                    background: rgba(255, 255, 255, 0.08);
+                }
 
     .filter-bar {
         display: flex;
@@ -819,27 +889,90 @@
             </div>
         </div>
 
-        <!-- Contact Info -->
+        <!-- Contact Info WITH EDIT OPTION -->
         <div class="contact-info-grid fade-up visible">
+            <!-- Address -->
             <div class="contact-info-card">
                 <i class="fas fa-map-marker-alt"></i>
                 <div class="label">آدرس</div>
-                <div class="value">تهران، خیابان ولیعصر، پلاک ۱۲۳</div>
+                @if (editingField == "address")
+                {
+                    <input class="edit-input" @bind="tempValue" />
+                    <div class="edit-actions">
+                        <button class="save-btn" @onclick='() => SaveEdit("address")'>ذخیره</button>
+                        <button class="cancel-btn" @onclick="CancelEdit">لغو</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="value">@contactInfo.Address</div>
+                    <button class="edit-btn" @onclick='() => StartEdit("address", contactInfo.Address)' title="ویرایش آدرس">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                }
             </div>
+
+            <!-- Phone -->
             <div class="contact-info-card">
                 <i class="fas fa-phone-alt"></i>
                 <div class="label">تلفن</div>
-                <div class="value">+۹۸ ۲۱ ۱۲۳۴ ۵۶۷۸</div>
+                @if (editingField == "phone")
+                {
+                    <input class="edit-input" @bind="tempValue" />
+                    <div class="edit-actions">
+                        <button class="save-btn" @onclick='() => SaveEdit("phone")'>ذخیره</button>
+                        <button class="cancel-btn" @onclick="CancelEdit">لغو</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="value">@contactInfo.Phone</div>
+                    <button class="edit-btn" @onclick='() => StartEdit("phone", contactInfo.Phone)' title="ویرایش تلفن">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                }
             </div>
+
+            <!-- Email -->
             <div class="contact-info-card">
                 <i class="fas fa-envelope"></i>
                 <div class="label">ایمیل</div>
-                <div class="value">info@example.com</div>
+                @if (editingField == "email")
+                {
+                    <input class="edit-input" @bind="tempValue" />
+                    <div class="edit-actions">
+                        <button class="save-btn" @onclick='() => SaveEdit("email")'>ذخیره</button>
+                        <button class="cancel-btn" @onclick="CancelEdit">لغو</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="value">@contactInfo.Email</div>
+                    <button class="edit-btn" @onclick='() => StartEdit("email", contactInfo.Email)' title="ویرایش ایمیل">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                }
             </div>
+
+            <!-- Working Hours -->
             <div class="contact-info-card">
                 <i class="fas fa-clock"></i>
                 <div class="label">ساعت کاری</div>
-                <div class="value">شنبه تا چهارشنبه ۹-۱۸</div>
+                @if (editingField == "hours")
+                {
+                    <input class="edit-input" @bind="tempValue" />
+                    <div class="edit-actions">
+                        <button class="save-btn" @onclick='() => SaveEdit("hours")'>ذخیره</button>
+                        <button class="cancel-btn" @onclick="CancelEdit">لغو</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="value">@contactInfo.WorkingHours</div>
+                    <button class="edit-btn" @onclick='() => StartEdit("hours", contactInfo.WorkingHours)' title="ویرایش ساعت کاری">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                }
             </div>
         </div>
 
@@ -951,12 +1084,23 @@
     private int readCount => allMessages.Count(m => m.StatusClass == "read");
     private int repliedCount => allMessages.Count(m => m.StatusClass == "replied");
 
+    // ---- Contact Info (برای ویرایش) ----
+    private ContactInfo contactInfo = new();
+    private string? editingField = null; // "address", "phone", "email", "hours" یا null
+    private string tempValue = "";
+
     // ============================================================
     // INITIALIZATION
     // ============================================================
 
     protected override void OnInitialized()
     {
+        // مقداردهی اولیه اطلاعات تماس
+        contactInfo.Address = "تهران، خیابان ولیعصر، پلاک ۱۲۳";
+        contactInfo.Phone = "+۹۸ ۲۱ ۱۲۳۴ ۵۶۷۸";
+        contactInfo.Email = "info@example.com";
+        contactInfo.WorkingHours = "شنبه تا چهارشنبه ۹-۱۸";
+
         LoadMessages();
         ApplyFilters();
     }
@@ -1036,6 +1180,48 @@
                 StatusClass = "replied"
             }
         };
+    }
+
+    // ============================================================
+    // CONTACT INFO EDIT METHODS
+    // ============================================================
+
+    private void StartEdit(string field, string currentValue)
+    {
+        editingField = field;
+        tempValue = currentValue;
+    }
+
+    private void SaveEdit(string field)
+    {
+        if (string.IsNullOrWhiteSpace(tempValue))
+            return;
+
+        switch (field)
+        {
+            case "address":
+                contactInfo.Address = tempValue;
+                break;
+            case "phone":
+                contactInfo.Phone = tempValue;
+                break;
+            case "email":
+                contactInfo.Email = tempValue;
+                break;
+            case "hours":
+                contactInfo.WorkingHours = tempValue;
+                break;
+        }
+
+        editingField = null;
+        tempValue = "";
+        // در اینجا می‌توانید اطلاعات را در دیتابیس ذخیره کنید
+    }
+
+    private void CancelEdit()
+    {
+        editingField = null;
+        tempValue = "";
     }
 
     // ============================================================
@@ -1252,5 +1438,13 @@
         public string Date { get; set; } = "";
         public string StatusClass { get; set; } = "unread";
         public string StatusText { get; set; } = "خوانده نشده";
+    }
+
+    public class ContactInfo
+    {
+        public string Address { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string WorkingHours { get; set; } = "";
     }
 }

@@ -1,4 +1,4 @@
-﻿@page "/O"
+﻿@page "/"
 @using BackEnd.Core
 @using BackEnd.Core.ContactUs.Commands.Create
 @using BackEnd.Core.Portfolio.Queries.DTOs
@@ -1718,8 +1718,24 @@
             display: flex;
         }
 
-        .nav-actions .btn-outline, .nav-actions .btn-dashboard, .nav-actions .btn-admin, .nav-actions .btn-login {
-            display: none;
+        /* حذف display:none برای دکمه‌های لاگین/داشبورد/ادمین/خروج */
+        .nav-actions .btn-login,
+        .nav-actions .btn-logout,
+        .nav-actions .btn-dashboard,
+        .nav-actions .btn-admin {
+            display: inline-flex; /* نمایش داده شوند */
+            font-size: 0.7rem;
+            padding: 4px 10px;
+        }
+        /* دکمه خرید اشتراک نیز کوچک‌تر شود */
+        .nav-actions .btn-primary {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+        }
+        /* فاصله و چینش دکمه‌ها */
+        .nav-actions {
+            gap: 6px;
+            justify-content: flex-end;
         }
 
         .stats-grid {
@@ -1768,6 +1784,165 @@
 
         .about-stats {
             grid-template-columns: 1fr;
+        }
+
+        .container {
+            padding: 0 16px;
+        }
+
+        .hero {
+            padding: 120px 0 60px;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            padding: 0 8px;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .hero-actions .btn-primary,
+            .hero-actions .btn-outline {
+                width: 100%;
+                justify-content: center;
+                padding: 12px 20px;
+                font-size: 0.95rem;
+            }
+
+        .section {
+            padding: 60px 0;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+
+        .section-subtitle {
+            font-size: 0.95rem;
+            margin-bottom: 32px;
+        }
+
+        .about-text p {
+            font-size: 0.95rem;
+        }
+
+        .about-image {
+            min-height: 200px;
+        }
+
+            .about-image i {
+                font-size: 5rem;
+            }
+
+        .contact-info .item {
+            font-size: 0.95rem;
+            gap: 12px;
+        }
+
+            .contact-info .item i {
+                width: 44px;
+                height: 44px;
+                font-size: 1.2rem;
+            }
+
+        .purchase-card {
+            padding: 28px 16px;
+        }
+
+            .purchase-card .price {
+                font-size: 2rem;
+            }
+
+        .request-grid .request-form input,
+        .request-grid .request-form select,
+        .request-grid .request-form textarea {
+            padding: 14px 16px;
+            font-size: 0.95rem;
+        }
+
+        .faq-question {
+            padding: 16px 20px;
+            font-size: 0.95rem;
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 20px 20px;
+        }
+
+        .project-row {
+            padding: 18px 20px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+            .project-row .badge {
+                align-self: flex-start;
+            }
+
+        .footer .container {
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .footer-links {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .navbar .container {
+            padding: 0 16px;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+        }
+
+        .nav-actions .btn-primary {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+        }
+    }
+
+    /* بهبود برای صفحه‌های بسیار کوچک (max-width: 400px) */
+    @@media (max-width: 400px) {
+        .hero h1 {
+            font-size: 1.8rem;
+        }
+
+        .hero-badge {
+            font-size: 0.7rem;
+            padding: 4px 14px;
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+        }
+
+        .stat-item .number {
+            font-size: 1.6rem;
+        }
+
+        /* در صورت لزوم دکمه‌های ناوبری را یک ردیف کنیم */
+        .nav-actions {
+            gap: 4px;
+        }
+        .nav-actions .btn-login,
+        .nav-actions .btn-logout,
+        .nav-actions .btn-dashboard,
+        .nav-actions .btn-admin,
+        .nav-actions .btn-primary {
+            font-size: 0.65rem;
+            padding: 3px 8px;
         }
     }
 </style>
@@ -2156,7 +2331,7 @@
         <div class="faq-list">
             @foreach (var faq in faqItems)
             {
-                <div class="faq-item  @(faq.IsActive ? "active" : "")" @key="faq.Sequense" fade-up">
+                <div class="faq-item  @(faq.IsActive ? "active" : "")" @key="faq.Sequense" fade-up>
                     <div class="faq-question" @onclick="() => ToggleFaq(faq)">
                         <span>@faq.Question</span>
                         <i class="fas fa-chevron-down"></i>
