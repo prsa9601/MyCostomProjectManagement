@@ -1,13 +1,16 @@
 ﻿@page "/Admin/Contacts"
+@using MyCostomProjectManagement.Facade.ContactUs
+@using MyCostomProjectManagement.Shared.Extentions
 @layout AdminLayout
-@rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject IContactUsFacade _contactFacade
+@rendermode InteractiveServer
 
 <style>
     /* ============================================================
-           STYLES SPECIFIC TO CONTACTS PAGE
-        ============================================================ */
+                           STYLES SPECIFIC TO CONTACTS PAGE
+                        ============================================================ */
 
     .page-header {
         display: flex;
@@ -698,8 +701,8 @@
     }
 
     /* ============================================================
-           RESPONSIVE
-        ============================================================ */
+                           RESPONSIVE
+                        ============================================================ */
     @@media (max-width: 1200px) {
         .message-row {
             grid-template-columns: auto 1fr auto auto;
@@ -933,22 +936,22 @@
                 }
             </div>
 
-            <!-- Email -->
+            <!-- PhoneNumber -->
             <div class="contact-info-card">
                 <i class="fas fa-envelope"></i>
                 <div class="label">ایمیل</div>
-                @if (editingField == "email")
+                @if (editingField == "PhoneNumber")
                 {
                     <input class="edit-input" @bind="tempValue" />
                     <div class="edit-actions">
-                        <button class="save-btn" @onclick='() => SaveEdit("email")'>ذخیره</button>
+                        <button class="save-btn" @onclick='() => SaveEdit("PhoneNumber")'>ذخیره</button>
                         <button class="cancel-btn" @onclick="CancelEdit">لغو</button>
                     </div>
                 }
                 else
                 {
-                    <div class="value">@contactInfo.Email</div>
-                    <button class="edit-btn" @onclick='() => StartEdit("email", contactInfo.Email)' title="ویرایش ایمیل">
+                    <div class="value">@contactInfo.PhoneNumber</div>
+                    <button class="edit-btn" @onclick='() => StartEdit("PhoneNumber", contactInfo.PhoneNumber)' title="ویرایش ایمیل">
                         <i class="fas fa-pencil-alt"></i>
                     </button>
                 }
@@ -980,7 +983,10 @@
         <div class="filter-bar fade-up visible">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="جستجوی پیام..." @bind="searchTerm" @bind:event="oninput" />
+                <input type="text" placeholder="جستجوی پیام..."
+                       @bind="searchTerm"
+                       @bind:event="oninput"
+                       @bind:after="() => { currentPage = 1; ApplyFilters(); StateHasChanged(); }" />
             </div>
             <div class="filter-group">
                 <button class="filter-btn @(filterStatus == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>همه</button>
@@ -1011,24 +1017,30 @@
                             <div class="subject">@msg.Subject</div>
                             <div class="preview">@msg.Preview</div>
                         </div>
-                        <div class="msg-date">@msg.Date</div>
+                        <div class="msg-date">@msg.Date.ToPersianDateString()</div> <!-- فرضاً یک متد extension برای نمایش تاریخ -->
                         <span class="msg-status @msg.StatusClass">
                             @(msg.StatusClass == "unread" ? "خوانده نشده" : msg.StatusClass == "read" ? "خوانده شده" : "پاسخ داده شده")
                         </span>
-                        <div class="msg-actions" onclick="event.stopPropagation();">
-                            <button class="ripple reply" title="پاسخ" @onclick='() => ToggleReply(msg.Id)'><i class="fas fa-reply"></i></button>
+                        <div class="msg-actions" @onclick:stopPropagation="true">
+                            <button class="ripple reply" title="پاسخ" @onclick='() => ToggleReply(msg.Id)'>
+                                <i class="fas fa-reply"></i>
+                            </button>
                             @if (msg.StatusClass == "unread")
                             {
-                                <button class="ripple" title="خوانده شد" @onclick='() => MarkAsRead(msg.Id)'><i class="fas fa-check"></i></button>
+                                <button class="ripple" title="خوانده شد" @onclick='async () => await MarkAsRead(msg.Id)'>
+                                    <i class="fas fa-check"></i>
+                                </button>
                             }
-                            <button class="ripple delete" title="حذف" @onclick='() => DeleteMessage(msg.Id)'><i class="fas fa-trash-alt"></i></button>
+                            <button class="ripple delete" title="حذف" @onclick='() => DeleteMessage(msg.Id)'>
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
 
                         <!-- Reply Section (Inline) -->
-                        <div class="reply-section @(replyMessageId == msg.Id ? "active" : "")" style="grid-column:1 / -1;" onclick="event.stopPropagation();">
+                        <div class="reply-section @(replyMessageId == msg.Id ? "active" : "")" style="grid-column:1 / -1;" @onclick:stopPropagation="true">
                             <textarea placeholder="پاسخ خود را بنویسید..." @bind="replyText"></textarea>
                             <div class="reply-actions">
-                                <button class="btn-primary ripple" @onclick='() => SendReply(msg.Id)'><i class="fas fa-paper-plane"></i> ارسال پاسخ</button>
+                                <button class="btn-primary ripple" @onclick='async () => await SendReply(msg.Id)'><i class="fas fa-paper-plane"></i> ارسال پاسخ</button>
                                 <button class="btn-light ripple" @onclick='() => CancelReply()'><i class="fas fa-times"></i> لغو</button>
                             </div>
                         </div>
@@ -1070,11 +1082,11 @@
     private string searchTerm = "";
     private string filterStatus = "all";
     private int currentPage = 1;
-    private int pageSize = 5;
+    private int pageSize = 8;
     private int totalPages = 1;
 
     private string replyText = "";
-    private string? replyMessageId = null;
+    private Guid replyMessageId { get; set; }
 
     private List<MessageItem> allMessages = new();
     private List<MessageItem> filteredMessages = new();
@@ -1086,7 +1098,7 @@
 
     // ---- Contact Info (برای ویرایش) ----
     private ContactInfo contactInfo = new();
-    private string? editingField = null; // "address", "phone", "email", "hours" یا null
+    private string? editingField = null; // "address", "phone", "PhoneNumber", "hours" یا null
     private string tempValue = "";
 
     // ============================================================
@@ -1095,91 +1107,115 @@
 
     protected override void OnInitialized()
     {
-        // مقداردهی اولیه اطلاعات تماس
+        // مقداردهی اولیه اطلاعات تماس (داده‌های نمونه)
         contactInfo.Address = "تهران، خیابان ولیعصر، پلاک ۱۲۳";
         contactInfo.Phone = "+۹۸ ۲۱ ۱۲۳۴ ۵۶۷۸";
-        contactInfo.Email = "info@example.com";
+        contactInfo.PhoneNumber = "info@example.com";
         contactInfo.WorkingHours = "شنبه تا چهارشنبه ۹-۱۸";
-
-        LoadMessages();
-        ApplyFilters();
     }
 
-    private void LoadMessages()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        allMessages = new List<MessageItem>
+        if (firstRender)
         {
-            new MessageItem
+            await LoadMessagesFilter(currentPage);
+            ApplyFilters();
+            StateHasChanged();
+            await InitializeJsInterop();
+        }
+    }
+
+    // ============================================================
+    // DATA LOADING
+    // ============================================================
+
+    private async Task LoadMessagesFilter(int pageId = 1, int take = 10)
+    {
+        var result = await _contactFacade.GetFilter(new BackEnd.Core.ContactUs.Queries.DTOs.ContactUsFilterParam
+        {
+            PageId = pageId,
+            Take = take
+        });
+
+        if (result == null || result.EntityCount == 0)
+        {
+            allMessages = new List<MessageItem>();
+        }
+        else
+        {
+            allMessages = result.Data.Select(i => new MessageItem
             {
-                Id = "MSG-001",
-                Sender = "علی رضایی",
-                Email = "ali.rezaei@example.com",
-                Subject = "درخواست مشاوره برای پروژه فروشگاهی",
-                Preview = "سلام، من قصد دارم یک فروشگاه اینترنتی راه‌اندازی کنم. لطفاً در مورد هزینه و زمان‌بندی راهنمایی بفرمایید.",
-                Date = "۱۴۰۵/۰۴/۱۸ - ۱۴:۳۰",
-                StatusClass = "unread"
-            },
-            new MessageItem
-            {
-                Id = "MSG-002",
-                Sender = "سارا حسینی",
-                Email = "sara.hosseini@example.com",
-                Subject = "سوال در مورد اپلیکیشن موبایل",
-                Preview = "آیا امکان ساخت اپلیکیشن موبایل با قابلیت آفلاین وجود دارد؟ لطفاً نمونه کارهای قبلی را نیز ارسال کنید.",
-                Date = "۱۴۰۵/۰۴/۱۷ - ۱۱:۲۰",
-                StatusClass = "read"
-            },
-            new MessageItem
-            {
-                Id = "MSG-003",
-                Sender = "مریم نادری",
-                Email = "maryam.naderi@example.com",
-                Subject = "درخواست همکاری برای پروژه آموزشی",
-                Preview = "سلام. من مدیر یک موسسه آموزشی هستم و به دنبال توسعه یک پلتفرم آموزش آنلاین هستم. ممنون می‌شوم راهنمایی بفرمایید.",
-                Date = "۱۴۰۵/۰۴/۱۶ - ۰۹:۴۵",
-                StatusClass = "replied"
-            },
-            new MessageItem
-            {
-                Id = "MSG-004",
-                Sender = "رضا کریمی",
-                Email = "reza.karimi@example.com",
-                Subject = "گزارش مشکل در سایت",
-                Preview = "سلام. هنگام ثبت نام در سایت با خطا مواجه می‌شوم. لطفاً در اسرع وقت بررسی کنید.",
-                Date = "۱۴۰۵/۰۴/۱۵ - ۱۶:۱۰",
-                StatusClass = "unread"
-            },
-            new MessageItem
-            {
-                Id = "MSG-005",
-                Sender = "زهرا محمدی",
-                Email = "zahra.mohammadi@example.com",
-                Subject = "پیشنهاد همکاری در طراحی UI/UX",
-                Preview = "با سلام، من یک طراح UI/UX هستم و می‌خواهم برای همکاری با تیم شما اعلام آمادگی کنم. نمونه کارها را پیوست کرده‌ام.",
-                Date = "۱۴۰۵/۰۴/۱۴ - ۱۳:۵۰",
-                StatusClass = "read"
-            },
-            new MessageItem
-            {
-                Id = "MSG-006",
-                Sender = "احمد رضایی",
-                Email = "ahmad.rezaei@example.com",
-                Subject = "سفارش پروژه توسعه API",
-                Preview = "سلام. ما به یک تیم برای توسعه API مدیریت محتوا نیاز داریم. لطفاً قیمت و زمان تحویل را اعلام بفرمایید.",
-                Date = "۱۴۰۵/۰۴/۱۳ - ۱۰:۰۰",
-                StatusClass = "unread"
-            },
-            new MessageItem
-            {
-                Id = "MSG-007",
-                Sender = "نرگس احمدی",
-                Email = "narges.ahmadi@example.com",
-                Subject = "تشکر از خدمات شما",
-                Preview = "سلام. می‌خواستم از تیم شما برای پروژه وب‌سایت تشکر کنم. کار بسیار عالی انجام شد و مشتریان راضی هستند.",
-                Date = "۱۴۰۵/۰۴/۱۲ - ۰۸:۳۰",
-                StatusClass = "replied"
-            }
-        };
+                Id = i.Id,
+                Date = i.CreationDate,
+                PhoneNumber = i.PhoneNumber,
+                Subject = i.Subject,
+                Sender = i.FullName,
+                Preview = i.Message,
+                StatusClass = i.IsRead ? "read" : "unread",
+            }).ToList();
+        }
+    }
+
+    // ============================================================
+    // FILTER & SEARCH
+    // ============================================================
+
+    private void ApplyFilters()
+    {
+        var query = allMessages.AsEnumerable();
+
+        // Filter by status
+        if (!string.IsNullOrEmpty(filterStatus) && filterStatus != "all")
+        {
+            query = query.Where(m => m.StatusClass == filterStatus);
+        }
+
+        // Search
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(m =>
+                m.Sender.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                m.Subject.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                m.Preview.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                m.PhoneNumber.Contains(term, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        // Pagination
+        var total = query.Count();
+        totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        if (totalPages == 0) totalPages = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        filteredMessages = query
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    private void SetFilter(string status)
+    {
+        filterStatus = status;
+        currentPage = 1;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void OnSearchChanged(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        currentPage = 1;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ChangePage(int page)
+    {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        ApplyFilters();
+        StateHasChanged();
     }
 
     // ============================================================
@@ -1205,8 +1241,8 @@
             case "phone":
                 contactInfo.Phone = tempValue;
                 break;
-            case "email":
-                contactInfo.Email = tempValue;
+            case "PhoneNumber":
+                contactInfo.PhoneNumber = tempValue;
                 break;
             case "hours":
                 contactInfo.WorkingHours = tempValue;
@@ -1216,66 +1252,13 @@
         editingField = null;
         tempValue = "";
         // در اینجا می‌توانید اطلاعات را در دیتابیس ذخیره کنید
+        StateHasChanged();
     }
 
     private void CancelEdit()
     {
         editingField = null;
         tempValue = "";
-    }
-
-    // ============================================================
-    // FILTER & SEARCH
-    // ============================================================
-
-    private void ApplyFilters()
-    {
-        var query = allMessages.AsEnumerable();
-
-        // Filter by status
-        if (!string.IsNullOrEmpty(filterStatus) && filterStatus != "all")
-        {
-            query = query.Where(m => m.StatusClass == filterStatus);
-        }
-
-        // Search
-        if (!string.IsNullOrEmpty(searchTerm))
-        {
-            var term = searchTerm.Trim();
-            query = query.Where(m =>
-                m.Sender.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                m.Subject.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                m.Preview.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                m.Email.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                m.Id.Contains(term, StringComparison.OrdinalIgnoreCase)
-            );
-        }
-
-        // Pagination
-        var total = query.Count();
-        totalPages = (int)Math.Ceiling(total / (double)pageSize);
-        if (totalPages == 0) totalPages = 1;
-        if (currentPage > totalPages) currentPage = totalPages;
-
-        filteredMessages = query
-            .Skip((currentPage - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
-    }
-
-    private void SetFilter(string status)
-    {
-        filterStatus = status;
-        currentPage = 1;
-        ApplyFilters();
-        StateHasChanged();
-    }
-
-    private void ChangePage(int page)
-    {
-        if (page < 1 || page > totalPages) return;
-        currentPage = page;
-        ApplyFilters();
         StateHasChanged();
     }
 
@@ -1287,18 +1270,18 @@
     private void CloseMenu() => isMenuOpen = false;
     private void GoToProfile() => NavigationManager.NavigateTo("/Profile", true);
 
-    private void RefreshMessages()
+    private async Task RefreshMessages()
     {
-        LoadMessages();
+        await LoadMessagesFilter(currentPage);
         ApplyFilters();
         StateHasChanged();
     }
 
-    private void ToggleReply(string id)
+    private void ToggleReply(Guid id)
     {
         if (replyMessageId == id)
         {
-            replyMessageId = null;
+            replyMessageId = Guid.Empty;
             replyText = "";
         }
         else
@@ -1311,12 +1294,12 @@
 
     private void CancelReply()
     {
-        replyMessageId = null;
+        replyMessageId = Guid.Empty;
         replyText = "";
         StateHasChanged();
     }
 
-    private void SendReply(string id)
+    private async Task SendReply(Guid id)
     {
         if (string.IsNullOrWhiteSpace(replyText)) return;
 
@@ -1324,41 +1307,69 @@
         if (msg != null)
         {
             msg.StatusClass = "replied";
-            // In a real app, send email via API
-            Console.WriteLine($"Reply sent to {msg.Email}: {replyText}");
+            // در صورت نیاز پاسخ را به سرور ارسال کنید
+            // await _contactFacade.Reply(...);
+            Console.WriteLine($"Reply sent to {msg.PhoneNumber}: {replyText}");
         }
 
-        replyMessageId = null;
+        replyMessageId = Guid.Empty;
         replyText = "";
         ApplyFilters();
         StateHasChanged();
     }
 
-    private void MarkAsRead(string id)
+    private async Task MarkAsRead(Guid id)
     {
         var msg = allMessages.FirstOrDefault(m => m.Id == id);
         if (msg != null && msg.StatusClass == "unread")
         {
             msg.StatusClass = "read";
+            // به‌روزرسانی در دیتابیس
+            await _contactFacade.Edit(new BackEnd.Core.ContactUs.Commands.Edit.EditContactUsCommand
+            {
+                Id = id,
+                IsRead = true,
+                FullName = msg.Sender,
+                Message = msg.Preview,
+                PhoneNumber = msg.PhoneNumber,
+                Subject = msg.Subject,
+                IsAnswered = false // or true if you want to mark as answered as well
+            });
         }
         ApplyFilters();
         StateHasChanged();
     }
 
-    private void MarkAllAsRead()
+    private async Task MarkAllAsRead()
     {
         foreach (var msg in allMessages.Where(m => m.StatusClass == "unread"))
         {
             msg.StatusClass = "read";
+            // می‌توانید برای هرکدام فراخوانی کنید یا یک متد گروهی در سرویس داشته باشید
+            await _contactFacade.Edit(new BackEnd.Core.ContactUs.Commands.Edit.EditContactUsCommand
+            {
+                Id = msg.Id,
+                IsRead = true,
+                FullName = msg.Sender,
+                Message = msg.Preview,
+                PhoneNumber = msg.PhoneNumber,
+                Subject = msg.Subject,
+                IsAnswered = false
+            });
         }
         ApplyFilters();
         StateHasChanged();
     }
 
-    private void DeleteMessage(string id)
+    private async Task DeleteMessage(Guid id)
     {
+        // حذف از دیتابیس
+        await _contactFacade.Remove(new BackEnd.Core.ContactUs.Commands.Remove.RemoveContactUsCommand
+        {
+            Id = id
+        });
         allMessages.RemoveAll(m => m.Id == id);
-        if (replyMessageId == id) replyMessageId = null;
+        if (replyMessageId == id) replyMessageId = Guid.Empty;
         ApplyFilters();
         StateHasChanged();
     }
@@ -1366,14 +1377,6 @@
     // ============================================================
     // JS INTEROP
     // ============================================================
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await InitializeJsInterop();
-        }
-    }
 
     private async Task InitializeJsInterop()
     {
@@ -1430,12 +1433,12 @@
 
     public class MessageItem
     {
-        public string Id { get; set; } = "";
+        public Guid Id { get; set; }
         public string Sender { get; set; } = "";
-        public string Email { get; set; } = "";
+        public string PhoneNumber { get; set; } = "";
         public string Subject { get; set; } = "";
         public string Preview { get; set; } = "";
-        public string Date { get; set; } = "";
+        public DateTime Date { get; set; }
         public string StatusClass { get; set; } = "unread";
         public string StatusText { get; set; } = "خوانده نشده";
     }
@@ -1444,7 +1447,7 @@
     {
         public string Address { get; set; } = "";
         public string Phone { get; set; } = "";
-        public string Email { get; set; } = "";
+        public string PhoneNumber { get; set; } = "";
         public string WorkingHours { get; set; } = "";
     }
 }

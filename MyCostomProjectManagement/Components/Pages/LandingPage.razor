@@ -4,9 +4,11 @@
 @using BackEnd.Core.Portfolio.Queries.DTOs
 @using BackEnd.Core.SiteSetting.Queries.DTOs
 @using BackEnd.Data.Entities.Role
+@using BackEnd.Shared.Extentions.Enum
 @using MyCostomProjectManagement.Facade.ContactUs
 @using MyCostomProjectManagement.Facade.FAQ
 @using MyCostomProjectManagement.Facade.Portfolio
+@using MyCostomProjectManagement.Facade.ProjectRequestV1
 @using MyCostomProjectManagement.Facade.SiteSettings
 @using MyCostomProjectManagement.Facade.Skills
 @using MyCostomProjectManagement.Facade.User
@@ -25,21 +27,22 @@
 @inject IUserFacade _userFacade
 @inject GetUserPermission _getUserPermission
 @inject UserAuthentication _userAuthentication
+@inject IProjectRequestV1Facade _prV1Facade
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>محمد رضایی | برنامه‌نویس و توسعه‌دهنده</title>
+<title>محمد پارسا کریمی | برنامه‌نویس و توسعه‌دهنده</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/csharp.svg" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
 <style>
     /* ====================================================
-                تمام استایل‌های مورد نیاز (لندینگ + داشبورد)
-                ==================================================== */
+                    تمام استایل‌های مورد نیاز (لندینگ + داشبورد)
+                    ==================================================== */
     /* ====================================================
-                LOADING OVERLAY
-                ==================================================== */
+                    LOADING OVERLAY
+                    ==================================================== */
     .loading-overlay {
         position: fixed;
         top: 0;
@@ -1717,7 +1720,6 @@
         .hamburger {
             display: flex;
         }
-
         /* حذف display:none برای دکمه‌های لاگین/داشبورد/ادمین/خروج */
         .nav-actions .btn-login,
         .nav-actions .btn-logout,
@@ -1794,10 +1796,10 @@
             padding: 120px 0 60px;
         }
 
-        .hero p {
-            font-size: 1rem;
-            padding: 0 8px;
-        }
+            .hero p {
+                font-size: 1rem;
+                padding: 0 8px;
+            }
 
         .hero-actions {
             flex-direction: column;
@@ -1931,19 +1933,19 @@
         .stat-item .number {
             font-size: 1.6rem;
         }
-
         /* در صورت لزوم دکمه‌های ناوبری را یک ردیف کنیم */
         .nav-actions {
             gap: 4px;
         }
-        .nav-actions .btn-login,
-        .nav-actions .btn-logout,
-        .nav-actions .btn-dashboard,
-        .nav-actions .btn-admin,
-        .nav-actions .btn-primary {
-            font-size: 0.65rem;
-            padding: 3px 8px;
-        }
+
+            .nav-actions .btn-login,
+            .nav-actions .btn-logout,
+            .nav-actions .btn-dashboard,
+            .nav-actions .btn-admin,
+            .nav-actions .btn-primary {
+                font-size: 0.65rem;
+                padding: 3px 8px;
+            }
     }
 </style>
 
@@ -1973,7 +1975,7 @@
         if (user == null) UserIsAuthenticate = false;
 
         else UserIsAuthenticate = true;
-        
+
     }
 }
 <!-- ===== NAVBAR ===== -->
@@ -2200,9 +2202,12 @@
             </div>
             @* طراحی *@
             <div class="project-row fade-up">
-                <div class="info"><h4>پلتفرم مدیریت خدمات فریلنسری با قابلیت فروش API و اشتراک
+                <div class="info">
+                    <h4>
+                        پلتفرم مدیریت خدمات فریلنسری با قابلیت فروش API و اشتراک
 
-                </h4><p>ساخت سایت واکنش‌گرا با Asp.Net Core و Blazor و SqlServer</p></div>
+                    </h4><p>ساخت سایت واکنش‌گرا با Asp.Net Core و Blazor و SqlServer</p>
+                </div>
                 <span class="badge">در حال توسعه</span>
             </div>
             <div class="project-row fade-up">
@@ -2256,28 +2261,62 @@
 </section>
 
 <!-- ===== درخواست پروژه ===== -->
+@using BackEnd.Core.Project.Commands.ProjectRequestV1.Create
+@using BackEnd.Data.Entities.ProjectRequestV1
+
 <section class="section" id="request">
     <div class="container">
         <h2 class="section-title fade-up">درخواست <span>پروژه</span></h2>
         <p class="section-subtitle fade-up">پروژه خود را شرح دهید تا در سریع‌ترین زمان با شما هماهنگ کنیم</p>
-        <div class="request-grid">
-            <form class="request-form fade-up">
-                <input type="text" placeholder="نام کامل" required />
-                <input type="email" placeholder="ایمیل" required />
-                <input type="tel" placeholder="شماره تماس" />
-                <select required>
+
+        <EditForm Model="@_createCommand" OnValidSubmit="@HandleSubmit" class="request-grid">
+            <div class="request-form fade-up">
+                <!-- نام کامل -->
+                <InputText @bind-Value="_createCommand.FullName" placeholder="نام کامل" />
+                <ValidationMessage For="@(() => _createCommand.FullName)" />
+
+                <!-- ایمیل -->
+                <InputText @bind-Value="_createCommand.Email" placeholder="ایمیل" type="email" />
+                <ValidationMessage For="@(() => _createCommand.Email)" />
+
+                <!-- شماره تماس -->
+                <InputText @bind-Value="_createCommand.PhoneNumber" placeholder="شماره تماس" />
+                <ValidationMessage For="@(() => _createCommand.PhoneNumber)" />
+
+                <!-- نوع پروژه (Enum) -->
+                <InputSelect @bind-Value="_createCommand.Type">
                     <option value="">نوع پروژه را انتخاب کنید</option>
-                    <option value="website">سایت شرکتی / شخصی</option>
-                    <option value="shop">فروشگاه اینترنتی</option>
-                    <option value="app">اپلیکیشن وب / PWA</option>
-                    <option value="api">سرویس API / بک‌اند</option>
-                    <option value="dashboard">داشبورد مدیریتی</option>
-                    <option value="other">سایر</option>
-                </select>
-                <input type="text" placeholder="بودجه تقریبی (تومان)" />
-                <textarea placeholder="توضیحات کامل پروژه..."></textarea>
-                <button type="submit" class="btn-primary ripple"><i class="fas fa-paper-plane"></i> ارسال درخواست</button>
-            </form>
+                    @foreach (ProjectRequestType type in Enum.GetValues(typeof(ProjectRequestType)))
+                    {
+                        <option value="@type">@type.GetDisplayName()</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => _createCommand.Type)" />
+
+                <!-- بودجه -->
+                <InputNumber @bind-Value="_createCommand.Price" placeholder="بودجه تقریبی (تومان)" />
+                <ValidationMessage For="@(() => _createCommand.Price)" />
+
+                <!-- توضیحات -->
+                <InputTextArea @bind-Value="_createCommand.Description" placeholder="توضیحات کامل پروژه..." />
+                <ValidationMessage For="@(() => _createCommand.Description)" />
+
+                <!-- فیلدهای مخفی (در صورت نیاز) -->
+                <InputCheckbox @bind-Value="_createCommand.IsWasSeen" style="display:none" />
+                <InputCheckbox @bind-Value="_createCommand.IsWorked" style="display:none" />
+                <InputCheckbox @bind-Value="_createCommand.IsDone" style="display:none" />
+
+                <button type="submit" class="btn-primary ripple" disabled="@_isSubmitting">
+                    <i class="fas fa-paper-plane"></i>
+                    @(_isSubmitting ? "در حال ارسال..." : "ارسال درخواست")
+                </button>
+
+                @if (!string.IsNullOrEmpty(_message))
+                {
+                    <div class="@(_isSuccess ? "alert-success" : "alert-danger")">@_message</div>
+                }
+            </div>
+
             <div class="request-info fade-up">
                 <div class="feature-box">
                     <i class="fas fa-clock"></i>
@@ -2295,10 +2334,9 @@
                     <p>پس از تحویل، یک ماه پشتیبانی رایگان برای رضایت کامل شما.</p>
                 </div>
             </div>
-        </div>
+        </EditForm>
     </div>
 </section>
-
 <!-- ===== تماس ===== -->
 <section class="section" id="contact">
     <div class="container">
@@ -2312,12 +2350,22 @@
                 <textarea @bind="ContactUsModel.Message" placeholder="پیام شما..." required></textarea>
                 <button type="button" @onclick="async () => await SendMessage()" class="btn-primary ripple"><i class="fas fa-paper-plane"></i> ارسال پیام</button>
             </form>
+
             <div class="contact-info fade-up">
-                <div class="item"><i class="fas fa-envelope float-icon"></i> <span>mohammad@example.com</span></div>
-                <div class="item"><i class="fas fa-phone-alt float-icon float-icon-delay"></i> <span>+۹۸ ۹۱۲ ۳۴۵ ۶۷۸۹</span></div>
-                <div class="item"><i class="fab fa-telegram float-icon"></i> <span>@@mohammad_Parsa_dev</span></div>
-                <div class="item"><i class="fab fa-github float-icon float-icon-delay"></i> <span>github.com/mohammad-dev</span></div>
-                <div class="item"><i class="fab fa-linkedin float-icon"></i> <span>linkedin.com/in/mohammad-dev</span></div>
+                <!-- ایمیل -->
+                <div class="item"><i class="fas fa-envelope float-icon"></i> <span><a href="mailto:parsa9601m@gmail.com">parsa9601m@gmail.com</a></span></div>
+
+                <!-- تلفن (شماره داخل لینک به فرمت بین‌المللی تبدیل شده) -->
+                <div class="item"><i class="fas fa-phone-alt float-icon float-icon-delay"></i> <span><a href="tel:+989368823398">098 936 882 3398</a></span></div>
+
+                <!-- تلگرام (لینک با حذف یکی از  ها و نمایش همان متن قبلی) -->
+                <div class="item"><i class="fab fa-telegram float-icon"></i> <span><a href="https://t.me/mohammad_Parsa_dev" target="_blank" rel="noopener noreferrer">@@mohammad_Parsa_dev</a></span></div>
+
+                <!-- گیت‌هاب -->
+                <div class="item"><i class="fab fa-github float-icon float-icon-delay"></i> <span><a href="https://github.com/prsa9601" target="_blank" rel="noopener noreferrer">https://github.com/prsa9601</a></span></div>
+
+                <!-- لینکدین (تگ بسته‌سازی شده و عنوان اصلاح شد) -->
+                <div class="item"><i class="fab fa-linkedin float-icon"></i> <span><a href="https://www.linkedin.com/in/mohammad-parsa-karimi-49876728b" target="_blank" rel="noopener noreferrer">LinkedIn</a></span></div>
             </div>
         </div>
     </div>
@@ -2392,6 +2440,65 @@
     private readonly string[] typewriterWords = { "محمد پارسا کریمی", "mohammad Parsa Karimi", "Full-Stack Developer" };
 
     public PortfolioFilterResult PortfolioResult { get; set; }
+
+
+    private CreateProjectRequestV1Command _createCommand = new();
+    private bool _isSubmitting = false;
+    private string _message = "";
+    private bool _isSuccess = false;
+
+    private async Task HandleSubmit()
+    {
+        _isSubmitting = true;
+        _message = "";
+
+        try
+        {
+            // تنظیم مقادیر پیش‌فرض برای فیلدهای مخفی (در صورت نیاز)
+            _createCommand.IsWasSeen = false;
+            _createCommand.IsWorked = false;
+            _createCommand.IsDone = false;
+
+            var result = await _prV1Facade.Create(_createCommand);
+            if (result.Status == BackEnd.Shared.CoreShared.OperationResultStatus.Success)
+            {
+                _isSuccess = true;
+                _message = "✅ درخواست شما با موفقیت ثبت شد. به زودی با شما تماس می‌گیریم.";
+                _createCommand = new(); // پاک کردن فرم
+            }
+            else
+            {
+                _isSuccess = false;
+                _message = $"❌ خطا: {result.Message ?? "مشکلی پیش آمد، لطفاً دوباره تلاش کنید."}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _isSuccess = false;
+            _message = $"❌ خطای سیستمی: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+            StateHasChanged();
+            await InitializeJsInterop();
+
+        }
+    }
+
+    // متد کمکی برای نمایش نام Enum (اختیاری)
+    private string GetEnumDisplayName(ProjectRequestType type)
+    {
+        return type switch
+        {
+            ProjectRequestType.Website => "سایت شرکتی / شخصی",
+            ProjectRequestType.Shop => "فروشگاه اینترنتی",
+            ProjectRequestType.App => "اپلیکیشن وب / PWA",
+            ProjectRequestType.Api => "سرویس API / بک‌اند",
+            ProjectRequestType.Dashboard => "داشبورد مدیریتی",
+            _ => "سایر"
+        };
+    }
 
     private async Task SendMessage()
     {

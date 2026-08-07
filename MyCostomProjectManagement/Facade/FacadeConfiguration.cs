@@ -3,6 +3,7 @@ using MyCostomProjectManagement.Facade.ContactUs;
 using MyCostomProjectManagement.Facade.FAQ;
 using MyCostomProjectManagement.Facade.PageManagement;
 using MyCostomProjectManagement.Facade.Portfolio;
+using MyCostomProjectManagement.Facade.ProjectRequestV1;
 using MyCostomProjectManagement.Facade.Role;
 using MyCostomProjectManagement.Facade.SiteSettings;
 using MyCostomProjectManagement.Facade.Skills;
@@ -23,6 +24,8 @@ namespace MyCostomProjectManagement.Facade
             services.AddScoped<IFAQFacade, FAQFacade>();
             services.AddScoped<ISiteSettingFacade, SiteSettingFacade>();
             services.AddScoped<IPageManagementFacade, PageManagementFacade>();
+            
+            services.AddScoped<IProjectRequestV1Facade, ProjectRequestV1Facade>();
 
             return services;
         }

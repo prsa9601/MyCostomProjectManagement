@@ -9,6 +9,8 @@ namespace BackEnd.Core.ContactUs.Queries.DTOs
         public string FullName { get; set; }
         public string Subject { get; set; }
         public string Message { get; set; }
+        public bool IsRead { get; set; }
+        public bool IsAnswered { get; set; }
 
     }
 

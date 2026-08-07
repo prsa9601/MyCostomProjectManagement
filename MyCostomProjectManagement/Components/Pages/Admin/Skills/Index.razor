@@ -1606,7 +1606,8 @@
         newSkillIsActive = true;
         newSkillIcon = "fas fa-code";
 
-        await LoadSkills();
+        await LoadSkills(currentPage);
+        await InitializeJsInterop();
         // ApplyFilters();
         StateHasChanged();
     }
@@ -1684,7 +1685,9 @@
         });
         allSkills.RemoveAll(s => s.Id == id);
         if (editingSkillId == id) CancelEdit();
-        ApplyFilters();
+        // ApplyFilters();
+        await LoadSkills(currentPage);
+        await InitializeJsInterop();
         StateHasChanged();
     }
 
@@ -1697,7 +1700,7 @@
     private void GoToProfile() => NavigationManager.NavigateTo("/Profile", true);
     private async Task RefreshSkills()
     {
-        await LoadSkills();
+        await LoadSkills(currentPage);
         // ApplyFilters();
         StateHasChanged();
     }

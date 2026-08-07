@@ -3,6 +3,7 @@ using BackEnd.Data.Entities.FAQ;
 using BackEnd.Data.Entities.Package;
 using BackEnd.Data.Entities.PageManagement;
 using BackEnd.Data.Entities.Portfolio;
+using BackEnd.Data.Entities.ProjectRequestV1;
 using BackEnd.Data.Entities.Projects;
 using BackEnd.Data.Entities.Role;
 using BackEnd.Data.Entities.SiteSettings;
@@ -29,6 +30,7 @@ namespace BackEnd.Data.DB
         public DbSet<Portfolio> Portfolios { get; set; }
         public DbSet<FAQ> FAQs { get; set; }
         public DbSet<PageManagement> PageManagements { get; set; }
+        public DbSet<ProjectRequestV1> ProjectRequestV1{ get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

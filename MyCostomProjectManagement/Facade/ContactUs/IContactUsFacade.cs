@@ -1,4 +1,5 @@
 ﻿using BackEnd.Core.ContactUs.Commands.Create;
+using BackEnd.Core.ContactUs.Commands.Edit;
 using BackEnd.Core.ContactUs.Commands.Remove;
 using BackEnd.Core.ContactUs.Queries.DTOs;
 using BackEnd.Core.ContactUs.Queries.GetFilter;
@@ -12,6 +13,7 @@ namespace MyCostomProjectManagement.Facade.ContactUs
     public interface IContactUsFacade
     {
         Task<OperationResult> Create(CreateContactUsCommand command);
+        Task<OperationResult> Edit(EditContactUsCommand command);
         Task<OperationResult> Remove(RemoveContactUsCommand command);
 
         Task<ContactUsFilterResult> GetFilter(ContactUsFilterParam filterParams);
@@ -27,6 +29,11 @@ namespace MyCostomProjectManagement.Facade.ContactUs
 
         [PermissionChecker(BackEnd.Data.Entities.Role.Permissions.CreateContactUs)]
         public async Task<OperationResult> Create(CreateContactUsCommand command)
+        {
+            return await _mediator.Send(command);
+        }
+
+        public async Task<OperationResult> Edit(EditContactUsCommand command)
         {
             return await _mediator.Send(command);
         }
