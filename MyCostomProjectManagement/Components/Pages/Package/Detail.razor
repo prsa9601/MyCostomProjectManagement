@@ -1,18 +1,26 @@
 ﻿@page "/PackageDetail/{PackageId}"
+@using System.Globalization
+@using System.Security.Claims
+@using BackEnd.Core.Subscription.DTOs
+@using BackEnd.Data.Entities.Subscription
+@using Microsoft.AspNetCore.Components.Authorization
+@using MyCostomProjectManagement.Facade.Subscription
 @layout FrontLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject ISubscriptionFacade _subscriptionFacade
+@inject AuthenticationStateProvider AuthStateProvider
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>جزئیات پکیج | محمد رضایی</title>
+<title>جزئیات پکیج | محمد پارسا کریمی</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
 <style>
     /* ============================================================
-       PACKAGE DETAIL PAGE - با پس‌زمینه #0a0e17
-    ============================================================ */
+           PACKAGE DETAIL PAGE - با پس‌زمینه #0a0e17
+        ============================================================ */
 
     * {
         margin: 0;
@@ -44,8 +52,8 @@
     }
 
     /* ============================================================
-       PARTICLES BACKGROUND
-    ============================================================ */
+           PARTICLES BACKGROUND
+        ============================================================ */
     .bg-particles {
         position: fixed;
         top: 0;
@@ -57,83 +65,101 @@
         pointer-events: none;
     }
 
-    .bg-particles span {
-        position: absolute;
-        display: block;
-        width: 6px;
-        height: 6px;
-        background: rgba(59, 130, 246, 0.2);
-        border-radius: 50%;
-        animation: floatParticle 12s infinite alternate ease-in-out;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
-    }
+        .bg-particles span {
+            position: absolute;
+            display: block;
+            width: 6px;
+            height: 6px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            animation: floatParticle 12s infinite alternate ease-in-out;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
+        }
 
-    .bg-particles span:nth-child(1) {
-        top: 10%;
-        left: 20%;
-        animation-duration: 14s;
-        width: 8px;
-        height: 8px;
-    }
-    .bg-particles span:nth-child(2) {
-        top: 60%;
-        left: 80%;
-        animation-duration: 16s;
-        animation-delay: 2s;
-    }
-    .bg-particles span:nth-child(3) {
-        top: 30%;
-        left: 70%;
-        animation-duration: 18s;
-        animation-delay: 4s;
-        width: 10px;
-        height: 10px;
-    }
-    .bg-particles span:nth-child(4) {
-        top: 80%;
-        left: 10%;
-        animation-duration: 15s;
-        animation-delay: 1s;
-    }
-    .bg-particles span:nth-child(5) {
-        top: 50%;
-        left: 40%;
-        animation-duration: 20s;
-        animation-delay: 3s;
-        width: 12px;
-        height: 12px;
-        background: rgba(59, 130, 246, 0.12);
-    }
-    .bg-particles span:nth-child(6) {
-        top: 15%;
-        left: 90%;
-        animation-duration: 13s;
-        animation-delay: 5s;
-    }
-    .bg-particles span:nth-child(7) {
-        top: 70%;
-        left: 50%;
-        animation-duration: 17s;
-        animation-delay: 2s;
-        width: 7px;
-        height: 7px;
-    }
-    .bg-particles span:nth-child(8) {
-        top: 40%;
-        left: 5%;
-        animation-duration: 19s;
-        animation-delay: 3s;
-    }
+            .bg-particles span:nth-child(1) {
+                top: 10%;
+                left: 20%;
+                animation-duration: 14s;
+                width: 8px;
+                height: 8px;
+            }
+
+            .bg-particles span:nth-child(2) {
+                top: 60%;
+                left: 80%;
+                animation-duration: 16s;
+                animation-delay: 2s;
+            }
+
+            .bg-particles span:nth-child(3) {
+                top: 30%;
+                left: 70%;
+                animation-duration: 18s;
+                animation-delay: 4s;
+                width: 10px;
+                height: 10px;
+            }
+
+            .bg-particles span:nth-child(4) {
+                top: 80%;
+                left: 10%;
+                animation-duration: 15s;
+                animation-delay: 1s;
+            }
+
+            .bg-particles span:nth-child(5) {
+                top: 50%;
+                left: 40%;
+                animation-duration: 20s;
+                animation-delay: 3s;
+                width: 12px;
+                height: 12px;
+                background: rgba(59, 130, 246, 0.12);
+            }
+
+            .bg-particles span:nth-child(6) {
+                top: 15%;
+                left: 90%;
+                animation-duration: 13s;
+                animation-delay: 5s;
+            }
+
+            .bg-particles span:nth-child(7) {
+                top: 70%;
+                left: 50%;
+                animation-duration: 17s;
+                animation-delay: 2s;
+                width: 7px;
+                height: 7px;
+            }
+
+            .bg-particles span:nth-child(8) {
+                top: 40%;
+                left: 5%;
+                animation-duration: 19s;
+                animation-delay: 3s;
+            }
 
     @@keyframes floatParticle {
-        0% { transform: translate(0, 0) scale(1); opacity: 0.2; }
-        50% { transform: translate(30px, -60px) scale(1.6); opacity: 0.7; }
-        100% { transform: translate(-20px, 40px) scale(0.8); opacity: 0.1; }
+        0% {
+            transform: translate(0, 0) scale(1);
+            opacity: 0.2;
+        }
+
+        50% {
+            transform: translate(30px, -60px) scale(1.6);
+            opacity: 0.7;
+        }
+
+        100% {
+            transform: translate(-20px, 40px) scale(0.8);
+            opacity: 0.1;
+        }
     }
 
     /* ============================================================
-       GLASS EFFECT
-    ============================================================ */
+           GLASS EFFECT
+        ============================================================ */
     .glass {
         background: rgba(255, 255, 255, 0.04);
         backdrop-filter: blur(12px);
@@ -144,16 +170,16 @@
         transition: all 0.35s ease;
     }
 
-    .glass:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(59, 130, 246, 0.08);
-        transform: translateY(-3px);
-        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
-    }
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(59, 130, 246, 0.08);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+        }
 
     /* ============================================================
-       GLASS + GRADIENT BORDERS
-    ============================================================ */
+           GLASS + GRADIENT BORDERS
+        ============================================================ */
     .gradient-border {
         position: relative;
         overflow: hidden;
@@ -161,31 +187,36 @@
         background-clip: padding-box;
     }
 
-    .gradient-border::before {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        z-index: -1;
-        border-radius: 26px;
-        background: conic-gradient(from 0deg, #3b82f6, #8b5cf6, #3b82f6, #8b5cf6, #3b82f6);
-        background-size: 400% 400%;
-        animation: rotateBorder 8s linear infinite;
-        opacity: 0.2;
-        transition: opacity 0.4s;
-    }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: 26px;
+            background: conic-gradient(from 0deg, #3b82f6, #8b5cf6, #3b82f6, #8b5cf6, #3b82f6);
+            background-size: 400% 400%;
+            animation: rotateBorder 8s linear infinite;
+            opacity: 0.2;
+            transition: opacity 0.4s;
+        }
 
-    .gradient-border:hover::before {
-        opacity: 0.5;
-    }
+        .gradient-border:hover::before {
+            opacity: 0.5;
+        }
 
     @@keyframes rotateBorder {
-        0% { background-position: 0% 50%; }
-        100% { background-position: 400% 50%; }
+        0% {
+            background-position: 0% 50%;
+        }
+
+        100% {
+            background-position: 400% 50%;
+        }
     }
 
     /* ============================================================
-       NAVBAR
-    ============================================================ */
+           NAVBAR
+        ============================================================ */
     .navbar {
         position: fixed;
         top: 0;
@@ -196,20 +227,20 @@
         background: transparent;
     }
 
-    .navbar.scrolled {
-        background: linear-gradient(135deg, rgba(10, 14, 23, 0.92), rgba(20, 30, 48, 0.92));
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
-    }
+        .navbar.scrolled {
+            background: linear-gradient(135deg, rgba(10, 14, 23, 0.92), rgba(20, 30, 48, 0.92));
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
+        }
 
-    .navbar .container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-    }
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
 
     .logo {
         font-size: 1.5rem;
@@ -217,10 +248,11 @@
         color: #fff;
         text-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
     }
-    .logo span {
-        color: #3b82f6;
-        text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
-    }
+
+        .logo span {
+            color: #3b82f6;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
 
     .nav-links {
         display: flex;
@@ -230,26 +262,34 @@
         font-weight: 500;
         align-items: center;
     }
-    .nav-links a {
-        color: #b8c4d6;
-        transition: 0.25s;
-        position: relative;
-        padding: 4px 0;
-        cursor: pointer;
-    }
-    .nav-links a:hover { color: #fff; }
-    .nav-links a::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        right: 0;
-        width: 0;
-        height: 2px;
-        background: #3b82f6;
-        transition: 0.35s;
-        box-shadow: 0 0 12px #3b82f6;
-    }
-    .nav-links a:hover::after { width: 100%; }
+
+        .nav-links a {
+            color: #b8c4d6;
+            transition: 0.25s;
+            position: relative;
+            padding: 4px 0;
+            cursor: pointer;
+        }
+
+            .nav-links a:hover {
+                color: #fff;
+            }
+
+            .nav-links a::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                right: 0;
+                width: 0;
+                height: 2px;
+                background: #3b82f6;
+                transition: 0.35s;
+                box-shadow: 0 0 12px #3b82f6;
+            }
+
+            .nav-links a:hover::after {
+                width: 100%;
+            }
 
     .nav-actions {
         display: flex;
@@ -273,11 +313,12 @@
         gap: 8px;
         box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
     }
-    .btn-primary:hover {
-        background: #2563eb;
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
-    }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
+        }
 
     .btn-success {
         background: #34d399;
@@ -294,11 +335,12 @@
         gap: 8px;
         box-shadow: 0 0 20px rgba(52, 211, 153, 0.15);
     }
-    .btn-success:hover {
-        background: #10b981;
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 12px 40px rgba(52, 211, 153, 0.3);
-    }
+
+        .btn-success:hover {
+            background: #10b981;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(52, 211, 153, 0.3);
+        }
 
     .btn-gold {
         background: linear-gradient(135deg, #e8a838, #d4952e);
@@ -315,10 +357,11 @@
         gap: 8px;
         box-shadow: 0 0 20px rgba(232, 168, 56, 0.12);
     }
-    .btn-gold:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 12px 40px rgba(232, 168, 56, 0.2);
-    }
+
+        .btn-gold:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(232, 168, 56, 0.2);
+        }
 
     .btn-outline {
         background: transparent;
@@ -329,12 +372,13 @@
         font-weight: 500;
         transition: 0.3s;
     }
-    .btn-outline:hover {
-        border-color: #3b82f6;
-        color: #fff;
-        background: rgba(59, 130, 246, 0.08);
-        box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
-    }
+
+        .btn-outline:hover {
+            border-color: #3b82f6;
+            color: #fff;
+            background: rgba(59, 130, 246, 0.08);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
+        }
 
     .btn-dashboard {
         background: rgba(59, 130, 246, 0.15);
@@ -349,11 +393,12 @@
         align-items: center;
         gap: 6px;
     }
-    .btn-dashboard:hover {
-        background: rgba(59, 130, 246, 0.25);
-        transform: scale(1.04);
-        box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
-    }
+
+        .btn-dashboard:hover {
+            background: rgba(59, 130, 246, 0.25);
+            transform: scale(1.04);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+        }
 
     .btn-login {
         background: rgba(52, 211, 153, 0.12);
@@ -368,11 +413,12 @@
         align-items: center;
         gap: 6px;
     }
-    .btn-login:hover {
-        background: rgba(52, 211, 153, 0.2);
-        transform: scale(1.04);
-        box-shadow: 0 0 30px rgba(52, 211, 153, 0.1);
-    }
+
+        .btn-login:hover {
+            background: rgba(52, 211, 153, 0.2);
+            transform: scale(1.04);
+            box-shadow: 0 0 30px rgba(52, 211, 153, 0.1);
+        }
 
     .avatar-btn {
         width: 40px;
@@ -388,10 +434,11 @@
         transition: 0.3s;
         cursor: pointer;
     }
-    .avatar-btn:hover {
-        border-color: #3b82f6;
-        transform: scale(1.05);
-    }
+
+        .avatar-btn:hover {
+            border-color: #3b82f6;
+            transform: scale(1.05);
+        }
 
     .hamburger {
         display: none;
@@ -401,55 +448,61 @@
         background: none;
         border: none;
     }
-    .hamburger span {
-        display: block;
-        width: 28px;
-        height: 2.5px;
-        background: #eef2f8;
-        border-radius: 4px;
-        transition: 0.3s;
-    }
+
+        .hamburger span {
+            display: block;
+            width: 28px;
+            height: 2.5px;
+            background: #eef2f8;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
 
     /* ============================================================
-       PAGE HEADER
-    ============================================================ */
+           PAGE HEADER
+        ============================================================ */
     .page-header {
         padding-top: 100px;
         padding-bottom: 24px;
     }
 
-    .page-header .back-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        color: #94a3b8;
-        cursor: pointer;
-        transition: 0.3s;
-        font-size: 0.9rem;
-        margin-bottom: 16px;
-    }
-    .page-header .back-link:hover {
-        color: #3b82f6;
-    }
+        .page-header .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
 
-    .page-header h1 {
-        font-size: 2rem;
-        font-weight: 800;
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    .page-header h1 i { color: #3b82f6; }
-    .page-header .subtitle {
-        color: #94a3b8;
-        font-size: 0.9rem;
-        margin-top: 4px;
-    }
+            .page-header .back-link:hover {
+                color: #3b82f6;
+            }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-header h1 i {
+                color: #3b82f6;
+            }
+
+        .page-header .subtitle {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
 
     /* ============================================================
-       PACKAGE DETAIL
-    ============================================================ */
+           PACKAGE DETAIL
+        ============================================================ */
     .detail-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
@@ -467,116 +520,122 @@
         transition: all 0.3s ease;
     }
 
-    .detail-main:hover {
-        border-color: rgba(59, 130, 246, 0.06);
-    }
+        .detail-main:hover {
+            border-color: rgba(59, 130, 246, 0.06);
+        }
 
-    .detail-main .package-badge {
-        display: inline-block;
-        padding: 4px 16px;
-        border-radius: 30px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        background: rgba(59, 130, 246, 0.06);
-        color: #3b82f6;
-        border: 1px solid rgba(59, 130, 246, 0.04);
-        margin-bottom: 12px;
-    }
+        .detail-main .package-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.06);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.04);
+            margin-bottom: 12px;
+        }
 
-    .detail-main .package-badge.popular {
-        background: rgba(232, 168, 56, 0.06);
-        color: #e8a838;
-        border-color: rgba(232, 168, 56, 0.04);
-    }
+            .detail-main .package-badge.popular {
+                background: rgba(232, 168, 56, 0.06);
+                color: #e8a838;
+                border-color: rgba(232, 168, 56, 0.04);
+            }
 
-    .detail-main .package-name {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 4px;
-    }
+        .detail-main .package-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
 
-    .detail-main .package-duration {
-        font-size: 0.9rem;
-        color: #94a3b8;
-        margin-bottom: 8px;
-    }
+        .detail-main .package-duration {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
 
-    .detail-main .package-duration i {
-        color: #3b82f6;
-        margin-left: 6px;
-    }
+            .detail-main .package-duration i {
+                color: #3b82f6;
+                margin-left: 6px;
+            }
 
-    .detail-main .package-price {
-        font-size: 2.4rem;
-        font-weight: 800;
-        color: #3b82f6;
-        margin: 8px 0 16px;
-        text-shadow: 0 0 30px rgba(59, 130, 246, 0.05);
-    }
-    .detail-main .package-price .currency {
-        font-size: 1rem;
-        font-weight: 400;
-        color: #94a3b8;
-    }
+        .detail-main .package-price {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #3b82f6;
+            margin: 8px 0 16px;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.05);
+        }
 
-    .detail-main .package-description {
-        color: #b8c4d6;
-        font-size: 1rem;
-        line-height: 1.8;
-        margin-bottom: 24px;
-        padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.02);
-    }
+            .detail-main .package-price .currency {
+                font-size: 1rem;
+                font-weight: 400;
+                color: #94a3b8;
+            }
 
-    .detail-main .features-section {
-        margin-bottom: 24px;
-    }
-    .detail-main .features-section h3 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #e8edf5;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .detail-main .features-section h3 i {
-        color: #3b82f6;
-    }
+        .detail-main .package-description {
+            color: #b8c4d6;
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
 
-    .detail-main .features-list {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px 24px;
-        list-style: none;
-        padding: 0;
-    }
-    .detail-main .features-list li {
-        padding: 8px 0;
-        color: #b8c4d6;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-    }
-    .detail-main .features-list li i {
-        color: #34d399;
-        font-size: 0.8rem;
-        width: 20px;
-        text-align: center;
-    }
-    .detail-main .features-list li .highlight {
-        color: #e8a838;
-        font-weight: 500;
-    }
+        .detail-main .features-section {
+            margin-bottom: 24px;
+        }
+
+            .detail-main .features-section h3 {
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #e8edf5;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+                .detail-main .features-section h3 i {
+                    color: #3b82f6;
+                }
+
+        .detail-main .features-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 24px;
+            list-style: none;
+            padding: 0;
+        }
+
+            .detail-main .features-list li {
+                padding: 8px 0;
+                color: #b8c4d6;
+                font-size: 0.9rem;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            }
+
+                .detail-main .features-list li i {
+                    color: #34d399;
+                    font-size: 0.8rem;
+                    width: 20px;
+                    text-align: center;
+                }
+
+                .detail-main .features-list li .highlight {
+                    color: #e8a838;
+                    font-weight: 500;
+                }
 
     /* ============================================================
-       SIDEBAR
-    ============================================================ */
+           SIDEBAR
+        ============================================================ */
     .detail-sidebar {
         display: flex;
         flex-direction: column;
@@ -593,119 +652,130 @@
         transition: all 0.3s ease;
     }
 
-    .sidebar-card:hover {
-        border-color: rgba(59, 130, 246, 0.06);
-    }
+        .sidebar-card:hover {
+            border-color: rgba(59, 130, 246, 0.06);
+        }
 
-    .sidebar-card .card-title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #94a3b8;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .sidebar-card .card-title i {
-        color: #3b82f6;
-    }
+        .sidebar-card .card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .sidebar-card .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-        font-size: 0.85rem;
-    }
-    .sidebar-card .info-row:last-child {
-        border-bottom: none;
-    }
-    .sidebar-card .info-row .label {
-        color: #94a3b8;
-    }
-    .sidebar-card .info-row .value {
-        color: #e8edf5;
-        font-weight: 500;
-    }
-    .sidebar-card .info-row .value.green {
-        color: #34d399;
-    }
-    .sidebar-card .info-row .value.gold {
-        color: #e8a838;
-    }
+            .sidebar-card .card-title i {
+                color: #3b82f6;
+            }
 
-    .sidebar-card .btn-buy {
-        width: 100%;
-        padding: 14px;
-        border-radius: 40px;
-        border: none;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.35s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-family: inherit;
-        margin-top: 8px;
-    }
+        .sidebar-card .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            font-size: 0.85rem;
+        }
 
-    .sidebar-card .btn-buy.primary {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        color: #fff;
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
-    }
-    .sidebar-card .btn-buy.primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25);
-    }
+            .sidebar-card .info-row:last-child {
+                border-bottom: none;
+            }
 
-    .sidebar-card .btn-buy.gold {
-        background: linear-gradient(135deg, #e8a838, #d4952e);
-        color: #0a0e17;
-        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
-    }
-    .sidebar-card .btn-buy.gold:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
-    }
+            .sidebar-card .info-row .label {
+                color: #94a3b8;
+            }
 
-    .sidebar-card .btn-buy.success {
-        background: linear-gradient(135deg, #34d399, #10b981);
-        color: #0a0e17;
-        box-shadow: 0 4px 20px rgba(52, 211, 153, 0.12);
-    }
-    .sidebar-card .btn-buy.success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 32px rgba(52, 211, 153, 0.2);
-    }
+            .sidebar-card .info-row .value {
+                color: #e8edf5;
+                font-weight: 500;
+            }
 
-    .sidebar-card .btn-buy.outline {
-        background: transparent;
-        border: 1.5px solid rgba(255, 255, 255, 0.1);
-        color: #94a3b8;
-    }
-    .sidebar-card .btn-buy.outline:hover {
-        border-color: #3b82f6;
-        color: #fff;
-        background: rgba(59, 130, 246, 0.04);
-        transform: translateY(-2px);
-    }
+                .sidebar-card .info-row .value.green {
+                    color: #34d399;
+                }
 
-    .sidebar-card .btn-buy:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-        transform: none !important;
-    }
+                .sidebar-card .info-row .value.gold {
+                    color: #e8a838;
+                }
+
+        .sidebar-card .btn-buy {
+            width: 100%;
+            padding: 14px;
+            border-radius: 40px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+            margin-top: 8px;
+        }
+
+            .sidebar-card .btn-buy.primary {
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                color: #fff;
+                box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+            }
+
+                .sidebar-card .btn-buy.primary:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25);
+                }
+
+            .sidebar-card .btn-buy.gold {
+                background: linear-gradient(135deg, #e8a838, #d4952e);
+                color: #0a0e17;
+                box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
+            }
+
+                .sidebar-card .btn-buy.gold:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
+                }
+
+            .sidebar-card .btn-buy.success {
+                background: linear-gradient(135deg, #34d399, #10b981);
+                color: #0a0e17;
+                box-shadow: 0 4px 20px rgba(52, 211, 153, 0.12);
+            }
+
+                .sidebar-card .btn-buy.success:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 32px rgba(52, 211, 153, 0.2);
+                }
+
+            .sidebar-card .btn-buy.outline {
+                background: transparent;
+                border: 1.5px solid rgba(255, 255, 255, 0.1);
+                color: #94a3b8;
+            }
+
+                .sidebar-card .btn-buy.outline:hover {
+                    border-color: #3b82f6;
+                    color: #fff;
+                    background: rgba(59, 130, 246, 0.04);
+                    transform: translateY(-2px);
+                }
+
+            .sidebar-card .btn-buy:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+                transform: none !important;
+            }
 
     /* ============================================================
-       RIPPLE
-    ============================================================ */
+           RIPPLE
+        ============================================================ */
     .ripple {
         position: relative;
         overflow: hidden;
     }
+
     .ripple-effect {
         position: absolute;
         border-radius: 50%;
@@ -714,30 +784,59 @@
         animation: rippleAnim 0.6s linear;
         pointer-events: none;
     }
+
     @@keyframes rippleAnim {
-        to { transform: scale(4); opacity: 0; }
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
     }
 
     /* ============================================================
-       FADE UP
-    ============================================================ */
+           FADE UP
+        ============================================================ */
     .fade-up {
         opacity: 0;
         transform: translateY(30px);
         transition: opacity 0.7s ease, transform 0.7s ease;
     }
-    .fade-up.visible {
-        opacity: 1;
-        transform: translateY(0);
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    /* ============================================================
+           LOADING STATE
+        ============================================================ */
+    .loading-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #94a3b8;
+    }
+
+        .loading-state i {
+            font-size: 2.5rem;
+            color: #3b82f6;
+            margin-bottom: 16px;
+            display: block;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     /* ============================================================
-       RESPONSIVE
-    ============================================================ */
+           RESPONSIVE
+        ============================================================ */
     @@media (max-width: 992px) {
         .detail-grid {
             grid-template-columns: 1fr;
         }
+
         .detail-main .features-list {
             grid-template-columns: 1fr;
         }
@@ -757,41 +856,61 @@
             border-radius: 20px;
             align-items: center;
         }
-        .nav-links.open { display: flex; }
-        .hamburger { display: flex; }
-        .nav-actions .btn-dashboard, .nav-actions .btn-login { display: none; }
 
-        .page-header h1 { font-size: 1.5rem; }
+            .nav-links.open {
+                display: flex;
+            }
+
+        .hamburger {
+            display: flex;
+        }
+
+        .nav-actions .btn-dashboard, .nav-actions .btn-login {
+            display: none;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+
         .detail-main {
             padding: 20px;
         }
-        .detail-main .package-name {
-            font-size: 1.5rem;
-        }
-        .detail-main .package-price {
-            font-size: 1.8rem;
-        }
-        .detail-main .features-list {
-            grid-template-columns: 1fr;
-        }
+
+            .detail-main .package-name {
+                font-size: 1.5rem;
+            }
+
+            .detail-main .package-price {
+                font-size: 1.8rem;
+            }
+
+            .detail-main .features-list {
+                grid-template-columns: 1fr;
+            }
     }
 
     @@media (max-width: 480px) {
-        .page-header h1 { font-size: 1.3rem; }
+        .page-header h1 {
+            font-size: 1.3rem;
+        }
+
         .detail-main {
             padding: 16px;
         }
-        .detail-main .package-description {
-            padding: 12px 16px;
-        }
+
+            .detail-main .package-description {
+                padding: 12px 16px;
+            }
+
         .sidebar-card {
             padding: 16px;
         }
     }
 
     /* ============================================================
-       FOOTER
-    ============================================================ */
+           FOOTER
+        ============================================================ */
     .footer {
         position: relative;
         padding: 30px 0 20px;
@@ -801,19 +920,25 @@
         z-index: 1;
         margin-top: 20px;
     }
-    .footer .container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-    }
+
+        .footer .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
     .footer-links {
         display: flex;
         gap: 24px;
         font-size: 0.85rem;
         color: #94a3b8;
     }
-    .footer-links a:hover { color: #fff; }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
     .footer-copy {
         color: #64748b;
         font-size: 0.8rem;
@@ -864,7 +989,14 @@
             <div class="subtitle">مشاهده کامل اطلاعات و امکانات پکیج انتخاب شده</div>
         </div>
 
-        @if (package != null)
+        @if (isLoading)
+        {
+            <div class="loading-state fade-up visible">
+                <i class="fas fa-spinner"></i>
+                <p>در حال بارگذاری جزئیات پکیج...</p>
+            </div>
+        }
+        else if (package != null)
         {
             <div class="detail-grid">
                 <!-- Main Content -->
@@ -905,7 +1037,7 @@
                             {
                                 <li>
                                     <i class="fas fa-check"></i>
-                                    @if (feature.Contains("دسترسی") || feature.Contains("API") || feature.Contains("درخواست") || feature.Contains("نامحدود"))
+                                    @if (feature.Contains("دسترسی") || feature.Contains("API") || feature.Contains("توکن") || feature.Contains("نامحدود"))
                                     {
                                         <span class="highlight">@feature</span>
                                     }
@@ -933,13 +1065,15 @@
                         }
                         else if (package.Price == 0)
                         {
-                            <button class="btn-buy success ripple" @onclick="ActivateFreePackage">
+                            <button class="btn-buy success ripple" @onclick="ActivateFreePackage" disabled="@isProcessing">
                                 <i class="fas fa-rocket"></i> فعال‌سازی رایگان
                             </button>
                         }
                         else
                         {
-                            <button class="btn-buy @(package.IsPopular ? "gold" : "primary") ripple" @onclick="BuyPackage">
+                            <button class="btn-buy @(package.IsPopular ? "gold" : "primary") ripple"
+                                    @onclick="BuyPackage"
+                                    disabled="@isProcessing">
                                 <i class="fas fa-shopping-cart"></i>
                                 @(hasActivePackage ? "تغییر به این پکیج" : "خرید اشتراک")
                             </button>
@@ -962,6 +1096,10 @@
                             <span class="value">@package.DurationDays روز</span>
                         </div>
                         <div class="info-row">
+                            <span class="label">تعداد توکن</span>
+                            <span class="value gold">@package.Token.ToString("N0")</span>
+                        </div>
+                        <div class="info-row">
                             <span class="label">قیمت</span>
                             <span class="value gold">@(package.Price == 0 ? "رایگان" : package.Price.ToString("N0") + " تومان")</span>
                         </div>
@@ -971,7 +1109,7 @@
                         </div>
                         <div class="info-row">
                             <span class="label">وضعیت</span>
-                            <span class="value green">@(package.IsPopular ? "محبوب" : "عادی")</span>
+                            <span class="value green">@(package.IsActive ? "فعال" : "غیرفعال")</span>
                         </div>
                     </div>
 
@@ -1015,171 +1153,293 @@
         </div>
     </div>
 </footer>
-
 @code {
     // ============================================================
     // ROUTE PARAMETER
     // ============================================================
-
     [Parameter]
     public string PackageId { get; set; } = "";
 
     // ============================================================
     // STATE
     // ============================================================
-
     private bool isMenuOpen = false;
+    private bool isLoading = true;
+    private bool isProcessing = false;
     private PackageItem? package = null;
-    private bool hasActivePackage = true;
+    private bool hasActivePackage = false;
     private bool isActivePackage = false;
+    private Guid? currentUserId;
+    private bool _initialized = false;
 
     // ============================================================
     // INITIALIZATION
     // ============================================================
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadPackage();
+        isLoading = false;
+        await LoadCurrentUser();
+        await LoadPackage();
+        await CheckActivePackage();
     }
 
-    private void LoadPackage()
+    protected override async Task OnParametersSetAsync()
     {
-        var allPackages = GetAllPackages();
-        package = allPackages.FirstOrDefault(p => p.Id == PackageId);
-
-        // Check if this is the user's active package
-        if (package != null)
+        // اگر PackageId تغییر کرد (نه بار اول)، دوباره بارگذاری کن
+        if (_initialized && !string.IsNullOrEmpty(PackageId) && package?.Id != PackageId)
         {
-            var activePkg = GetActivePackage();
-            isActivePackage = activePkg != null && activePkg.Name == package.Name;
+            isLoading = true;
+            StateHasChanged();
+
+            await LoadPackage();
+            await CheckActivePackage();
+
+            isLoading = false;
+            StateHasChanged();
+        }
+
+        _initialized = true;
+    }
+
+    private async Task LoadCurrentUser()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(idClaim, out var id))
+                    currentUserId = id;
+            }
+        }
+        catch
+        {
+            currentUserId = null;
         }
     }
 
-    private List<PackageItem> GetAllPackages()
+    private async Task LoadPackage()
     {
-        return new List<PackageItem>
+        if (!Guid.TryParse(PackageId, out var packageGuid))
         {
-            new PackageItem
+            package = null;
+            return;
+        }
+
+        try
+        {
+            var filter = new SubscriptionFilterParam
             {
-                Id = "PKG-001",
-                Name = "پایه",
-                DurationText = "ماهانه",
-                DurationDays = 30,
-                Price = 99000,
-                IsPopular = false,
-                Description = "پکیج پایه برای شروع کار با دسترسی به امکانات اصلی. مناسب برای تست و ارزیابی سیستم.",
-                Features = new List<string>
-                {
-                    "۱۰۰ درخواست API روزانه",
-                    "دسترسی به ۲ API پایه",
-                    "پشتیبانی ایمیل",
-                    "مستندات کامل",
-                    "پشتیبانی ۸ ساعته"
-                }
-            },
-            new PackageItem
+                PageId = 1,
+                Take = 500
+            };
+
+            var result = await _subscriptionFacade.GetFilter(filter);
+            var dto = result?.Data?.FirstOrDefault(s => s.Id == packageGuid);
+
+            if (dto == null)
             {
-                Id = "PKG-002",
-                Name = "حرفه‌ای",
-                DurationText = "سه‌ماهه",
-                DurationDays = 90,
-                Price = 249000,
-                IsPopular = true,
-                Description = "پکیج حرفه‌ای با امکانات پیشرفته و پشتیبانی ویژه برای کسب‌وکارهای در حال رشد و حرفه‌ای‌ها.",
-                Features = new List<string>
-                {
-                    "۱۰,۰۰۰ درخواست API روزانه",
-                    "دسترسی به ۵ API پیشرفته",
-                    "پشتیبانی اولویت‌دار (۲۴/۷)",
-                    "دسترسی به نسخه Beta",
-                    "گزارش‌گیری پیشرفته",
-                    "وبینار اختصاصی ماهانه",
-                    "پشتیبانی تلفنی"
-                }
-            },
-            new PackageItem
-            {
-                Id = "PKG-003",
-                Name = "سازمانی",
-                DurationText = "سالانه",
-                DurationDays = 365,
-                Price = 890000,
-                IsPopular = false,
-                Description = "پکیج سازمانی با دسترسی کامل و نامحدود به تمام امکانات برای تیم‌های بزرگ و سازمان‌ها.",
-                Features = new List<string>
-                {
-                    "درخواست نامحدود API",
-                    "دسترسی به تمام APIها",
-                    "پشتیبانی اختصاصی ۲۴/۷",
-                    "میزبانی اختصاصی",
-                    "گزارش‌گیری سفارشی",
-                    "امنیت پیشرفته",
-                    "اولویت در توسعه ویژگی‌های جدید",
-                    "مشاوره رایگان"
-                }
-            },
-            new PackageItem
-            {
-                Id = "PKG-004",
-                Name = "طلایی",
-                DurationText = "سالانه",
-                DurationDays = 365,
-                Price = 1250000,
-                IsPopular = false,
-                Description = "پکیج طلایی با بهترین امکانات و تخفیف ویژه برای مشتریان ویژه و سازمان‌های بزرگ.",
-                Features = new List<string>
-                {
-                    "درخواست نامحدود API",
-                    "دسترسی به تمام APIها + APIهای اختصاصی",
-                    "پشتیبانی VIP ۲۴/۷",
-                    "میزبانی اختصاصی با بالاترین کیفیت",
-                    "مشاوره رایگان ماهانه",
-                    "توسعه ویژگی‌های سفارشی",
-                    "اولویت اول در پشتیبانی",
-                    "گزارش‌گیری پیشرفته و سفارشی"
-                }
+                package = null;
+                return;
             }
+
+            package = MapToPackageItem(dto);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"خطا در بارگذاری پکیج: {ex.Message}");
+            package = null;
+        }
+    }
+
+    private async Task CheckActivePackage()
+    {
+        if (currentUserId == null || package == null)
+        {
+            hasActivePackage = false;
+            isActivePackage = false;
+            return;
+        }
+
+        try
+        {
+            var activeSub = await _subscriptionFacade.GetActiveUserSubscription(currentUserId.Value);
+
+            if (activeSub == null)
+            {
+                hasActivePackage = false;
+                isActivePackage = false;
+                return;
+            }
+
+            hasActivePackage = true;
+            isActivePackage = activeSub.SubscriptionId == package.SubscriptionId;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"خطا در بررسی اشتراک فعال: {ex.Message}");
+            hasActivePackage = false;
+            isActivePackage = false;
+        }
+    }
+
+    // ============================================================
+    // MAPPING
+    // ============================================================
+    private PackageItem MapToPackageItem(SubscriptionDto dto)
+    {
+        return new PackageItem
+        {
+            Id = dto.Id.ToString(),
+            SubscriptionId = dto.Id,
+            Name = dto.SubscriptionFor,
+            Description = string.IsNullOrWhiteSpace(dto.Description)
+                ? "بدون توضیحات"
+                : dto.Description,
+            Token = dto.Token,
+            IsActive = dto.IsActive,
+            TypeName = dto.Type.ToString(),
+            UserCount = dto.SubscriptionUserDtos?.Count ?? 0,
+            UsedToken = dto.SubscriptionUserDtos?.Sum(x => x.UsedToken) ?? 0,
+
+            // ✅ قیمت واقعی از DTO
+            Price = dto.Price,
+
+            DurationText = GetDurationText(dto.Type),
+            DurationDays = GetDurationDays(dto.Type),
+            Features = BuildFeatures(dto),
+            IsPopular = IsPopularPackage(dto)
         };
     }
 
-    private ActivePackage? GetActivePackage()
+    private List<string> BuildFeatures(SubscriptionDto dto)
     {
-        // Simulate user's active package
-        return new ActivePackage
+        var list = new List<string>
         {
-            Name = "حرفه‌ای",
-            DurationText = "سه‌ماهه",
-            StartDate = "۱۴۰۵/۰۴/۰۱",
-            ExpiryDate = "۱۴۰۵/۰۶/۳۰",
-            IsExpired = false,
-            RemainingDays = 52,
-            DurationDays = 90
+            $"{dto.Token:N0} توکن در دسترس",
+            $"نوع اشتراک: {GetTypeText(dto.Type)}",
+        };
+
+        if (dto.SubscriptionUserDtos?.Any() == true)
+        {
+            list.Add($"دسترسی برای {dto.SubscriptionUserDtos.Count} کاربر");
+            list.Add($"مجموع مصرف‌شده: {dto.SubscriptionUserDtos.Sum(x => x.UsedToken):N0} توکن");
+        }
+
+        if (dto.IsActive)
+            list.Add("دسترسی فعال به APIها");
+
+        return list;
+    }
+
+    private bool IsPopularPackage(SubscriptionDto dto)
+    {
+        return dto.IsActive && dto.Token >= 1000;
+    }
+
+    private string GetTypeText(SubscriptionType type)
+    {
+        var name = type.ToString().ToLowerInvariant();
+        return name switch
+        {
+            "monthly" => "ماهانه",
+            "quarterly" => "سه‌ماهه",
+            "yearly" or "annual" => "سالانه",
+            "weekly" => "هفتگی",
+            "daily" => "روزانه",
+            "free" or "trial" => "آزمایشی",
+            "lifetime" => "مادام‌العمر",
+            _ => type.ToString()
+        };
+    }
+
+    private string GetDurationText(SubscriptionType type)
+    {
+        var name = type.ToString().ToLowerInvariant();
+        return name switch
+        {
+            "monthly" => "ماهانه",
+            "quarterly" => "سه‌ماهه",
+            "yearly" or "annual" => "سالانه",
+            "weekly" => "هفتگی",
+            "daily" => "روزانه",
+            "free" or "trial" => "آزمایشی",
+            "lifetime" => "مادام‌العمر",
+            _ => type.ToString()
+        };
+    }
+
+    private int GetDurationDays(SubscriptionType type)
+    {
+        var name = type.ToString().ToLowerInvariant();
+        return name switch
+        {
+            "daily" => 1,
+            "weekly" => 7,
+            "monthly" => 30,
+            "quarterly" => 90,
+            "yearly" or "annual" => 365,
+            _ => 0
         };
     }
 
     // ============================================================
     // ACTIONS
     // ============================================================
-
     private async Task BuyPackage()
     {
         if (package == null) return;
 
-        Console.WriteLine($"خرید پکیج: {package.Name} - قیمت: {package.Price:N0} تومان");
-        await Task.Delay(500);
-        // In real app: redirect to payment
-        // NavigationManager.NavigateTo("/Payment", true);
+        if (currentUserId == null)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "برای خرید اشتراک ابتدا وارد شوید.");
+            NavigateToLogin();
+            return;
+        }
+
+        NavigationManager.NavigateTo($"/Checkout/{package.Id}", true);
     }
 
     private async Task ActivateFreePackage()
     {
         if (package == null || package.Price > 0) return;
 
-        Console.WriteLine($"فعال‌سازی پکیج رایگان: {package.Name}");
-        await Task.Delay(500);
-        isActivePackage = true;
-        hasActivePackage = true;
+        if (currentUserId == null)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "برای فعال‌سازی ابتدا وارد شوید.");
+            NavigateToLogin();
+            return;
+        }
+
+        isProcessing = true;
         StateHasChanged();
+
+        try
+        {
+            var result = await _subscriptionFacade.AssignToUser(currentUserId.Value, package.SubscriptionId);
+
+            if (result != null && result.Status == BackEnd.Shared.CoreShared.OperationResultStatus.Success)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"پکیج «{package.Name}» با موفقیت فعال شد.");
+                await CheckActivePackage();
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"خطا: {result?.Message ?? "فعال‌سازی ناموفق"}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"خطای غیرمنتظره: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
     }
 
     private void GoBack()
@@ -1195,7 +1455,6 @@
     // ============================================================
     // NAVIGATION
     // ============================================================
-
     private void ToggleMenu() => isMenuOpen = !isMenuOpen;
     private void CloseMenu() => isMenuOpen = false;
     private void NavigateToDashboard() => NavigationManager.NavigateTo("/UserDashboard", true);
@@ -1204,26 +1463,29 @@
     // ============================================================
     // JS INTEROP
     // ============================================================
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            await LoadCurrentUser();
+            await LoadPackage();
+            await CheckActivePackage();
             await InitializeJsInterop();
+            StateHasChanged();
         }
     }
 
     private async Task InitializeJsInterop()
     {
         await JSRuntime.InvokeVoidAsync("eval", @"
-            // Navbar scroll
             const navbar = document.getElementById('navbar');
             window.addEventListener('scroll', () => {
                 navbar?.classList.toggle('scrolled', window.scrollY > 50);
             });
 
-            // Ripple effect
             document.querySelectorAll('.ripple').forEach(btn => {
+                if (btn.dataset.rippleBound) return;
+                btn.dataset.rippleBound = '1';
                 btn.addEventListener('click', function(e) {
                     const rect = this.getBoundingClientRect();
                     const x = e.clientX - rect.left;
@@ -1239,53 +1501,41 @@
                 });
             });
 
-            // Fade-up observer
             const fadeEls = document.querySelectorAll('.fade-up');
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
+                    if (entry.isIntersecting) entry.target.classList.add('visible');
                 });
             }, { threshold: 0.15 });
-
             fadeEls.forEach(el => observer.observe(el));
 
-            // Trigger visible for elements already in view
             setTimeout(() => {
                 fadeEls.forEach(el => {
-                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                    if (el.getBoundingClientRect().top < window.innerHeight)
                         el.classList.add('visible');
-                    }
                 });
             }, 400);
         ");
     }
 
     // ============================================================
-    // HELPER CLASSES
+    // HELPER CLASS
     // ============================================================
-
-    public class ActivePackage
-    {
-        public string Name { get; set; } = "";
-        public string DurationText { get; set; } = "";
-        public string StartDate { get; set; } = "";
-        public string ExpiryDate { get; set; } = "";
-        public bool IsExpired { get; set; }
-        public int RemainingDays { get; set; }
-        public int DurationDays { get; set; }
-    }
-
     public class PackageItem
     {
         public string Id { get; set; } = "";
+        public Guid SubscriptionId { get; set; }
         public string Name { get; set; } = "";
         public string DurationText { get; set; } = "";
         public int DurationDays { get; set; }
         public int Price { get; set; }
         public bool IsPopular { get; set; }
         public string Description { get; set; } = "";
+        public int Token { get; set; }
+        public bool IsActive { get; set; }
+        public string TypeName { get; set; } = "";
+        public int UserCount { get; set; }
+        public int UsedToken { get; set; }
         public List<string> Features { get; set; } = new();
     }
 }

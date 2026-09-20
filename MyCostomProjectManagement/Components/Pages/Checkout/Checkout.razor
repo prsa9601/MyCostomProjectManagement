@@ -1,8 +1,15 @@
 ﻿@page "/Checkout/{PackageId}"
+@using System.Security.Claims
+@using BackEnd.Core.Subscription.DTOs
+@using BackEnd.Data.Entities.Subscription
+@using Microsoft.AspNetCore.Components.Authorization
+@using MyCostomProjectManagement.Facade.Subscription
 @layout FrontLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISubscriptionFacade _subscriptionFacade
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -1056,21 +1063,19 @@
         </div>
     </div>
 </footer>
-
 @code {
     // ============================================================
     // ROUTE PARAMETER
     // ============================================================
-
     [Parameter]
     public string PackageId { get; set; } = "";
 
     // ============================================================
     // STATE
     // ============================================================
-
     private bool isMenuOpen = false;
     private bool isLoading = false;
+    private bool isProcessing = false;
     private bool showSuccessModal = false;
     private string trackingCode = "";
 
@@ -1082,151 +1087,251 @@
     private string notes = "";
 
     private PackageItem? package = null;
+    private Guid? currentUserId;
+    private bool _initialized = false;
 
     // ============================================================
     // INITIALIZATION
     // ============================================================
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadPackage();
+        // await LoadCurrentUser();
+        // await LoadPackage();
+        // PrefillUserInfo();
     }
 
-    private void LoadPackage()
+    protected override async Task OnParametersSetAsync()
     {
-        var allPackages = GetAllPackages();
-        package = allPackages.FirstOrDefault(p => p.Id == PackageId);
-    }
-
-    private List<PackageItem> GetAllPackages()
-    {
-        return new List<PackageItem>
+        // اگر PackageId تغییر کرد، دوباره بارگذاری کن
+        if (_initialized && !string.IsNullOrEmpty(PackageId) && package?.Id != PackageId)
         {
-            new PackageItem
+            await LoadPackage();
+        }
+        _initialized = true;
+    }
+
+    private async Task LoadCurrentUser()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
             {
-                Id = "PKG-001",
-                Name = "پایه",
-                DurationText = "ماهانه",
-                DurationDays = 30,
-                Price = 99000,
-                IsPopular = false,
-                Description = "پکیج پایه برای شروع کار با دسترسی به امکانات اصلی.",
-                Features = new List<string>
-                {
-                    "۱۰۰ درخواست API روزانه",
-                    "دسترسی به ۲ API پایه",
-                    "پشتیبانی ایمیل",
-                    "مستندات کامل"
-                }
-            },
-            new PackageItem
-            {
-                Id = "PKG-002",
-                Name = "حرفه‌ای",
-                DurationText = "سه‌ماهه",
-                DurationDays = 90,
-                Price = 249000,
-                IsPopular = true,
-                Description = "پکیج حرفه‌ای با امکانات پیشرفته و پشتیبانی ویژه برای کسب‌وکارهای در حال رشد.",
-                Features = new List<string>
-                {
-                    "۱۰,۰۰۰ درخواست API روزانه",
-                    "دسترسی به ۵ API پیشرفته",
-                    "پشتیبانی اولویت‌دار (۲۴/۷)",
-                    "دسترسی به نسخه Beta",
-                    "گزارش‌گیری پیشرفته",
-                    "وبینار اختصاصی ماهانه"
-                }
-            },
-            new PackageItem
-            {
-                Id = "PKG-003",
-                Name = "سازمانی",
-                DurationText = "سالانه",
-                DurationDays = 365,
-                Price = 890000,
-                IsPopular = false,
-                Description = "پکیج سازمانی با دسترسی کامل و نامحدود به تمام امکانات برای تیم‌های بزرگ.",
-                Features = new List<string>
-                {
-                    "درخواست نامحدود API",
-                    "دسترسی به تمام APIها",
-                    "پشتیبانی اختصاصی ۲۴/۷",
-                    "میزبانی اختصاصی",
-                    "گزارش‌گیری سفارشی",
-                    "امنیت پیشرفته",
-                    "اولویت در توسعه ویژگی‌های جدید"
-                }
-            },
-            new PackageItem
-            {
-                Id = "PKG-004",
-                Name = "طلایی",
-                DurationText = "سالانه",
-                DurationDays = 365,
-                Price = 1250000,
-                IsPopular = false,
-                Description = "پکیج طلایی با بهترین امکانات و تخفیف ویژه برای مشتریان ویژه.",
-                Features = new List<string>
-                {
-                    "درخواست نامحدود API",
-                    "دسترسی به تمام APIها + APIهای اختصاصی",
-                    "پشتیبانی VIP ۲۴/۷",
-                    "میزبانی اختصاصی با بالاترین کیفیت",
-                    "مشاوره رایگان ماهانه",
-                    "توسعه ویژگی‌های سفارشی",
-                    "اولویت اول در پشتیبانی"
-                }
+                var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(idClaim, out var id))
+                    currentUserId = id;
             }
+        }
+        catch
+        {
+            currentUserId = null;
+        }
+    }
+
+    private void PrefillUserInfo()
+    {
+        // پر کردن خودکار فیلدها از اطلاعات کاربر (اختیاری)
+        // اگر Claim های Name/Email موجود باشند
+        // فعلاً خالی می‌ماند تا کاربر وارد کند
+    }
+
+    private async Task LoadPackage()
+    {
+        if (!Guid.TryParse(PackageId, out var packageGuid))
+        {
+            package = null;
+            return;
+        }
+
+        try
+        {
+            var filter = new SubscriptionFilterParam
+            {
+                PageId = 1,
+                Take = 500
+            };
+
+            var result = await _subscriptionFacade.GetFilter(filter);
+            var dto = result?.Data?.FirstOrDefault(s => s.Id == packageGuid);
+
+            if (dto == null)
+            {
+                package = null;
+                return;
+            }
+
+            package = MapToPackageItem(dto);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"خطا در بارگذاری پکیج: {ex.Message}");
+            package = null;
+        }
+    }
+
+    // ============================================================
+    // MAPPING
+    // ============================================================
+    private PackageItem MapToPackageItem(SubscriptionDto dto)
+    {
+        return new PackageItem
+        {
+            Id = dto.Id.ToString(),
+            SubscriptionId = dto.Id,
+            Name = dto.SubscriptionFor,
+            Description = string.IsNullOrWhiteSpace(dto.Description)
+                ? "بدون توضیحات"
+                : dto.Description,
+            Token = dto.Token,
+            IsActive = dto.IsActive,
+            TypeName = dto.Type.ToString(),
+            Price = dto.Price,
+            DurationText = GetDurationText(dto.Type),
+            DurationDays = GetDurationDays(dto.Type),
+            Features = BuildFeatures(dto),
+            IsPopular = dto.IsActive && dto.Token >= 1000
+        };
+    }
+
+    private List<string> BuildFeatures(SubscriptionDto dto)
+    {
+        var list = new List<string>
+        {
+            $"{dto.Token:N0} توکن در دسترس",
+            $"نوع اشتراک: {GetTypeText(dto.Type)}",
+        };
+
+        if (dto.SubscriptionUserDtos?.Any() == true)
+        {
+            list.Add($"دسترسی برای {dto.SubscriptionUserDtos.Count} کاربر");
+            list.Add($"مجموع مصرف‌شده: {dto.SubscriptionUserDtos.Sum(x => x.UsedToken):N0} توکن");
+        }
+
+        if (dto.IsActive)
+            list.Add("دسترسی فعال به APIها");
+
+        return list;
+    }
+
+    private string GetTypeText(SubscriptionType type)
+    {
+        var name = type.ToString().ToLowerInvariant();
+        return name switch
+        {
+            "monthly" => "ماهانه",
+            "quarterly" => "سه‌ماهه",
+            "yearly" or "annual" => "سالانه",
+            "weekly" => "هفتگی",
+            "daily" => "روزانه",
+            "free" or "trial" => "آزمایشی",
+            "lifetime" => "مادام‌العمر",
+            _ => type.ToString()
+        };
+    }
+
+    private string GetDurationText(SubscriptionType type)
+    {
+        var name = type.ToString().ToLowerInvariant();
+        return name switch
+        {
+            "monthly" => "ماهانه",
+            "quarterly" => "سه‌ماهه",
+            "yearly" or "annual" => "سالانه",
+            "weekly" => "هفتگی",
+            "daily" => "روزانه",
+            "free" or "trial" => "آزمایشی",
+            "lifetime" => "مادام‌العمر",
+            _ => type.ToString()
+        };
+    }
+
+    private int GetDurationDays(SubscriptionType type)
+    {
+        var name = type.ToString().ToLowerInvariant();
+        return name switch
+        {
+            "daily" => 1,
+            "weekly" => 7,
+            "monthly" => 30,
+            "quarterly" => 90,
+            "yearly" or "annual" => 365,
+            _ => 0
         };
     }
 
     // ============================================================
     // PAYMENT
     // ============================================================
-
     private async Task ProcessPayment()
     {
-        // Validate fields
+        if (package == null) return;
+
+        // ---- اعتبارسنجی ----
+        if (currentUserId == null)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "برای خرید اشتراک ابتدا وارد شوید.");
+            NavigateToLogin();
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(fullName))
         {
-            // In real app, show toast notification
-            Console.WriteLine("لطفاً نام کامل را وارد کنید.");
+            await JSRuntime.InvokeVoidAsync("alert", "لطفاً نام کامل را وارد کنید.");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
         {
-            Console.WriteLine("لطفاً ایمیل معتبر وارد کنید.");
+            await JSRuntime.InvokeVoidAsync("alert", "لطفاً ایمیل معتبر وارد کنید.");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(phone) || phone.Length < 10)
         {
-            Console.WriteLine("لطفاً شماره تلفن معتبر وارد کنید.");
+            await JSRuntime.InvokeVoidAsync("alert", "لطفاً شماره تلفن معتبر وارد کنید.");
             return;
         }
 
         isLoading = true;
         StateHasChanged();
 
-        // Simulate payment processing
-        await Task.Delay(2000);
+        try
+        {
+            // ---- شبیه‌سازی پردازش پرداخت ----
+            // در حالت واقعی: هدایت به درگاه پرداخت و انتظار callback
+            await Task.Delay(1500);
 
-        // Generate tracking code
-        trackingCode = "TRK-" + DateTime.Now.ToString("yyyyMMdd") + "-" + new Random().Next(1000, 9999).ToString();
+            // ---- اختصاص اشتراک به کاربر ----
+            var result = await _subscriptionFacade.AssignToUser(currentUserId.Value, package.SubscriptionId);
 
-        isLoading = false;
-        showSuccessModal = true;
-        StateHasChanged();
+            if (result == null || result.Status != BackEnd.Shared.CoreShared.OperationResultStatus.Success)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"خطا در فعال‌سازی اشتراک: {result?.Message ?? "عملیات ناموفق"}");
+                return;
+            }
 
-        // In real app, navigate to success page or show modal
+            // ---- تولید کد پیگیری ----
+            trackingCode = "TRK-" + DateTime.Now.ToString("yyyyMMddHHmm") + "-" +
+                           new Random().Next(1000, 9999).ToString();
+
+            showSuccessModal = true;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"خطای غیرمنتظره: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     // ============================================================
     // NAVIGATION
     // ============================================================
-
     private void ToggleMenu() => isMenuOpen = !isMenuOpen;
     private void CloseMenu() => isMenuOpen = false;
 
@@ -1240,6 +1345,11 @@
         NavigationManager.NavigateTo("/UserDashboard", true);
     }
 
+    private void NavigateToLogin()
+    {
+        NavigationManager.NavigateTo("/Auth", true);
+    }
+
     private void GoToDashboard()
     {
         showSuccessModal = false;
@@ -1249,26 +1359,29 @@
     // ============================================================
     // JS INTEROP
     // ============================================================
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            await LoadCurrentUser();
+            await LoadPackage();
+            PrefillUserInfo();
             await InitializeJsInterop();
+            StateHasChanged();
         }
     }
 
     private async Task InitializeJsInterop()
     {
         await JSRuntime.InvokeVoidAsync("eval", @"
-            // Navbar scroll
             const navbar = document.getElementById('navbar');
             window.addEventListener('scroll', () => {
                 navbar?.classList.toggle('scrolled', window.scrollY > 50);
             });
 
-            // Ripple effect
             document.querySelectorAll('.ripple').forEach(btn => {
+                if (btn.dataset.rippleBound) return;
+                btn.dataset.rippleBound = '1';
                 btn.addEventListener('click', function(e) {
                     const rect = this.getBoundingClientRect();
                     const x = e.clientX - rect.left;
@@ -1284,42 +1397,39 @@
                 });
             });
 
-            // Fade-up observer
             const fadeEls = document.querySelectorAll('.fade-up');
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
+                    if (entry.isIntersecting) entry.target.classList.add('visible');
                 });
             }, { threshold: 0.15 });
-
             fadeEls.forEach(el => observer.observe(el));
 
-            // Trigger visible for elements already in view
             setTimeout(() => {
                 fadeEls.forEach(el => {
-                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                    if (el.getBoundingClientRect().top < window.innerHeight)
                         el.classList.add('visible');
-                    }
                 });
             }, 400);
         ");
     }
 
     // ============================================================
-    // HELPER CLASSES
+    // HELPER CLASS
     // ============================================================
-
     public class PackageItem
     {
         public string Id { get; set; } = "";
+        public Guid SubscriptionId { get; set; }
         public string Name { get; set; } = "";
         public string DurationText { get; set; } = "";
         public int DurationDays { get; set; }
         public int Price { get; set; }
         public bool IsPopular { get; set; }
         public string Description { get; set; } = "";
+        public int Token { get; set; }
+        public bool IsActive { get; set; }
+        public string TypeName { get; set; } = "";
         public List<string> Features { get; set; } = new();
     }
 }

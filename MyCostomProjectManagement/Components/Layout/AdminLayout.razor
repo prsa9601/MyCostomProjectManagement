@@ -7,6 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>پنل مدیریت</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/csharp.svg" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
 <style>
     /* ============================================================
@@ -460,9 +463,14 @@
             <li><a class="@(IsActive("/Admin/FAQ") ? "active" : "")" href="/Admin/FAQ">سوالات متداول</a></li>
             <li><a class="@(IsActive("/Admin/PageManagement") ? "active" : "")" href="/Admin/PageManagement">مدیریت صفحات</a></li>
             <li><a class="@(IsActive("/Admin/Settings") ? "active" : "")" href="/Admin/Settings">تنظیمات</a></li>
+            <li><a class="@(IsActive("/Admin/Subscriptions") ? "active" : "")" href="/Admin/Subscriptions">اشتراک‌ها</a></li>
+            <li>
+                <a class="@(IsActive("/Admin/Tutorials") ? "active" : "")"
+                   href="/Admin/Tutorials">آموزش‌ها</a>
+            </li>
         </ul>
 
-        <a href="/" class="home-btn" title="صفحه اصلی">
+        <a onclick="@(() => Navigation.NavigateTo("/", true))" class="home-btn" title="صفحه اصلی">
             <i class="fas fa-home"></i>
         </a>
 
@@ -501,6 +509,9 @@
     <a class="@(IsActive("/Admin/FAQ") ? "active" : "")" href="/Admin/FAQ" @onclick="CloseMenu">سوالات متداول</a>
     <a class="@(IsActive("/Admin/PageManagement") ? "active" : "")" href="/Admin/PageManagement" @onclick="CloseMenu">مدیریت صفحات</a>
     <a class="@(IsActive("/Admin/Settings") ? "active" : "")" href="/Admin/Settings" @onclick="CloseMenu">تنظیمات</a>
+    <a class="@(IsActive("/Admin/Subscriptions") ? "active" : "")" href="/Admin/Subscriptions" @onclick="CloseMenu">اشتراک‌ها</a>
+    <a class="@(IsActive("/Admin/Tutorials") ? "active" : "")"
+       href="/Admin/Tutorials" @onclick="CloseMenu">آموزش‌ها</a>
 </div>
 
 <!-- ============================================================

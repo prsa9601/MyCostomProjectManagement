@@ -44,7 +44,8 @@ namespace MyCostomProjectManagement.Pages.Auth
             _cookiesService.SetCookie(Response, "auth-Token", authToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                //Secure = true,
+                Secure = false,
                 SameSite = SameSiteMode.Strict,
                 MaxAge = TimeSpan.FromMinutes(30),
                 Path = "/",
@@ -53,7 +54,8 @@ namespace MyCostomProjectManagement.Pages.Auth
             _cookiesService.SetCookie(Response, "refresh-Token", refreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                //Secure = true,
+                Secure = false,
                 SameSite = SameSiteMode.Strict,
                 MaxAge = TimeSpan.FromDays(30),
                 Path = "/",

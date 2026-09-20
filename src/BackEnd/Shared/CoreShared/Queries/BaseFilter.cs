@@ -41,7 +41,7 @@
 
     public class BaseFilter<TData, TParam> : BaseFilter
     where TParam : BaseFilterParam
-    where TData : BaseDto
+    where TData : class
     {
         public List<TData>? Data { get; set; }
         public TParam? FilterParams { get; set; }

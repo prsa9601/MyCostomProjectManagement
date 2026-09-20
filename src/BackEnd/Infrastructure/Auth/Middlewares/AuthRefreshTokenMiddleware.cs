@@ -33,10 +33,11 @@ namespace BackEnd.Infrastructure.Auth.Middlewares
         {
             _next = next;
         }
-        public async Task InvokeAsync(HttpContext context, Context _context,
+        public async Task InvokeAsync(HttpContext context, IDbContextFactory<Context> _contextFactory,
             ICookiesService _cokkieService, IJwtSettingsFactory _jwtSettingsFactory,
             HashManager _hashManager)
         {
+            var _context = await _contextFactory.CreateDbContextAsync();
             //_logger.LogInformation($"Request URL: {Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(context.Request)}");
             _hashManager = new HashManager(new Sha256Hasher());
             string authTokenFromCookie = _cokkieService.GetCookie(context.Request, authTokenCookieKey);
@@ -81,7 +82,8 @@ namespace BackEnd.Infrastructure.Auth.Middlewares
                         _cokkieService.SetCookie(context.Response, authTokenCookieKey, newAuthToken, new CookieOptions
                         {
                             HttpOnly = true,
-                            Secure = true,
+                            //Secure = true,
+                            Secure = false,
                             SameSite = SameSiteMode.Strict,
                             MaxAge = TimeSpan.FromMinutes(30),
                             Path = "/",
@@ -119,7 +121,8 @@ namespace BackEnd.Infrastructure.Auth.Middlewares
                 _cokkieService.SetCookie(context.Response, authTokenCookieKey, newAuthToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
+                    //Secure = true,
+                    Secure = false,
                     SameSite = SameSiteMode.Strict,
                     MaxAge = TimeSpan.FromMinutes(30),
                     Path = "/",
@@ -151,16 +154,27 @@ namespace BackEnd.Infrastructure.Auth.Middlewares
             if (tokenType == Core.Abstraction.Jwt.Enum.TokenType.AuthRefreshToken)
             {
                 var user = _context.Users.Include(i => i.UserSessionBlackList).FirstOrDefault(i => i.Id == userId);
-                bool userIsBlocked = user.UserBlackList.Any(i => i.ExpireDate > DateTime.Now);
-                bool userSessionIsBlocked = user.UserSessionBlackList.Any(i => i.HashToken == _hashManager.Hash(token) &&
-                i.UserId == userId);
-                if (userIsBlocked)
+                if (user == null)
                 {
-                    return ($"اکانت شما به دلیل فعالیت های غیر مجاز مسدود است.", false, null);
+                    return ($"کاربر یافت نشد.", false, null);
                 }
-                if (userSessionIsBlocked)
+                if (user.UserSessionBlackList == null || user.UserSessionBlackList.Count == 0)
                 {
-                    return ($"سشن شما منقضی شده لطفا مجددا به اکانت خود وارد شوید.", false, null);
+
+                }
+                else
+                {
+                    bool userIsBlocked = user.UserBlackList.Any(i => i.ExpireDate > DateTime.Now);
+                    bool userSessionIsBlocked = user.UserSessionBlackList.Any(i => i.HashToken == _hashManager.Hash(token) &&
+                    i.UserId == userId);
+                    if (userIsBlocked)
+                    {
+                        return ($"اکانت شما به دلیل فعالیت های غیر مجاز مسدود است.", false, null);
+                    }
+                    if (userSessionIsBlocked)
+                    {
+                        return ($"سشن شما منقضی شده لطفا مجددا به اکانت خود وارد شوید.", false, null);
+                    }
                 }
             }
 

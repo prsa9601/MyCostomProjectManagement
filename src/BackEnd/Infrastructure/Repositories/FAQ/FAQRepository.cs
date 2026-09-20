@@ -16,7 +16,7 @@ namespace BackEnd.Infrastructure.Repositories.FAQ
         public async Task<bool> SortSequenseOfFAQTableForCreateColumn(int sequense)
         {
             int rowsAffected = await Context.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE dbo.FAQs SET Sequense = Sequense + 1 WHERE Sequense >= {sequense}"
+                $"UPDATE FAQ.faq SET Sequense = Sequense + 1 WHERE Sequense >= {sequense}"
             );
 
             return rowsAffected > 0;
@@ -29,13 +29,13 @@ namespace BackEnd.Infrastructure.Repositories.FAQ
             {
 
                 rowsAffected = await Context.Database.ExecuteSqlInterpolatedAsync(
-                   $"UPDATE dbo.FAQs SET Sequense = Sequense + 1 WHERE Sequense < {oldSequense} And Sequense >= {sequense}"
+                   $"UPDATE FAQ.faq SET Sequense = Sequense + 1 WHERE Sequense < {oldSequense} And Sequense >= {sequense}"
                );
             }
             else if (oldSequense < sequense)
             {
                 rowsAffected = await Context.Database.ExecuteSqlInterpolatedAsync(
-                   $"UPDATE dbo.FAQs SET Sequense = Sequense - 1 WHERE Sequense <= {sequense} And Sequense > {oldSequense}"
+                   $"UPDATE FAQ.faq SET Sequense = Sequense - 1 WHERE Sequense <= {sequense} And Sequense > {oldSequense}"
                );
             }
             else
@@ -49,7 +49,7 @@ namespace BackEnd.Infrastructure.Repositories.FAQ
         public async Task<bool> SortSequenseOfFAQTableForRemoveColumn(int sequense)
         {
             int rowsAffected = await Context.Database.ExecuteSqlInterpolatedAsync(
-               $"UPDATE dbo.FAQs SET Sequense = Sequense - 1 WHERE Sequense > {sequense}"
+               $"UPDATE FAQ.faq SET Sequense = Sequense - 1 WHERE Sequense > {sequense}"
             );
 
             return rowsAffected > 0;

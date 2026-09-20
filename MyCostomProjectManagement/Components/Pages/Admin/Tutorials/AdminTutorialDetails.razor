@@ -1,0 +1,1115 @@
+﻿@page "/Admin/Tutorials/{Id:int}"
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject ITutorialApiService TutorialService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using BackEnd.Data.Infrastructure.Tutorial
+@using BackEnd.Data.Infrastructure.Tutorial.DTOs
+
+
+<PageTitle>@(tutorial?.Title ?? "جزئیات آموزش") | پنل ادمین</PageTitle>
+
+<!-- ============================================================
+     highlight.js  برای رنگی کردن کدها
+============================================================ -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+
+<style>
+    /* ============================================================
+       TUTORIAL DETAILS - هماهنگ با پالت #13505b
+    ============================================================ */
+
+    .details-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .back-btn {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #e8f0f1;
+        padding: 9px 18px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-btn:hover {
+        background: rgba(232, 168, 56, 0.08);
+        border-color: rgba(232, 168, 56, 0.3);
+        color: #e8a838;
+        transform: translateX(-3px);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-action {
+        border: none;
+        padding: 10px 20px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-action.edit {
+        background: linear-gradient(135deg, #52b788, #3a9a6e);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.2);
+    }
+
+    .btn-action.edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(82, 183, 136, 0.3);
+    }
+
+    .btn-action.approve {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.2);
+    }
+
+    .btn-action.approve:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(232, 168, 56, 0.3);
+    }
+
+    .btn-action.danger {
+        background: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        color: #e77c88;
+    }
+
+    .btn-action.danger:hover {
+        background: rgba(220, 53, 69, 0.18);
+        transform: translateY(-2px);
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 20px;
+        align-items: start;
+    }
+
+    .details-main {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 32px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .details-main::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #e8a838, #52b788);
+        opacity: 0.5;
+        border-radius: 0 4px 4px 0;
+    }
+
+    .details-main h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 14px;
+        line-height: 1.5;
+    }
+
+    .details-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .tag {
+        font-size: 0.72rem;
+        padding: 4px 14px;
+        border-radius: 30px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+    }
+
+    .tag-subject {
+        background: rgba(26, 122, 138, 0.08);
+        color: #4dc9dd;
+        border-color: rgba(77, 201, 221, 0.12);
+    }
+
+    .tag-level-beginner     { background: rgba(82, 183, 136, 0.08);  color: #52b788; border-color: rgba(82, 183, 136, 0.12); }
+    .tag-level-intermediate { background: rgba(232, 168, 56, 0.08);  color: #e8a838; border-color: rgba(232, 168, 56, 0.12); }
+    .tag-level-advanced     { background: rgba(220, 53, 69, 0.08);   color: #e77c88; border-color: rgba(220, 53, 69, 0.12); }
+    .tag-level-all          { background: rgba(130, 100, 200, 0.08); color: #a88ce8; border-color: rgba(130, 100, 200, 0.12); }
+
+    .tag-topic {
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(232, 240, 241, 0.7);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .tag-approved {
+        background: rgba(82, 183, 136, 0.08);
+        color: #52b788;
+        border-color: rgba(82, 183, 136, 0.12);
+    }
+
+    .tag-pending {
+        background: rgba(232, 168, 56, 0.08);
+        color: #e8a838;
+        border-color: rgba(232, 168, 56, 0.12);
+    }
+
+    /* ============================================================
+       CONTENT AREA - رنگی و زیبا 🎨
+    ============================================================ */
+    .content-area {
+        color: #d8e3e5;
+        font-size: 0.95rem;
+        line-height: 1.95;
+        word-wrap: break-word;
+    }
+
+    /* -------- Headers رنگی -------- */
+    .content-area h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 32px 0 16px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid transparent;
+        background-image: linear-gradient(90deg, #e8a838, #52b788, transparent);
+        background-repeat: no-repeat;
+        background-size: 100% 2px;
+        background-position: 0 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .content-area h1::before {
+        content: '\f0da';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        color: #e8a838;
+        font-size: 1.1rem;
+    }
+
+    .content-area h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #e8a838;
+        margin: 26px 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+        padding-right: 14px;
+    }
+
+    .content-area h2::before {
+        content: '';
+        width: 4px;
+        height: 1.1rem;
+        background: linear-gradient(180deg, #e8a838, #52b788);
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .content-area h3 {
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: #52b788;
+        margin: 20px 0 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .content-area h3::before {
+        content: '\f111';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        color: #52b788;
+        font-size: 0.45rem;
+        opacity: 0.7;
+    }
+
+    .content-area h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #4dc9dd;
+        margin: 16px 0 8px;
+    }
+
+    /* -------- Paragraphs -------- */
+    .content-area p {
+        margin-bottom: 16px;
+        color: #d8e3e5;
+    }
+
+    .content-area strong {
+        color: #ffffff;
+        font-weight: 700;
+        background: linear-gradient(180deg, transparent 65%, rgba(232, 168, 56, 0.25) 65%);
+        padding: 0 2px;
+    }
+
+    .content-area em {
+        color: #a88ce8;
+        font-style: italic;
+        font-weight: 500;
+    }
+
+    /* -------- Links -------- */
+    .content-area a {
+        color: #4dc9dd;
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px dashed rgba(77, 201, 221, 0.4);
+        transition: all 0.25s;
+        padding: 0 2px;
+    }
+
+    .content-area a:hover {
+        color: #e8a838;
+        border-bottom-color: #e8a838;
+        border-bottom-style: solid;
+        background: rgba(232, 168, 56, 0.06);
+        border-radius: 4px;
+    }
+
+    /* -------- Lists با بولت رنگی -------- */
+    .content-area ul {
+        margin: 14px 0 18px;
+        padding-right: 22px;
+        list-style: none;
+    }
+
+    .content-area ul li {
+        position: relative;
+        padding-right: 24px;
+        margin-bottom: 10px;
+        color: #d8e3e5;
+    }
+
+    .content-area ul li::before {
+        content: '\f0da';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 0;
+        top: 2px;
+        color: #e8a838;
+        font-size: 0.75rem;
+    }
+
+    .content-area ul li:hover::before {
+        color: #52b788;
+        transform: translateX(-3px);
+        transition: all 0.25s;
+    }
+
+    .content-area ol {
+        margin: 14px 0 18px;
+        padding-right: 34px;
+        counter-reset: item;
+        list-style: none;
+    }
+
+    .content-area ol li {
+        position: relative;
+        margin-bottom: 10px;
+        color: #d8e3e5;
+        counter-increment: item;
+    }
+
+    .content-area ol li::before {
+        content: counter(item);
+        position: absolute;
+        right: -34px;
+        top: 1px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(232, 168, 56, 0.25);
+    }
+
+    /* -------- Inline Code -------- */
+    .content-area code {
+        background: rgba(0, 0, 0, 0.35);
+        color: #f8bb4f;
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        direction: ltr;
+        unicode-bidi: embed;
+        border: 1px solid rgba(232, 168, 56, 0.15);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    /* -------- Code Block رنگی با highlight.js -------- */
+    .content-area pre {
+        position: relative;
+        background: #282c34 !important;
+        border: 1px solid rgba(232, 168, 56, 0.15);
+        border-radius: 14px;
+        padding: 20px 22px;
+        margin: 20px 0;
+        overflow-x: auto;
+        direction: ltr;
+        text-align: left;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    .content-area pre::before {
+        content: '● ● ●';
+        position: absolute;
+        top: 8px;
+        left: 14px;
+        color: #ff5f56;
+        font-size: 0.7rem;
+        letter-spacing: 4px;
+        opacity: 0.9;
+    }
+
+    .content-area pre::after {
+        content: attr(data-lang);
+        position: absolute;
+        top: 10px;
+        right: 14px;
+        font-size: 0.7rem;
+        color: rgba(232, 240, 241, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+
+    .content-area pre code {
+        background: transparent !important;
+        color: #abb2bf !important;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        font-size: 0.85rem;
+        line-height: 1.7;
+        font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        display: block;
+    }
+
+    /* کدها داخل pre رنگی نشن */
+    .content-area pre code.hljs {
+        background: transparent !important;
+        padding: 0 !important;
+    }
+
+    /* -------- Blockquote -------- */
+    .content-area blockquote {
+        position: relative;
+        border-right: 4px solid #e8a838;
+        padding: 16px 22px;
+        margin: 20px 0;
+        background: linear-gradient(90deg, rgba(232, 168, 56, 0.06), transparent);
+        border-radius: 10px;
+        color: rgba(232, 240, 241, 0.9);
+        font-style: italic;
+        font-size: 0.95rem;
+    }
+
+    .content-area blockquote::before {
+        content: '\f10d';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        color: rgba(232, 168, 56, 0.3);
+        font-size: 1.2rem;
+    }
+
+    /* -------- Table رنگی -------- */
+    .content-area table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 20px 0;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .content-area table thead {
+        background: linear-gradient(135deg, rgba(232, 168, 56, 0.15), rgba(82, 183, 136, 0.1));
+    }
+
+    .content-area table th {
+        padding: 12px 16px;
+        text-align: right;
+        color: #e8a838;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border-bottom: 2px solid rgba(232, 168, 56, 0.2);
+    }
+
+    .content-area table td {
+        padding: 11px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        color: #d8e3e5;
+        font-size: 0.9rem;
+    }
+
+    .content-area table tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .content-area table tbody tr:hover {
+        background: rgba(232, 168, 56, 0.04);
+    }
+
+    .content-area table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* -------- HR -------- */
+    .content-area hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #e8a838, #52b788, transparent);
+        margin: 32px 0;
+        border-radius: 4px;
+        opacity: 0.6;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .details-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .side-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 18px;
+        padding: 20px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .side-card h4 {
+        font-size: 0.85rem;
+        color: #e8a838;
+        font-weight: 600;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .side-stat {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        transition: all 0.3s;
+    }
+
+    .side-stat:hover {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 10px;
+        padding-right: 8px;
+        padding-left: 8px;
+        margin: 0 -8px;
+    }
+
+    .side-stat:last-child {
+        border-bottom: none;
+    }
+
+    .side-stat .icon-box {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        background: rgba(232, 168, 56, 0.08);
+        color: #e8a838;
+    }
+
+    .side-stat .icon-box.green  { background: rgba(82, 183, 136, 0.08);  color: #52b788; }
+    .side-stat .icon-box.blue   { background: rgba(26, 122, 138, 0.12);  color: #4dc9dd; }
+    .side-stat .icon-box.purple { background: rgba(130, 100, 200, 0.1);  color: #a88ce8; }
+
+    .side-stat .info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .side-stat .info .label {
+        font-size: 0.72rem;
+        color: rgba(232, 240, 241, 0.5);
+        margin-bottom: 2px;
+    }
+
+    .side-stat .info .value {
+        font-size: 0.9rem;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    /* ===== STATE BOX ===== */
+    .state-box {
+        text-align: center;
+        padding: 60px 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        color: rgba(232, 240, 241, 0.5);
+    }
+
+    .state-box i {
+        font-size: 3rem;
+        color: rgba(232, 168, 56, 0.3);
+        margin-bottom: 14px;
+        display: block;
+    }
+
+    .state-box h3 {
+        font-size: 1.1rem;
+        color: #e8f0f1;
+        margin-bottom: 6px;
+    }
+
+    .spinner {
+        width: 44px;
+        height: 44px;
+        border: 3px solid rgba(232, 168, 56, 0.15);
+        border-top-color: #e8a838;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 16px;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 900px) {
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+        .details-main {
+            padding: 20px;
+        }
+        .details-main h1 {
+            font-size: 1.3rem;
+        }
+    }
+
+    @@media (max-width: 500px) {
+        .header-actions {
+            width: 100%;
+        }
+        .btn-action {
+            flex: 1;
+            justify-content: center;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<div class="details-header">
+    <button class="back-btn" @onclick="GoBack">
+        <i class="fas fa-arrow-right"></i>
+        بازگشت به لیست
+    </button>
+
+    @if (tutorial != null)
+    {
+        <div class="header-actions">
+            <button class="btn-action approve" @onclick="ToggleApprove">
+                <i class="fas @(tutorial.IsApproved ? "fa-times-circle" : "fa-check-circle")"></i>
+                @(tutorial.IsApproved ? "لغو تأیید" : "تأیید")
+            </button>
+            <button class="btn-action edit" @onclick="EditTutorial">
+                <i class="fas fa-pen"></i>
+                ویرایش
+            </button>
+            <button class="btn-action danger" @onclick="DeleteTutorial">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    }
+</div>
+
+<!-- ============================================================
+     CONTENT
+============================================================ -->
+@if (isLoading)
+{
+    <div class="state-box">
+        <div class="spinner"></div>
+        <h3>در حال بارگذاری...</h3>
+    </div>
+}
+else if (tutorial == null)
+{
+    <div class="state-box">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>آموزش پیدا نشد</h3>
+        <p>ممکن است حذف شده باشد یا آدرس اشتباه باشد.</p>
+        <br />
+        <button class="back-btn" @onclick="GoBack">
+            <i class="fas fa-arrow-right"></i>
+            بازگشت
+        </button>
+    </div>
+}
+else
+{
+    <div class="details-grid">
+        <!-- ==== MAIN CONTENT ==== -->
+        <div class="details-main">
+            <h1>@tutorial.Title</h1>
+
+            <div class="details-meta">
+                @if (!string.IsNullOrWhiteSpace(tutorial.Subject))
+                {
+                    <span class="tag tag-subject">
+                        <i class="fas fa-code"></i> @tutorial.Subject
+                    </span>
+                }
+                <span class="tag @GetLevelClass(tutorial.Level)">
+                    <i class="fas fa-signal"></i> @GetLevelText(tutorial.Level)
+                </span>
+                @if (!string.IsNullOrWhiteSpace(tutorial.Topic))
+                {
+                    <span class="tag tag-topic">
+                        <i class="fas fa-hashtag"></i> @tutorial.Topic
+                    </span>
+                }
+                <span class="tag @(tutorial.IsApproved ? "tag-approved" : "tag-pending")">
+                    <i class="fas @(tutorial.IsApproved ? "fa-check-circle" : "fa-clock")"></i>
+                    @(tutorial.IsApproved ? "تأیید شده" : "در انتظار تأیید")
+                </span>
+            </div>
+
+            <div class="content-area" id="contentArea">
+                @((MarkupString)renderedContent)
+            </div>
+        </div>
+
+        <!-- ==== SIDEBAR ==== -->
+        <div class="details-sidebar">
+            <div class="side-card">
+                <h4><i class="fas fa-info-circle"></i> اطلاعات</h4>
+
+                <div class="side-stat">
+                    <div class="icon-box green">
+                        <i class="fas fa-list-ul"></i>
+                    </div>
+                    <div class="info">
+                        <div class="label">تعداد بخش‌ها</div>
+                        <div class="value">@tutorial.SectionCount</div>
+                    </div>
+                </div>
+
+                <div class="side-stat">
+                    <div class="icon-box blue">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="info">
+                        <div class="label">بلوک‌های کد</div>
+                        <div class="value">@tutorial.CodeBlockCount</div>
+                    </div>
+                </div>
+
+                <div class="side-stat">
+                    <div class="icon-box purple">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="info">
+                        <div class="label">دسته‌بندی</div>
+                        <div class="value">@GetCategoryText(tutorial.Category)</div>
+                    </div>
+                </div>
+
+                <div class="side-stat">
+                    <div class="icon-box">
+                        <i class="far fa-calendar-alt"></i>
+                    </div>
+                    <div class="info">
+                        <div class="label">تاریخ ایجاد</div>
+                        <div class="value">@ToPersianDate(tutorial.CreatedAt)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="side-card">
+                <h4><i class="fas fa-bolt"></i> عملیات سریع</h4>
+
+                <div class="side-stat" style="cursor:pointer;" @onclick="EditTutorial">
+                    <div class="icon-box green">
+                        <i class="fas fa-pen"></i>
+                    </div>
+                    <div class="info">
+                        <div class="value">ویرایش آموزش</div>
+                    </div>
+                    <i class="fas fa-chevron-left" style="color:rgba(232,240,241,0.3);"></i>
+                </div>
+
+                <div class="side-stat" style="cursor:pointer;" @onclick="ToggleApprove">
+                    <div class="icon-box">
+                        <i class="fas @(tutorial.IsApproved ? "fa-times-circle" : "fa-check-circle")"></i>
+                    </div>
+                    <div class="info">
+                        <div class="value">@(tutorial.IsApproved ? "لغو تأیید" : "تأیید آموزش")</div>
+                    </div>
+                    <i class="fas fa-chevron-left" style="color:rgba(232,240,241,0.3);"></i>
+                </div>
+
+                <div class="side-stat" style="cursor:pointer;" @onclick="CopyContent">
+                    <div class="icon-box blue">
+                        <i class="fas fa-copy"></i>
+                    </div>
+                    <div class="info">
+                        <div class="value">کپی محتوا</div>
+                    </div>
+                    <i class="fas fa-chevron-left" style="color:rgba(232,240,241,0.3);"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // ============================================================
+    // PARAMETERS
+    // ============================================================
+    [Parameter] public int Id { get; set; }
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    private TutorialDto? tutorial;
+    private bool isLoading = true;
+    private string renderedContent = "";
+    private bool needsHighlight = false;
+
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadTutorial();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (needsHighlight)
+        {
+            needsHighlight = false;
+            await HighlightCode();
+        }
+    }
+
+    // ============================================================
+    // DATA LOADING
+    // ============================================================
+    private async Task LoadTutorial()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            tutorial = await TutorialService.Get(Id);
+
+            if (tutorial != null)
+            {
+                renderedContent = RenderMarkdown(tutorial.Content);
+                needsHighlight = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[TutorialDetails] Load error: {ex.Message}");
+            tutorial = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    // ============================================================
+    // HIGHLIGHT.JS
+    // ============================================================
+    private async Task HighlightCode()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            (function() {
+                // لود highlight.js اگه نبود
+                if (typeof hljs === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+                    script.onload = function() {
+                        document.querySelectorAll('#contentArea pre code').forEach(block => {
+                            hljs.highlightElement(block);
+                        });
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    document.querySelectorAll('#contentArea pre code').forEach(block => {
+                        hljs.highlightElement(block);
+                    });
+                }
+
+                // افزودن data-lang به pre ها
+                document.querySelectorAll('#contentArea pre code').forEach(block => {
+                    const match = block.className.match(/language-(\w+)/);
+                    if (match) {
+                        block.parentElement.setAttribute('data-lang', match[1]);
+                    } else {
+                        block.parentElement.setAttribute('data-lang', 'code');
+                    }
+                });
+            })();
+        ");
+    }
+
+    // ============================================================
+    // ACTIONS
+    // ============================================================
+    private void GoBack()
+        => Navigation.NavigateTo("/Admin/Tutorials");
+
+    private void EditTutorial()
+        => Navigation.NavigateTo($"/Admin/Tutorials/Edit/{Id}");
+
+    private void ToggleApprove()
+    {
+        if (tutorial == null) return;
+        tutorial.IsApproved = !tutorial.IsApproved;
+        StateHasChanged();
+    }
+
+    private void DeleteTutorial()
+    {
+        Console.WriteLine($"Delete: {Id}");
+    }
+
+    private async Task CopyContent()
+    {
+        if (tutorial == null) return;
+        var escaped = tutorial.Content
+            .Replace("\\", "\\\\")
+            .Replace("`", "\\`")
+            .Replace("$", "\\$");
+        await JSRuntime.InvokeVoidAsync("eval",
+            $"navigator.clipboard.writeText(`{escaped}`)");
+    }
+
+    // ============================================================
+    // MARKDOWN RENDERER (با نگه‌داشتن زبان کد)
+    // ============================================================
+    private static string RenderMarkdown(string md)
+    {
+        if (string.IsNullOrWhiteSpace(md))
+            return "<p style='color:rgba(232,240,241,0.5);'>محتوایی ثبت نشده است.</p>";
+
+        var html = md;
+
+        // Escape HTML
+        html = html.Replace("&", "&amp;")
+                   .Replace("<", "&lt;")
+                   .Replace(">", "&gt;");
+
+        // Code blocks با نگه‌داشتن زبان برای highlight.js
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            @"```(\w*)\n([\s\S]*?)```",
+            m => {
+                var lang = string.IsNullOrWhiteSpace(m.Groups[1].Value) ? "" : $"language-{m.Groups[1].Value}";
+                var code = m.Groups[2].Value.TrimEnd();
+                return $"<pre><code class=\"{lang}\">{code}</code></pre>";
+            });
+
+        // Inline code
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"`([^`\n]+)`", "<code>$1</code>");
+
+        // Headers
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"^####\s+(.+)$", "<h4>$1</h4>",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"^###\s+(.+)$", "<h3>$1</h3>",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"^##\s+(.+)$", "<h2>$1</h2>",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"^#\s+(.+)$", "<h1>$1</h1>",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Bold / Italic
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"\*(.+?)\*", "<em>$1</em>");
+
+        // Links
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"\[([^\]]+)\]\(([^)]+)\)",
+            "<a href='$2' target='_blank' rel='noopener'>$1</a>");
+
+        // Blockquote
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"^&gt;\s?(.+)$", "<blockquote>$1</blockquote>",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // HR
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"^---+$", "<hr />",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Unordered list
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"^[\-\*]\s+(.+)$", "<li>$1</li>",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Ordered list
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"^\d+\.\s+(.+)$", "<li>$1</li>",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Wrap <li> in <ul>
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            @"(<li>.*?</li>)(\s*<li>.*?</li>)*",
+            m => "<ul>" + m.Value + "</ul>",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+
+        // Paragraphs
+        var lines = html.Split('\n');
+        var sb = new System.Text.StringBuilder();
+        foreach (var line in lines)
+        {
+            var trimmed = line.TrimEnd();
+            if (string.IsNullOrWhiteSpace(trimmed))
+                continue;
+
+            if (trimmed.StartsWith("<h") ||
+                trimmed.StartsWith("<ul") ||
+                trimmed.StartsWith("<ol") ||
+                trimmed.StartsWith("<li") ||
+                trimmed.StartsWith("<pre") ||
+                trimmed.StartsWith("<blockquote") ||
+                trimmed.StartsWith("<hr") ||
+                trimmed.EndsWith("</ul>") ||
+                trimmed.EndsWith("</pre>"))
+            {
+                sb.AppendLine(trimmed);
+            }
+            else
+            {
+                sb.AppendLine($"<p>{trimmed}</p>");
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    private static string GetLevelClass(string? level) => level?.ToLower() switch
+    {
+        "beginner"     => "tag-level-beginner",
+        "intermediate" => "tag-level-intermediate",
+        "advanced"     => "tag-level-advanced",
+        _              => "tag-level-all"
+    };
+
+    private static string GetLevelText(string? level) => level?.ToLower() switch
+    {
+        "beginner"     => "مبتدی",
+        "intermediate" => "متوسط",
+        "advanced"     => "پیشرفته",
+        "all"          => "همه سطوح",
+        _              => "نامشخص"
+    };
+
+    private static string GetCategoryText(string? category) => category?.ToLower() switch
+    {
+        "language"  => "زبان برنامه‌نویسی",
+        "framework" => "فریم‌ورک",
+        "tool"      => "ابزار",
+        "concept"   => "مفهوم",
+        _           => "نامشخص"
+    };
+
+    private static string ToPersianDate(DateTime dt)
+    {
+        try
+        {
+            var pc = new System.Globalization.PersianCalendar();
+            return $"{pc.GetYear(dt):0000}/{pc.GetMonth(dt):00}/{pc.GetDayOfMonth(dt):00}";
+        }
+        catch
+        {
+            return dt.ToString("yyyy/MM/dd");
+        }
+    }
+}

@@ -27,6 +27,7 @@
     <Folder Include="Data\Entities\PurchaseReport\" />
     <Folder Include="Data\Entities\Package\Repository\" />
     <Folder Include="Data\Entities\Projects\Repository\" />
+    <Folder Include="Data\Infrastructure\Blog\" />
     <Folder Include="Infrastructure\InternalAPIs\" />
     <Folder Include="Infrastructure\Repositories\ApiProduct\" />
     <Folder Include="Infrastructure\Repositories\Project\" />

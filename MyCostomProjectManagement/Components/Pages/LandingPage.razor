@@ -14,7 +14,7 @@
 @using MyCostomProjectManagement.Facade.User
 @using MyCostomProjectManagement.Infrastructure
 @using MyCostomProjectManagement.Shared.Attributes
-@layout FrontLayout
+@layout MainLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
@@ -37,12 +37,53 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
 <style>
+
+    /* ===== دکمه / لینک داخل کارت نمونه‌کار ===== */
+    .btn-portfolio {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 14px;
+        padding: 8px 18px;
+        background: rgba(59, 130, 246, 0.10);
+        border: 1px solid rgba(59, 130, 246, 0.20);
+        border-radius: 40px;
+        color: #3b82f6;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        backdrop-filter: blur(4px);
+    }
+
+        .btn-portfolio i {
+            font-size: 0.85rem;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-portfolio:hover {
+            background: rgba(59, 130, 246, 0.20);
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+            color: #ffffff;
+        }
+
+            .btn-portfolio:hover i {
+                transform: translateX(4px);
+            }
+
+        /* برای حالت دارک و هماهنگی با بقیه */
+        .btn-portfolio:active {
+            transform: scale(0.96);
+        }
+
     /* ====================================================
-                    تمام استایل‌های مورد نیاز (لندینگ + داشبورد)
-                    ==================================================== */
+                        تمام استایل‌های مورد نیاز (لندینگ + داشبورد)
+                        ==================================================== */
     /* ====================================================
-                    LOADING OVERLAY
-                    ==================================================== */
+                        LOADING OVERLAY
+                        ==================================================== */
     .loading-overlay {
         position: fixed;
         top: 0;
@@ -1990,6 +2031,7 @@
             <li><a @onclick='() => ScrollToSection("purchase")' @onclick:preventDefault="true">خرید</a></li>
             <li><a @onclick='() => ScrollToSection("request")' @onclick:preventDefault="true">درخواست پروژه</a></li>
             <li><a @onclick='() => ScrollToSection("contact")' @onclick:preventDefault="true">تماس</a></li>
+            <li><a @onclick='() => NavigationManager.NavigateTo("tutorials", true)' @onclick:preventDefault="true">آموزش‌ها</a></li>
         </ul>
         <div class="nav-actions">
 
@@ -2007,7 +2049,7 @@
             {
                 <button class="btn-admin" @onclick="NavigateToAdminDashboard"><i class="fas fa-user-cog"></i> ادمین</button>
             }
-            <a href="/Packages" class="btn-primary"><i class="fas fa-rocket"></i> خرید اشتراک</a>
+            <a class="btn-primary" onclick="@(() => NavigationManager.NavigateTo("/Packages", true))"><i class="fas fa-rocket"></i> خرید اشتراک</a>
             <button class="hamburger" @onclick="ToggleMenu">
                 <span></span><span></span><span></span>
             </button>
@@ -2037,7 +2079,7 @@
             <br />
             <span style="background:linear-gradient(to left,#f0f4ff,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">توسعه‌دهنده وب</span>
         </h1>
-        <p>طراحی و توسعه اپلیکیشن‌های مدرن، API‌های مقیاس‌پذیر و تجربه‌های کاربری بی‌نظیر. بیش از ۵ سال تجربه در تیم‌های فنی.</p>
+        <p>طراحی و توسعه اپلیکیشن‌های مدرن، API‌های مقیاس‌پذیر و تجربه‌های کاربری بی‌نظیر. بیش از @GetExperience() سال تجربه در تیم‌های فنی.</p>
         <div class="hero-actions">
 
 
@@ -2167,8 +2209,15 @@
                                 </video>
                             }
                             <div class="info">
+                 
                                 <h4>@item.Title</h4>
                                 <p>@item.Description</p>
+                                @if (!string.IsNullOrEmpty(item.Link))
+                                {
+                                    <a href="@item.Link" target="_blank" rel="noopener noreferrer" class="btn-portfolio">
+                                        <i class="fas fa-external-link-alt"></i> مشاهده پروژه
+                                    </a>
+                                }
                             </div>
                         </div>
                     }
@@ -2232,7 +2281,8 @@
                     <li>پشتیبانی ایمیل</li>
                     <li>مستندات پایه</li>
                 </ul>
-                <a href="#" class="btn-outline ripple">شروع کنید</a>
+                <a onclick="@(() => NavigationManager.NavigateTo("/Packages", true))" class="btn-outline ripple">شروع کنید</a>
+                @* <a href="#" class="btn-outline ripple">شروع کنید</a> *@
             </div>
             <div class="purchase-card featured fade-up">
                 <h3>حرفه‌ای</h3>
@@ -2243,7 +2293,7 @@
                     <li>مستندات کامل + وبینار</li>
                     <li>دسترسی به نسخه Beta</li>
                 </ul>
-                <a href="/packages" class="btn-primary ripple">خرید اشتراک</a>
+                <a onclick="@(() => NavigationManager.NavigateTo("/Packages", true))" class="btn-primary ripple">خرید اشتراک</a>
             </div>
             <div class="purchase-card fade-up">
                 <h3>سازمانی</h3>
@@ -2254,7 +2304,8 @@
                     <li>میزبانی اختصاصی</li>
                     <li>گزارش‌گیری پیشرفته</li>
                 </ul>
-                <a href="#" class="btn-outline ripple">ارتباط با تیم</a>
+                <a onclick="@(() => NavigationManager.NavigateTo("/Packages", true))" class="btn-outline ripple">ارتباط با تیم</a>
+                @* <a href="#" class="btn-outline ripple">ارتباط با تیم</a> *@
             </div>
         </div>
     </div>

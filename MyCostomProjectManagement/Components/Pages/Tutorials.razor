@@ -1,0 +1,1545 @@
+﻿@page "/Tutorials"
+@layout FrontLayout
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject ITutorialApiService TutorialService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using BackEnd.Data.Infrastructure.Tutorial
+@using BackEnd.Data.Infrastructure.Tutorial.DTOs
+
+<PageTitle>آموزش‌ها | محمد پارسا کریمی</PageTitle>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+<style>
+    /* ============================================================
+       TUTORIAL DETAIL (FRONT) - Full Style Sheet
+    ============================================================ */
+
+    /* ===== HERO ===== */
+    .td-hero {
+        padding: 140px 0 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .td-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.06);
+        color: #b8c4d6;
+        padding: 9px 20px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        margin-bottom: 26px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .td-back:hover {
+        border-color: #3b82f6;
+        color: #fff;
+        background: rgba(59,130,246,0.08);
+        transform: translateX(-4px);
+        box-shadow: 0 8px 30px rgba(59,130,246,0.1);
+    }
+
+    .td-back i {
+        transition: transform 0.3s ease;
+    }
+
+    .td-back:hover i {
+        transform: translateX(-3px);
+    }
+
+    .td-title {
+        font-size: clamp(1.8rem, 5vw, 2.8rem);
+        font-weight: 900;
+        line-height: 1.3;
+        margin-bottom: 18px;
+        background: linear-gradient(to left, #f0f4ff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .td-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 30px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .td-tag {
+        font-size: 0.75rem;
+        padding: 5px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+    }
+
+    .tag-subject {
+        background: rgba(26,122,138,0.1);
+        color: #4dc9dd;
+        border-color: rgba(77,201,221,0.2);
+    }
+
+    .tag-level-beginner     { background: rgba(52,211,153,0.1);  color: #34d399; border-color: rgba(52,211,153,0.2); }
+    .tag-level-intermediate { background: rgba(251,146,60,0.1);  color: #fb923c; border-color: rgba(251,146,60,0.2); }
+    .tag-level-advanced     { background: rgba(239,68,68,0.1);   color: #f87171; border-color: rgba(239,68,68,0.2); }
+    .tag-level-all          { background: rgba(139,92,246,0.1);  color: #a78bfa; border-color: rgba(139,92,246,0.2); }
+
+    .tag-topic {
+        background: rgba(255,255,255,0.04);
+        color: #94a3b8;
+        border-color: rgba(255,255,255,0.08);
+    }
+
+    /* ===== LAYOUT ===== */
+    .td-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 28px;
+        align-items: start;
+        padding-bottom: 90px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .td-main {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 24px;
+        padding: 36px;
+        position: relative;
+    }
+
+    /* ===== CONTENT (Markdown) ===== */
+    .td-content {
+        color: #d8e3e5;
+        font-size: 1rem;
+        line-height: 2;
+        word-wrap: break-word;
+    }
+
+    /* Headers */
+    .td-content h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 32px 0 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid transparent;
+        background-image: linear-gradient(90deg, #3b82f6, #8b5cf6, transparent);
+        background-repeat: no-repeat;
+        background-size: 100% 2px;
+        background-position: 0 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .td-content h1:first-child {
+        margin-top: 0;
+    }
+
+    .td-content h1::before {
+        content: '\f0da';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        color: #3b82f6;
+        font-size: 1.1rem;
+    }
+
+    .td-content h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #60a5fa;
+        margin: 28px 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-right: 14px;
+        position: relative;
+    }
+
+    .td-content h2::before {
+        content: '';
+        width: 4px;
+        height: 1.2rem;
+        background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+        border-radius: 4px;
+    }
+
+    .td-content h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #a78bfa;
+        margin: 22px 0 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .td-content h3::before {
+        content: '\f111';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        color: #a78bfa;
+        font-size: 0.45rem;
+        opacity: 0.7;
+    }
+
+    .td-content h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #4dc9dd;
+        margin: 18px 0 8px;
+    }
+
+    /* Paragraphs */
+    .td-content p {
+        margin-bottom: 16px;
+    }
+
+    .td-content strong {
+        color: #fff;
+        font-weight: 700;
+        background: linear-gradient(180deg, transparent 65%, rgba(59,130,246,0.25) 65%);
+        padding: 0 2px;
+    }
+
+    .td-content em {
+        color: #a78bfa;
+        font-style: italic;
+        font-weight: 500;
+    }
+
+    /* Links */
+    .td-content a {
+        color: #60a5fa;
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(96,165,250,0.4);
+        transition: all 0.25s;
+        padding: 0 2px;
+    }
+
+    .td-content a:hover {
+        color: #8b5cf6;
+        border-bottom-color: #8b5cf6;
+        border-bottom-style: solid;
+        background: rgba(139,92,246,0.06);
+        border-radius: 4px;
+    }
+
+    /* Lists - unordered */
+    .td-content ul {
+        margin: 14px 0 18px;
+        padding-right: 22px;
+        list-style: none;
+    }
+
+    .td-content ul li {
+        position: relative;
+        padding-right: 24px;
+        margin-bottom: 10px;
+        transition: all 0.25s;
+    }
+
+    .td-content ul li::before {
+        content: '\f0da';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 0;
+        top: 2px;
+        color: #3b82f6;
+        font-size: 0.75rem;
+        transition: all 0.25s;
+    }
+
+    .td-content ul li:hover::before {
+        color: #8b5cf6;
+        transform: translateX(-3px);
+    }
+
+    /* Lists - ordered */
+    .td-content ol {
+        margin: 14px 0 18px;
+        padding-right: 34px;
+        counter-reset: item;
+        list-style: none;
+    }
+
+    .td-content ol li {
+        position: relative;
+        margin-bottom: 10px;
+        counter-increment: item;
+    }
+
+    .td-content ol li::before {
+        content: counter(item);
+        position: absolute;
+        right: -34px;
+        top: 1px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(59,130,246,0.25);
+    }
+
+    /* Inline code */
+    .td-content code {
+        background: rgba(0,0,0,0.35);
+        color: #f8bb4f;
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        direction: ltr;
+        unicode-bidi: embed;
+        border: 1px solid rgba(59,130,246,0.15);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    /* Code blocks */
+    .td-content pre {
+        position: relative;
+        background: #282c34 !important;
+        border: 1px solid rgba(59,130,246,0.15);
+        border-radius: 16px;
+        padding: 24px 22px 20px;
+        margin: 20px 0;
+        overflow-x: auto;
+        direction: ltr;
+        text-align: left;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .td-content pre::before {
+        content: '● ● ●';
+        position: absolute;
+        top: 10px;
+        left: 14px;
+        color: #ff5f56;
+        font-size: 0.7rem;
+        letter-spacing: 4px;
+        opacity: 0.9;
+    }
+
+    .td-content pre code {
+        background: transparent !important;
+        color: #abb2bf !important;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        font-size: 0.88rem;
+        line-height: 1.7;
+        font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        display: block;
+    }
+
+    .td-content pre code.hljs {
+        background: transparent !important;
+        padding: 0 !important;
+    }
+
+    /* Blockquote */
+    .td-content blockquote {
+        position: relative;
+        border-right: 4px solid #3b82f6;
+        padding: 16px 22px;
+        margin: 20px 0;
+        background: linear-gradient(90deg, rgba(59,130,246,0.06), transparent);
+        border-radius: 12px;
+        color: rgba(232,240,241,0.9);
+        font-style: italic;
+        font-size: 0.95rem;
+    }
+
+    .td-content blockquote::before {
+        content: '\f10d';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        color: rgba(59,130,246,0.3);
+        font-size: 1.2rem;
+    }
+
+    /* Tables */
+    .td-content table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 20px 0;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .td-content table thead {
+        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.1));
+    }
+
+    .td-content table th {
+        padding: 12px 16px;
+        text-align: right;
+        color: #60a5fa;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border-bottom: 2px solid rgba(59,130,246,0.2);
+    }
+
+    .td-content table td {
+        padding: 11px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        color: #d8e3e5;
+        font-size: 0.9rem;
+    }
+
+    .td-content table tbody tr:nth-child(even) {
+        background: rgba(255,255,255,0.02);
+    }
+
+    .td-content table tbody tr:hover {
+        background: rgba(59,130,246,0.05);
+    }
+
+    .td-content table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* HR */
+    .td-content hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #3b82f6, #8b5cf6, transparent);
+        margin: 32px 0;
+        border-radius: 4px;
+        opacity: 0.6;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .td-side {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        position: sticky;
+        top: 100px;
+    }
+
+    .td-side-card {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px;
+        padding: 22px;
+        transition: all 0.3s ease;
+    }
+
+    .td-side-card:hover {
+        border-color: rgba(59,130,246,0.15);
+    }
+
+    .td-side-card h4 {
+        font-size: 0.8rem;
+        color: #3b82f6;
+        font-weight: 700;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .td-side-stat {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: all 0.3s ease;
+    }
+
+    .td-side-stat:hover {
+        background: rgba(255,255,255,0.02);
+        border-radius: 10px;
+        padding-right: 8px;
+        padding-left: 8px;
+        margin: 0 -8px;
+    }
+
+    .td-side-stat:last-child {
+        border-bottom: none;
+    }
+
+    .td-side-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        background: rgba(59,130,246,0.12);
+        color: #3b82f6;
+    }
+
+    .td-side-icon.purple { background: rgba(139,92,246,0.12); color: #a78bfa; }
+    .td-side-icon.green  { background: rgba(52,211,153,0.12); color: #34d399; }
+    .td-side-icon.orange { background: rgba(251,146,60,0.12); color: #fb923c; }
+
+    .td-side-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .td-side-info .label {
+        font-size: 0.72rem;
+        color: #64748b;
+        margin-bottom: 2px;
+    }
+
+    .td-side-info .value {
+        font-size: 0.9rem;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    /* ===== STATE ===== */
+    .td-state {
+        text-align: center;
+        padding: 100px 20px;
+        color: #94a3b8;
+    }
+
+    .td-state i {
+        font-size: 3.5rem;
+        color: rgba(59,130,246,0.3);
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .td-state h3 {
+        font-size: 1.3rem;
+        color: #eef2f8;
+        margin-bottom: 10px;
+    }
+
+    .td-state p {
+        color: #64748b;
+        margin-bottom: 20px;
+    }
+
+    .td-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(59,130,246,0.15);
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin: 0 auto 20px;
+        box-shadow: 0 0 40px rgba(59,130,246,0.15);
+    }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 900px) {
+        .td-grid {
+            grid-template-columns: 1fr;
+        }
+        .td-side {
+            position: static;
+        }
+        .td-main {
+            padding: 24px;
+        }
+    }
+
+    @@media (max-width: 500px) {
+        .td-hero {
+            padding: 120px 0 30px;
+        }
+        .td-main {
+            padding: 20px;
+        }
+        .td-content {
+            font-size: 0.92rem;
+            line-height: 1.9;
+        }
+        .td-content h1 { font-size: 1.3rem; }
+        .td-content h2 { font-size: 1.1rem; }
+        .td-content h3 { font-size: 1rem; }
+        .td-content pre {
+            padding: 22px 16px 16px;
+            font-size: 0.82rem;
+        }
+        .td-content table {
+            font-size: 0.82rem;
+        }
+        .td-content table th,
+        .td-content table td {
+            padding: 9px 12px;
+        }
+    }
+</style><style>
+    /* ============================================================
+       TUTORIALS (FRONT) - Full Style Sheet
+       Palette: #0a0e17 (bg), #3b82f6 (blue), #8b5cf6 (purple)
+    ============================================================ */
+
+    /* ===== HERO ===== */
+    .tut-hero {
+        padding: 140px 0 40px;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .tut-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(59,130,246,0.12);
+        padding: 7px 22px;
+        border-radius: 40px;
+        font-size: 0.82rem;
+        color: #3b82f6;
+        border: 1px solid rgba(59,130,246,0.2);
+        margin-bottom: 22px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        animation: badgePulse 3s ease-in-out infinite;
+    }
+
+    @@keyframes badgePulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.15); }
+        50%      { box-shadow: 0 0 0 12px rgba(59,130,246,0); }
+    }
+
+    .tut-hero h1 {
+        font-size: clamp(2rem, 6vw, 3.5rem);
+        font-weight: 900;
+        line-height: 1.2;
+        margin-bottom: 16px;
+        background: linear-gradient(to left, #f0f4ff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .tut-hero h1 span {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 0 30px rgba(59,130,246,0.25));
+    }
+
+    .tut-hero p {
+        font-size: 1.1rem;
+        max-width: 640px;
+        margin: 0 auto;
+        color: #b8c4d6;
+        line-height: 1.8;
+    }
+
+    /* ===== SECTION ===== */
+    .tut-section {
+        padding: 40px 0 90px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ===== SEARCH BAR ===== */
+    .search-wrapper {
+        max-width: 620px;
+        margin: 0 auto 40px;
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 16px 56px 16px 20px;
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 50px;
+        color: #eef2f8;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .search-input::placeholder {
+        color: #64748b;
+    }
+
+    .search-input:focus {
+        border-color: #3b82f6;
+        background: rgba(59,130,246,0.05);
+        box-shadow: 0 0 40px rgba(59,130,246,0.12);
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #3b82f6;
+        font-size: 1.05rem;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus + .search-icon {
+        color: #8b5cf6;
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    /* ===== FILTER PILLS ===== */
+    .filter-pills {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 40px;
+    }
+
+    .filter-pill {
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.06);
+        color: #b8c4d6;
+        padding: 9px 20px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.2,0.9,0.3,1);
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .filter-pill:hover {
+        border-color: rgba(59,130,246,0.4);
+        color: #fff;
+        transform: translateY(-2px);
+        background: rgba(59,130,246,0.06);
+    }
+
+    .filter-pill.active {
+        background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(139,92,246,0.2));
+        border-color: #3b82f6;
+        color: #fff;
+        box-shadow: 0 8px 30px rgba(59,130,246,0.2);
+        font-weight: 600;
+    }
+
+    .filter-pill.active i {
+        color: #60a5fa;
+    }
+
+    /* ===== TUTORIAL CARDS GRID ===== */
+    .tut-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .tut-card {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 24px;
+        padding: 26px;
+        transition: all 0.4s cubic-bezier(0.2,0.9,0.3,1);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .tut-card::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        z-index: -1;
+        border-radius: 26px;
+        background: conic-gradient(from 0deg, #3b82f6, #8b5cf6, #3b82f6);
+        background-size: 300% 300%;
+        animation: rotateBorder 10s linear infinite;
+        opacity: 0;
+        transition: opacity 0.4s;
+    }
+
+    .tut-card:hover::before {
+        opacity: 0.5;
+    }
+
+    .tut-card:hover {
+        transform: translateY(-8px);
+        border-color: transparent;
+        box-shadow: 0 20px 60px rgba(59,130,246,0.12);
+    }
+
+    @@keyframes rotateBorder {
+        0%   { background-position: 0% 50%; }
+        100% { background-position: 400% 50%; }
+    }
+
+    /* ===== CARD HEADER ===== */
+    .tut-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    .tut-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        background: rgba(59,130,246,0.12);
+        color: #3b82f6;
+        transition: all 0.35s ease;
+    }
+
+    .tut-card:hover .tut-icon {
+        transform: scale(1.1) rotate(-6deg);
+    }
+
+    .tut-icon.cat-language  { background: rgba(59,130,246,0.12);  color: #3b82f6; }
+    .tut-icon.cat-framework { background: rgba(139,92,246,0.12);  color: #a78bfa; }
+    .tut-icon.cat-tool      { background: rgba(251,146,60,0.12);  color: #fb923c; }
+    .tut-icon.cat-concept   { background: rgba(52,211,153,0.12);  color: #34d399; }
+
+    .tut-head-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .tut-card h3 {
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.5;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: color 0.3s ease;
+    }
+
+    .tut-card:hover h3 {
+        color: #60a5fa;
+    }
+
+    .tut-topic {
+        font-size: 0.78rem;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .tut-topic i {
+        color: #3b82f6;
+        font-size: 0.7rem;
+    }
+
+    /* ===== TAGS ===== */
+    .tut-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .tut-tag {
+        font-size: 0.7rem;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid transparent;
+        transition: all 0.25s ease;
+    }
+
+    .tag-subject {
+        background: rgba(26,122,138,0.1);
+        color: #4dc9dd;
+        border-color: rgba(77,201,221,0.2);
+    }
+
+    .tag-level-beginner     { background: rgba(52,211,153,0.1);  color: #34d399; border-color: rgba(52,211,153,0.2); }
+    .tag-level-intermediate { background: rgba(251,146,60,0.1);  color: #fb923c; border-color: rgba(251,146,60,0.2); }
+    .tag-level-advanced     { background: rgba(239,68,68,0.1);   color: #f87171; border-color: rgba(239,68,68,0.2); }
+    .tag-level-all          { background: rgba(139,92,246,0.1);  color: #a78bfa; border-color: rgba(139,92,246,0.2); }
+
+    .tag-approved {
+        background: rgba(52,211,153,0.08);
+        color: #34d399;
+        border-color: rgba(52,211,153,0.15);
+    }
+
+    /* ===== STATS MINI ===== */
+    .tut-stats {
+        display: flex;
+        gap: 20px;
+        padding: 14px 0;
+        border-top: 1px solid rgba(255,255,255,0.04);
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        margin-bottom: 16px;
+    }
+
+    .tut-stat {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.78rem;
+        color: #94a3b8;
+    }
+
+    .tut-stat i {
+        color: #3b82f6;
+        font-size: 0.85rem;
+    }
+
+    /* ===== CARD FOOTER ===== */
+    .tut-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        gap: 10px;
+    }
+
+    .tut-date {
+        font-size: 0.72rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .tut-open {
+        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.1));
+        border: 1px solid rgba(59,130,246,0.3);
+        color: #3b82f6;
+        padding: 6px 14px;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s ease;
+    }
+
+    .tut-card:hover .tut-open {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 6px 20px rgba(59,130,246,0.25);
+    }
+
+    .tut-open i {
+        transition: transform 0.3s ease;
+    }
+
+    .tut-card:hover .tut-open i {
+        transform: translateX(-3px);
+    }
+
+    /* ===== EMPTY / LOADING ===== */
+    .state-box {
+        text-align: center;
+        padding: 80px 20px;
+        background: rgba(255,255,255,0.02);
+        border: 1px dashed rgba(255,255,255,0.08);
+        border-radius: 24px;
+        color: #94a3b8;
+    }
+
+    .state-box i {
+        font-size: 3.5rem;
+        color: rgba(59,130,246,0.3);
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .state-box h3 {
+        font-size: 1.2rem;
+        color: #eef2f8;
+        margin-bottom: 8px;
+    }
+
+    .state-box p {
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(59,130,246,0.15);
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin: 0 auto 20px;
+        box-shadow: 0 0 40px rgba(59,130,246,0.15);
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ===== PAGINATION ===== */
+    .tut-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .tut-pagination button {
+        min-width: 42px;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.03);
+        color: #b8c4d6;
+        font-family: inherit;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    .tut-pagination button:hover:not(:disabled):not(.active) {
+        background: rgba(59,130,246,0.1);
+        border-color: rgba(59,130,246,0.3);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .tut-pagination button.active {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-color: transparent;
+        color: #fff;
+        font-weight: 700;
+        box-shadow: 0 8px 25px rgba(59,130,246,0.3);
+    }
+
+    .tut-pagination button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    /* ===== FADE-UP ===== */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 768px) {
+        .tut-hero {
+            padding: 120px 0 30px;
+        }
+        .tut-hero h1 {
+            font-size: 1.8rem;
+        }
+        .tut-hero p {
+            font-size: 0.95rem;
+        }
+        .tut-grid {
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+        .tut-card {
+            padding: 20px;
+        }
+        .filter-pills {
+            gap: 6px;
+        }
+        .filter-pill {
+            font-size: 0.75rem;
+            padding: 6px 14px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .tut-hero h1 {
+            font-size: 1.6rem;
+        }
+        .search-input {
+            padding: 14px 50px 14px 18px;
+            font-size: 0.9rem;
+        }
+        .tut-card h3 {
+            font-size: 1rem;
+        }
+        .tut-pagination button {
+            min-width: 36px;
+            height: 36px;
+            font-size: 0.78rem;
+            padding: 0 10px;
+        }
+    }
+</style>
+<!-- ===== HERO ===== -->
+<section class="tut-hero">
+    <div class="container">
+        <div class="tut-hero-badge">
+            <i class="fas fa-graduation-cap"></i> یادگیری مستمر
+        </div>
+        <h1>
+            آموزش‌های <span>تخصصی</span>
+        </h1>
+        <p>
+            مجموعه مقالات و آموزش‌های کاربردی در حوزه برنامه‌نویسی، فریم‌ورک‌ها، ابزارها و مفاهیم نرم‌افزاری
+        </p>
+    </div>
+</section>
+
+<!-- ===== MAIN ===== -->
+<section class="tut-section">
+    <div class="container">
+
+        <!-- Search -->
+     @*    <div class="search-wrapper">
+            <input type="text"
+                   class="search-input"
+                   placeholder="جستجو در آموزش‌ها..."
+                   @bind="searchTerm"
+                   @bind:event="oninput"
+                   @onkeydown="OnSearchKeyDown" />
+            <i class="fas fa-search search-icon"></i>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="filter-pills">
+            <button class="filter-pill @(selectedCategory == null ? "active" : "")"
+                    @onclick="() => FilterByCategory(null)">
+                <i class="fas fa-th"></i> همه
+            </button>
+            <button class="filter-pill @(selectedCategory == "language" ? "active" : "")"
+                    @onclick='() => FilterByCategory("language")'>
+                <i class="fas fa-code"></i> زبان‌ها
+            </button>
+            <button class="filter-pill @(selectedCategory == "framework" ? "active" : "")"
+                    @onclick='() => FilterByCategory("framework")'>
+                <i class="fas fa-layer-group"></i> فریم‌ورک‌ها
+            </button>
+            <button class="filter-pill @(selectedCategory == "tool" ? "active" : "")"
+                    @onclick='() => FilterByCategory("tool")'>
+                <i class="fas fa-wrench"></i> ابزارها
+            </button>
+            <button class="filter-pill @(selectedCategory == "concept" ? "active" : "")"
+                    @onclick='() => FilterByCategory("concept")'>
+                <i class="fas fa-lightbulb"></i> مفاهیم
+            </button>
+        </div> *@
+
+        <!-- Content -->
+        @if (isLoading)
+        {
+            <div class="state-box">
+                <div class="spinner"></div>
+                <h3>در حال بارگذاری...</h3>
+                <p>لطفاً چند لحظه صبر کنید</p>
+            </div>
+        }
+        else if (tutorials == null || tutorials.Count == 0)
+        {
+            <div class="state-box">
+                <i class="fas fa-inbox"></i>
+                <h3>آموزشی یافت نشد</h3>
+                <p>سعی کنید عبارت دیگری را جستجو کنید یا فیلترها را تغییر دهید.</p>
+            </div>
+        }
+        else
+        {
+            <div class="tut-grid">
+                @foreach (var t in tutorials)
+                {
+                    <a class="tut-card fade-up" href="@($"/Tutorials/{t.Id}")" @key="t.Id">
+                        <div class="tut-head">
+                            <div class="tut-icon @GetCategoryClass(t.Category)">
+                                <i class="@GetCategoryIcon(t.Category)"></i>
+                            </div>
+                            <div class="tut-head-info">
+                                <h3 title="@t.Title">@t.Title</h3>
+                                <div class="tut-topic">
+                                    <i class="fas fa-hashtag"></i>
+                                    @(string.IsNullOrWhiteSpace(t.Topic) ? "بدون موضوع" : t.Topic)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tut-tags">
+                            @if (!string.IsNullOrWhiteSpace(t.Subject))
+                            {
+                                <span class="tut-tag tag-subject">
+                                    <i class="fas fa-code"></i> @t.Subject
+                                </span>
+                            }
+                            <span class="tut-tag @GetLevelClass(t.Level)">
+                                <i class="fas fa-signal"></i> @GetLevelText(t.Level)
+                            </span>
+                            @if (t.IsApproved)
+                            {
+                                <span class="tut-tag tag-approved">
+                                    <i class="fas fa-check-circle"></i> تأیید شده
+                                </span>
+                            }
+                        </div>
+
+                        <div class="tut-stats">
+                            <div class="tut-stat">
+                                <i class="fas fa-list-ul"></i>
+                                <span>@t.SectionCount بخش</span>
+                            </div>
+                            <div class="tut-stat">
+                                <i class="fas fa-code"></i>
+                                <span>@t.CodeBlockCount بلوک کد</span>
+                            </div>
+                        </div>
+
+                        <div class="tut-footer">
+                            <div class="tut-date">
+                                <i class="far fa-calendar-alt"></i>
+                                @ToPersianDate(t.CreatedAt)
+                            </div>
+                            <span class="tut-open">
+                                مطالعه
+                                <i class="fas fa-arrow-left"></i>
+                            </span>
+                        </div>
+                    </a>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if (totalPages > 1)
+            {
+                <div class="tut-pagination">
+                    <button @onclick="() => GoToPage(currentPage - 1)"
+                            disabled="@(currentPage <= 1)">
+                        <i class="fas fa-chevron-right"></i>
+                        قبلی
+                    </button>
+
+                    @foreach (var p in GetPageNumbers())
+                    {
+                        var pageNum = p;
+                        <button class="@(pageNum == currentPage ? "active" : "")"
+                                @onclick="() => GoToPage(pageNum)">
+                            @pageNum
+                        </button>
+                    }
+
+                    <button @onclick="() => GoToPage(currentPage + 1)"
+                            disabled="@(currentPage >= totalPages)">
+                        بعدی
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+            }
+        }
+
+    </div>
+</section>
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+    private const int PageSize = 9;
+
+    private List<TutorialDto>? tutorials;
+    private int currentPage = 1;
+    private int totalCount = 0;
+    private int totalPages = 0;
+    private bool isLoading = true;
+    private bool _fadeUpInitialized = false;
+
+    private string searchTerm = "";
+    private string? selectedCategory = null;
+
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTutorials();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // JS Interop فقط در OnAfterRenderAsync مجاز است
+        if (!_fadeUpInitialized && tutorials != null)
+        {
+            _fadeUpInitialized = true;
+            await InitializeFadeUp();
+        }
+    }
+
+    // ============================================================
+    // DATA LOADING
+    // ============================================================
+    private async Task LoadTutorials()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var filter = new TutorialFilterParam
+            {
+                PageId = currentPage,
+                Take = PageSize
+            };
+
+            var result = await TutorialService.GetFilter(filter);
+
+            // ⚠️ نام پراپرتی‌های BaseFilter را با نام واقعی جایگزین کنید
+            tutorials  = result?.Data ?? new List<TutorialDto>();
+            totalCount = result?.EntityCount ?? tutorials.Count;
+
+            // فیلترهای سمت کلاینت (چون API از search/category پشتیبانی نمی‌کند)
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.ToLower();
+                tutorials = tutorials
+                    .Where(t => t.Title.ToLower().Contains(term) ||
+                                t.Topic.ToLower().Contains(term) ||
+                                t.Subject.ToLower().Contains(term))
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(selectedCategory))
+            {
+                tutorials = tutorials
+                    .Where(t => string.Equals(t.Category, selectedCategory, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Tutorials] Load error: {ex.Message}");
+            tutorials = new List<TutorialDto>();
+            totalCount = 0;
+            totalPages = 0;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    // ============================================================
+    // FILTER ACTIONS
+    // ============================================================
+    private async Task FilterByCategory(string? category)
+    {
+        selectedCategory = category;
+        currentPage = 1;
+        _fadeUpInitialized = false;
+        await LoadTutorials();
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            currentPage = 1;
+            _fadeUpInitialized = false;
+            await LoadTutorials();
+        }
+    }
+
+    // ============================================================
+    // PAGINATION
+    // ============================================================
+    private async Task GoToPage(int page)
+    {
+        if (page < 1 || (totalPages > 0 && page > totalPages)) return;
+        currentPage = page;
+        _fadeUpInitialized = false;
+        await LoadTutorials();
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", "window.scrollTo({ top: 0, behavior: 'smooth' })");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Tutorials] Scroll error: {ex.Message}");
+        }
+    }
+
+    private IEnumerable<int> GetPageNumbers()
+    {
+        const int maxVisible = 5;
+        var start = Math.Max(1, currentPage - maxVisible / 2);
+        var end = Math.Min(totalPages, start + maxVisible - 1);
+
+        if (end - start + 1 < maxVisible)
+            start = Math.Max(1, end - maxVisible + 1);
+
+        for (int i = start; i <= end; i++)
+            yield return i;
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+    private async Task InitializeFadeUp()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                (function() {
+                    const elements = document.querySelectorAll('.fade-up');
+                    if (!elements.length) return;
+
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('visible');
+                            }
+                        });
+                    }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+
+                    elements.forEach(el => observer.observe(el));
+
+                    setTimeout(() => {
+                        elements.forEach(el => {
+                            if (el.getBoundingClientRect().top < window.innerHeight) {
+                                el.classList.add('visible');
+                            }
+                        });
+                    }, 200);
+                })();
+            ");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Tutorials] JS Interop skipped: {ex.Message}");
+        }
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    private static string GetCategoryIcon(string? category) => category?.ToLower() switch
+    {
+        "language"  => "fas fa-code",
+        "framework" => "fas fa-layer-group",
+        "tool"      => "fas fa-wrench",
+        "concept"   => "fas fa-lightbulb",
+        _           => "fas fa-book"
+    };
+
+    private static string GetCategoryClass(string? category) => category?.ToLower() switch
+    {
+        "language"  => "cat-language",
+        "framework" => "cat-framework",
+        "tool"      => "cat-tool",
+        "concept"   => "cat-concept",
+        _           => ""
+    };
+
+    private static string GetLevelClass(string? level) => level?.ToLower() switch
+    {
+        "beginner"     => "tag-level-beginner",
+        "intermediate" => "tag-level-intermediate",
+        "advanced"     => "tag-level-advanced",
+        _              => "tag-level-all"
+    };
+
+    private static string GetLevelText(string? level) => level?.ToLower() switch
+    {
+        "beginner"     => "مبتدی",
+        "intermediate" => "متوسط",
+        "advanced"     => "پیشرفته",
+        "all"          => "همه سطوح",
+        _              => "نامشخص"
+    };
+
+    private static string ToPersianDate(DateTime dt)
+    {
+        try
+        {
+            var pc = new System.Globalization.PersianCalendar();
+            return $"{pc.GetYear(dt):0000}/{pc.GetMonth(dt):00}/{pc.GetDayOfMonth(dt):00}";
+        }
+        catch
+        {
+            return dt.ToString("yyyy/MM/dd");
+        }
+    }
+}

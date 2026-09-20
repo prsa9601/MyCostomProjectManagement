@@ -14,7 +14,6 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using MyCostomProjectManagement.Facade.Portfolio
 @using MyCostomProjectManagement.Shared.Extensions
-@using MyCostomProjectManagement.Shared.Extentions
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -2019,6 +2018,7 @@ PAGE CONTENT
         }
         catch (Exception ex)
         {
+            throw new Exception();
             //ShowToast("خطا: " + ex.Message, "error");
         }
     }

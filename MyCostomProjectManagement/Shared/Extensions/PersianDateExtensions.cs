@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace MyCostomProjectManagement.Shared.Extentions
+namespace MyCostomProjectManagement.Shared.Extensions
 {
     public static class PersianDateExtensions
     {

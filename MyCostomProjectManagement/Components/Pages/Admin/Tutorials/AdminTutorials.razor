@@ -1,0 +1,704 @@
+﻿@page "/Admin/Tutorials"
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject ITutorialApiService TutorialService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using BackEnd.Data.Infrastructure.Tutorial
+@using BackEnd.Data.Infrastructure.Tutorial.DTOs
+
+<PageTitle>مدیریت آموزش‌ها | پنل ادمین</PageTitle>
+
+<style>
+    /* ============================================================
+           TUTORIALS PAGE - هماهنگ با پالت #13505b
+        ============================================================ */
+
+    .tutorials-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+        .tutorials-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+            .tutorials-header h1 i {
+                color: #e8a838;
+            }
+
+        .tutorials-header .badge-count {
+            font-size: 0.7rem;
+            background: linear-gradient(135deg, #e8a838, #d4952e);
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-weight: 600;
+            box-shadow: 0 2px 12px rgba(232, 168, 56, 0.15);
+        }
+
+    .btn-add {
+        background: linear-gradient(135deg, #52b788, #3a9a6e);
+        color: #fff;
+        border: none;
+        padding: 11px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.2);
+    }
+
+        .btn-add:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(82, 183, 136, 0.3);
+        }
+
+    /* ===== TUTORIAL CARDS GRID ===== */
+    .tutorials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .tutorial-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 22px;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .tutorial-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #e8a838, #52b788);
+            opacity: 0.5;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .tutorial-card:hover {
+            transform: translateY(-6px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(232, 168, 56, 0.12);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+    .tutorial-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .tutorial-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        background: rgba(232, 168, 56, 0.08);
+        color: #e8a838;
+        transition: all 0.35s ease;
+    }
+
+    .tutorial-card:hover .tutorial-icon {
+        transform: scale(1.08) rotate(-5deg);
+        background: rgba(232, 168, 56, 0.14);
+    }
+
+    .tutorial-icon.cat-language {
+        background: rgba(82, 183, 136, 0.08);
+        color: #52b788;
+    }
+
+    .tutorial-icon.cat-framework {
+        background: rgba(26, 122, 138, 0.12);
+        color: #4dc9dd;
+    }
+
+    .tutorial-icon.cat-tool {
+        background: rgba(232, 168, 56, 0.08);
+        color: #e8a838;
+    }
+
+    .tutorial-icon.cat-concept {
+        background: rgba(130, 100, 200, 0.1);
+        color: #a88ce8;
+    }
+
+    .tutorial-card h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+        line-height: 1.5;
+        margin-bottom: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .tutorial-card .topic {
+        font-size: 0.78rem;
+        color: rgba(232, 240, 241, 0.5);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .tutorial-card .topic i {
+            color: #52b788;
+            font-size: 0.7rem;
+        }
+
+    /* ===== TAGS ===== */
+    .tags-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 14px 0;
+    }
+
+    .tag {
+        font-size: 0.7rem;
+        padding: 3px 12px;
+        border-radius: 30px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .tag-subject {
+        background: rgba(26, 122, 138, 0.08);
+        color: #4dc9dd;
+        border-color: rgba(77, 201, 221, 0.12);
+    }
+
+    .tag-level-beginner {
+        background: rgba(82, 183, 136, 0.08);
+        color: #52b788;
+        border-color: rgba(82, 183, 136, 0.12);
+    }
+
+    .tag-level-intermediate {
+        background: rgba(232, 168, 56, 0.08);
+        color: #e8a838;
+        border-color: rgba(232, 168, 56, 0.12);
+    }
+
+    .tag-level-advanced {
+        background: rgba(220, 53, 69, 0.08);
+        color: #e77c88;
+        border-color: rgba(220, 53, 69, 0.12);
+    }
+
+    .tag-level-all {
+        background: rgba(130, 100, 200, 0.08);
+        color: #a88ce8;
+        border-color: rgba(130, 100, 200, 0.12);
+    }
+
+    .tag-approved {
+        background: rgba(82, 183, 136, 0.08);
+        color: #52b788;
+        border-color: rgba(82, 183, 136, 0.12);
+    }
+
+    .tag-pending {
+        background: rgba(232, 168, 56, 0.08);
+        color: #e8a838;
+        border-color: rgba(232, 168, 56, 0.12);
+    }
+
+    /* ===== STATS MINI ===== */
+    .tutorial-stats {
+        display: flex;
+        gap: 16px;
+        padding: 12px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        margin-bottom: 14px;
+    }
+
+        .tutorial-stats .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            color: rgba(232, 240, 241, 0.6);
+        }
+
+            .tutorial-stats .stat i {
+                color: #e8a838;
+                font-size: 0.85rem;
+            }
+
+    /* ===== CARD FOOTER ===== */
+    .tutorial-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        gap: 10px;
+    }
+
+    .tutorial-date {
+        font-size: 0.72rem;
+        color: rgba(232, 240, 241, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .tutorial-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.03);
+        color: rgba(232, 240, 241, 0.7);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-icon:hover {
+            background: rgba(232, 168, 56, 0.08);
+            color: #e8a838;
+            border-color: rgba(232, 168, 56, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-icon.edit:hover {
+            background: rgba(82, 183, 136, 0.08);
+            color: #52b788;
+            border-color: rgba(82, 183, 136, 0.2);
+        }
+
+        .btn-icon.delete:hover {
+            background: rgba(220, 53, 69, 0.08);
+            color: #e77c88;
+            border-color: rgba(220, 53, 69, 0.2);
+        }
+
+    /* ===== EMPTY / LOADING ===== */
+    .state-box {
+        text-align: center;
+        padding: 60px 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        color: rgba(232, 240, 241, 0.5);
+    }
+
+        .state-box i {
+            font-size: 3rem;
+            color: rgba(232, 168, 56, 0.3);
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .state-box h3 {
+            font-size: 1.1rem;
+            color: #e8f0f1;
+            margin-bottom: 6px;
+        }
+
+    .spinner {
+        width: 44px;
+        height: 44px;
+        border: 3px solid rgba(232, 168, 56, 0.15);
+        border-top-color: #e8a838;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 16px;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ===== PAGINATION ===== */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+        .pagination button {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.03);
+            color: #e8f0f1;
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+            .pagination button:hover:not(:disabled):not(.active) {
+                background: rgba(232, 168, 56, 0.08);
+                border-color: rgba(232, 168, 56, 0.2);
+                color: #e8a838;
+            }
+
+            .pagination button.active {
+                background: linear-gradient(135deg, #e8a838, #d4952e);
+                border-color: transparent;
+                color: #fff;
+                font-weight: 600;
+                box-shadow: 0 4px 16px rgba(232, 168, 56, 0.2);
+            }
+
+            .pagination button:disabled {
+                opacity: 0.35;
+                cursor: not-allowed;
+            }
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 600px) {
+        .tutorials-header h1 {
+            font-size: 1.4rem;
+        }
+
+        .tutorials-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<div class="tutorials-header">
+    <h1>
+        <i class="fas fa-graduation-cap"></i>
+        مدیریت آموزش‌ها
+        @if (totalCount > 0)
+        {
+            <span class="badge-count">@totalCount.ToString("N0") مورد</span>
+        }
+    </h1>
+    <button class="btn-add" @onclick="CreateNew">
+        <i class="fas fa-plus"></i>
+        آموزش جدید
+    </button>
+</div>
+
+<!-- ============================================================
+     CONTENT
+============================================================ -->
+@if (isLoading)
+{
+    <div class="state-box">
+        <div class="spinner"></div>
+        <h3>در حال بارگذاری...</h3>
+    </div>
+}
+else if (tutorials == null || tutorials.Count == 0)
+{
+    <div class="state-box">
+        <i class="fas fa-inbox"></i>
+        <h3>هیچ آموزشی یافت نشد</h3>
+        <p>هنوز آموزشی اضافه نشده است.</p>
+    </div>
+}
+else
+{
+    <div class="tutorials-grid">
+        @foreach (var t in tutorials)
+        {
+            <div class="tutorial-card">
+                <div class="tutorial-card-header">
+                    <div class="tutorial-icon @GetCategoryClass(t.Category)">
+                        <i class="@GetCategoryIcon(t.Category)"></i>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <h3 title="@t.Title">@t.Title</h3>
+                        <div class="topic">
+                            <i class="fas fa-hashtag"></i>
+                            @(string.IsNullOrWhiteSpace(t.Topic) ? "بدون موضوع" : t.Topic)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tags-row">
+                    @if (!string.IsNullOrWhiteSpace(t.Subject))
+                    {
+                        <span class="tag tag-subject">
+                            <i class="fas fa-code"></i> @t.Subject
+                        </span>
+                    }
+                    <span class="tag @GetLevelClass(t.Level)">
+                        <i class="fas fa-signal"></i> @GetLevelText(t.Level)
+                    </span>
+                    <span class="tag @(t.IsApproved ? "tag-approved" : "tag-pending")">
+                        <i class="fas @(t.IsApproved ? "fa-check-circle" : "fa-clock")"></i>
+                        @(t.IsApproved ? "تأیید شده" : "در انتظار")
+                    </span>
+                </div>
+
+                <div class="tutorial-stats">
+                    <div class="stat">
+                        <i class="fas fa-list-ul"></i>
+                        <span>@t.SectionCount بخش</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-code"></i>
+                        <span>@t.CodeBlockCount بلوک کد</span>
+                    </div>
+                </div>
+
+                <div class="tutorial-footer">
+                    <div class="tutorial-date">
+                        <i class="far fa-calendar-alt"></i>
+                        @ToPersianDate(t.CreatedAt)
+                    </div>
+                    <div class="tutorial-actions">
+                        <button class="btn-icon" title="مشاهده"
+                                @onclick="() => ViewTutorial(t.Id)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-icon edit" title="ویرایش"
+                                @onclick="() => EditTutorial(t.Id)">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="btn-icon delete" title="حذف"
+                                @onclick="() => DeleteTutorial(t)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="pagination">
+            <button @onclick="() => GoToPage(currentPage - 1)" disabled="@(currentPage <= 1)">
+                <i class="fas fa-chevron-right"></i>
+                قبلی
+            </button>
+
+            @foreach (var p in GetPageNumbers())
+            {
+                var pageNum = p;
+                <button class="@(pageNum == currentPage ? "active" : "")"
+                        @onclick="() => GoToPage(pageNum)">
+                    @pageNum
+                </button>
+            }
+
+            <button @onclick="() => GoToPage(currentPage + 1)" disabled="@(currentPage >= totalPages)">
+                بعدی
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+    }
+}
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+    private const int PageSize = 12;
+
+    private List<TutorialDto>? tutorials;
+    private int currentPage = 1;
+    private int totalCount = 0;
+    private int totalPages = 0;
+    private bool isLoading = true;
+
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTutorials();
+    }
+
+    // ============================================================
+    // DATA LOADING
+    // ============================================================
+    private async Task LoadTutorials()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var filter = new TutorialFilterParam
+            {
+                PageId = currentPage,
+                Take = PageSize
+            };
+
+            var result = await TutorialService.GetFilter(filter);
+
+            // ⚠️ نام پراپرتی‌های BaseFilter را با نام واقعی جایگزین کن
+            tutorials = result?.Data ?? new List<TutorialDto>();
+            totalCount = result?.EntityCount ?? tutorials.Count;
+
+            totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Tutorials] Load error: {ex.Message}");
+            tutorials = new List<TutorialDto>();
+            totalCount = 0;
+            totalPages = 0;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    // ============================================================
+    // PAGINATION
+    // ============================================================
+    private async Task GoToPage(int page)
+    {
+        if (page < 1 || (totalPages > 0 && page > totalPages)) return;
+        currentPage = page;
+        await LoadTutorials();
+        await JSRuntime.InvokeVoidAsync("eval", "window.scrollTo({ top: 0, behavior: 'smooth' })");
+    }
+
+    private IEnumerable<int> GetPageNumbers()
+    {
+        const int maxVisible = 5;
+        var start = Math.Max(1, currentPage - maxVisible / 2);
+        var end = Math.Min(totalPages, start + maxVisible - 1);
+
+        if (end - start + 1 < maxVisible)
+            start = Math.Max(1, end - maxVisible + 1);
+
+        for (int i = start; i <= end; i++)
+            yield return i;
+    }
+
+    // ============================================================
+    // CARD ACTIONS
+    // ============================================================
+    private void ViewTutorial(int id)
+        => Navigation.NavigateTo($"/Admin/Tutorials/{id}");
+
+    private void EditTutorial(int id)
+        => Navigation.NavigateTo($"/Admin/Tutorials/Edit/{id}");
+
+    private void CreateNew()
+        => Navigation.NavigateTo("/Admin/Tutorials/Create");
+
+    private void DeleteTutorial(TutorialDto t)
+    {
+        // TODO: افزودن Modal تأیید
+        Console.WriteLine($"Delete tutorial: {t.Id} - {t.Title}");
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    private static string GetCategoryIcon(string? category) => category?.ToLower() switch
+    {
+        "language" => "fas fa-code",
+        "framework" => "fas fa-layer-group",
+        "tool" => "fas fa-wrench",
+        "concept" => "fas fa-lightbulb",
+        _ => "fas fa-book"
+    };
+
+    private static string GetCategoryClass(string? category) => category?.ToLower() switch
+    {
+        "language" => "cat-language",
+        "framework" => "cat-framework",
+        "tool" => "cat-tool",
+        "concept" => "cat-concept",
+        _ => ""
+    };
+
+    private static string GetLevelClass(string? level) => level?.ToLower() switch
+    {
+        "beginner" => "tag-level-beginner",
+        "intermediate" => "tag-level-intermediate",
+        "advanced" => "tag-level-advanced",
+        _ => "tag-level-all"
+    };
+
+    private static string GetLevelText(string? level) => level?.ToLower() switch
+    {
+        "beginner" => "مبتدی",
+        "intermediate" => "متوسط",
+        "advanced" => "پیشرفته",
+        "all" => "همه سطوح",
+        _ => "نامشخص"
+    };
+
+    private static string ToPersianDate(DateTime dt)
+    {
+        try
+        {
+            var pc = new System.Globalization.PersianCalendar();
+            return $"{pc.GetYear(dt):0000}/{pc.GetMonth(dt):00}/{pc.GetDayOfMonth(dt):00}";
+        }
+        catch
+        {
+            return dt.ToString("yyyy/MM/dd");
+        }
+    }
+}

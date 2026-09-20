@@ -10,6 +10,7 @@ using BackEnd.Core.Project.Queries.ProjectRequestV1.Mappers;
 using BackEnd.Core.Role.Queries.Mappers;
 using BackEnd.Core.SiteSetting.Queries.Mappers;
 using BackEnd.Core.Skills.Queries.Mappers;
+using BackEnd.Core.Subscription;
 using BackEnd.Core.User.Commands.Register;
 using BackEnd.Core.User.Queries.GetId;
 using BackEnd.Core.User.Queries.Mappers;
@@ -52,6 +53,8 @@ namespace BackEnd.Core
             services.AddScoped<ICookiesService, CookieService>();
 
             services.AddScoped<UserRolesResolver>();
+            services.AddScoped<SubscriptionService>();
+            services.AddScoped<SubscriptionUserService>();
             services.AddScoped<PortfolioFileAutoMapperResolver>();
 
             services.DBConfig(configuration);

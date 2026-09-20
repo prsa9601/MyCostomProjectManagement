@@ -3,6 +3,7 @@ using BackEnd.Core.Abstraction.Jwt.Interfaces;
 using BackEnd.Data.DB;
 using BackEnd.Data.DB.Initializer;
 using BackEnd.Data.Entities.Role;
+using BackEnd.Data.Infrastructure.Tutorial;
 using BackEnd.Infrastructure.Auth.Jwt;
 using BackEnd.Infrastructure.Auth.Middlewares;
 using BackEnd.Infrastructure.Security.Hash.service;
@@ -10,6 +11,9 @@ using BackEnd.Infrastructure.Security.Hash.strategies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.Circuits;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.IdentityModel.Tokens;
@@ -18,6 +22,7 @@ using MyCostomProjectManagement.Facade;
 using MyCostomProjectManagement.Facade.Role;
 using MyCostomProjectManagement.Facade.User;
 using MyCostomProjectManagement.Infrastructure;
+using MyCostomProjectManagement.Shared.ExceptionHandler;
 using MyCostomProjectManagement.Shared.Extensions;
 using MyCostomProjectManagement.Shared.Middleware;
 using MyCostomProjectManagement.Shared.Utilities.PageManagement;
@@ -30,6 +35,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
 
 builder.Services.AddRazorPages();   // <-- این خط را اضافه کنید
 //builder.Services.AddControllers();
@@ -116,8 +122,25 @@ builder.Services.AddAuthentication(option =>
     //};
 });
 
+// در Program.cs
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = int.MaxValue;
+    options.MemoryBufferThreshold = int.MaxValue;
+});
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 200 * 1024 * 1024; // 200 MB
+});
 
+// همچنین اگر از AddServerSideBlazor جداگانه استفاده می‌کنید، آن را نیز تنظیم کنید
+builder.Services.AddServerSideBlazor()
+    .AddHubOptions(options =>
+    {
+        options.MaximumReceiveMessageSize = 200 * 1024 * 1024;
+    });
 
 builder.Services.AddAuthorization(options =>
 {
@@ -125,9 +148,13 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser());
 });
 
+builder.Services.AddScoped<ITutorialApiService, TutorialApiService>();
+
+
 builder.Services.AddScoped<UserAuthentication>();
 builder.Services.AddScoped<PageManagementUtil>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<CircuitHandler, CustomCircuitHandler>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -139,7 +166,9 @@ builder.Services.AddScoped<GetUserPermission>();
 builder.Services.AddScoped<FileExtensions>();
 builder.Services.CoreConfig(builder.Configuration);
 
+builder.Services.AddHttpClient();
 var app = builder.Build();
+app.UseMiddleware<CustomExceptionHandler>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -165,6 +194,7 @@ app.Use(async (context, next) =>
     if (result.Any(i => i.Url.Equals(context.Request.Path.Value, StringComparison.OrdinalIgnoreCase)))
     {
         context.Response.Redirect("/PageUpgrading");
+        return;
     }
     await next();
 });
@@ -228,7 +258,11 @@ app.Use(async (context, next) =>
 
     await next();
 });
-
+// ✅ این خط رو حتماً اضافه کن (قبل از هر UseAuthentication)
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 app.UseMiddleware<AuthRefreshTokenMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -304,7 +338,7 @@ app.UseWhen(context => context.Request.Path.StartsWithSegments("/dashboard"), ap
     });
 
     // بعد از Middleware، فایل‌های استاتیک داخل wwwroot/dashboard سرو می‌شوند
-    appBuilder.UseStaticFiles();
+    //appBuilder.UseStaticFiles();
 });
 
 app.UseWhen(context => context.Request.Path.StartsWithSegments("/Admin"), appBuilder =>

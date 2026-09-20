@@ -11,7 +11,8 @@ namespace BackEnd.Core.Abstraction.Cookies.Services
             _defaultOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                //Secure = true,
+                Secure = false,
                 SameSite = SameSiteMode.Strict,
                 MaxAge = TimeSpan.FromDays(1),
                 Path = "/",

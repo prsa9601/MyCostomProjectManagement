@@ -1,0 +1,175 @@
+﻿@using System.IO
+@using BackEnd.Core.Portfolio.Queries.DTOs
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="upload-container">
+    <InputFile OnChange="@OnFileSelected" accept=".jpg,.jpeg,.png,.gif,.mp4,.avi,.mov" />
+    
+    @if (showProgress)
+    {
+        <div class="progress-wrapper">
+            <div class="progress-bar" style="width: @progressPercentage%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);">
+                @progressPercentage%
+            </div>
+            <span class="progress-text">@((int)progressPercentage)%</span>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(uploadMessage))
+    {
+        <div class="upload-message @(isSuccess ? "success" : "error")">
+            @uploadMessage
+        </div>
+    }
+</div>
+
+<style>
+    .upload-container {
+        margin: 20px 0;
+    }
+    .progress-wrapper {
+        width: 100%;
+        background: rgba(255,255,255,0.05);
+        border-radius: 10px;
+        height: 30px;
+        margin-top: 12px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        border-radius: 10px;
+        transition: width 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .progress-text {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        color: #eef2f8;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+    .upload-message {
+        padding: 10px;
+        border-radius: 10px;
+        margin-top: 10px;
+        font-weight: 500;
+    }
+    .upload-message.success { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.1); }
+    .upload-message.error { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.1); }
+</style>
+
+@code {
+    [Parameter] public EventCallback<UploadResult> OnUploadComplete { get; set; }
+
+    private double progressPercentage = 0;
+    private bool showProgress = false;
+    private string uploadMessage = "";
+    private bool isSuccess = false;
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        showProgress = true;
+        progressPercentage = 0;
+        uploadMessage = "";
+        isSuccess = false;
+
+        try
+        {
+            // محدودیت حجم (مثلاً 500 مگابایت)
+            if (file.Size > 500 * 1024 * 1024)
+            {
+                uploadMessage = "حجم فایل نباید بیشتر از ۵۰۰ مگابایت باشد.";
+                showProgress = false;
+                return;
+            }
+
+            // مسیر ذخیره‌سازی (مثلاً wwwroot/uploads/portfolio)
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "portfolio");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            // آپلود با پیشرفت
+            using var stream = file.OpenReadStream(maxAllowedSize: 500 * 1024 * 1024);
+            using var fileStream = File.Create(filePath);
+
+            var progress = new Progress<double>(p =>
+            {
+                progressPercentage = p;
+                InvokeAsync(StateHasChanged);
+            });
+
+            await CopyStreamWithProgressAsync(stream, fileStream, progress, file.Size);
+
+            // ذخیره اطلاعات در دیتابیس (با استفاده از Facade)
+            var portfolioFile = new PortfolioFileDto
+            {
+                // FileName = fileName,
+                FileAddress = $"/uploads/portfolio/{fileName}",
+                IsImage = IsImageFile(file.Name),
+                // FileSize = file.Size
+            };
+
+            // فراخوانی متد ذخیره در دیتابیس (باید پیاده‌سازی کنید)
+            // var result = await _portfolioFacade.AddFile(portfolioFile);
+
+            uploadMessage = "فایل با موفقیت آپلود شد!";
+            isSuccess = true;
+            showProgress = false;
+
+            // ارسال نتیجه به والد
+            await OnUploadComplete.InvokeAsync(new UploadResult { FileName = fileName, FileAddress = portfolioFile.FileAddress, IsImage = portfolioFile.IsImage });
+        }
+        catch (Exception ex)
+        {
+            uploadMessage = $"خطا در آپلود: {ex.Message}";
+            isSuccess = false;
+            showProgress = false;
+        }
+    }
+
+    private async Task CopyStreamWithProgressAsync(Stream source, Stream destination, IProgress<double> progress, long totalBytes)
+    {
+        const int bufferSize = 81920; // 80KB buffer
+        var buffer = new byte[bufferSize];
+        long totalRead = 0;
+        int bytesRead;
+
+        while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length)) > 0)
+        {
+            await destination.WriteAsync(buffer, 0, bytesRead);
+            totalRead += bytesRead;
+            var percentage = (double)totalRead / totalBytes * 100;
+            progress.Report(percentage);
+        }
+    }
+
+    private bool IsImageFile(string fileName)
+    {
+        var ext = Path.GetExtension(fileName).ToLower();
+        return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".bmp" || ext == ".svg";
+    }
+
+    public class UploadResult
+    {
+        public string FileName { get; set; }
+        public string FileAddress { get; set; }
+        public bool IsImage { get; set; }
+    }
+}

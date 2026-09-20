@@ -1,3 +1,439 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
-@Body
+<link rel="canonical" href="https://parsakarimidev.ir/" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+       GLOBAL STYLES - FrontLayout
+       این استایل‌ها در همه‌ی صفحات لندینگ اعمال می‌شن
+    ============================================================ */
+
+    /* ----- RESET & BASE ----- */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html, body {
+        background: #0a0e17;
+        color: #eef2f8;
+        min-height: 100vh;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        line-height: 1.7;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ----- PARTICLES BACKGROUND ----- */
+    .bg-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .bg-particles span {
+        position: absolute;
+        display: block;
+        width: 6px;
+        height: 6px;
+        background: rgba(59, 130, 246, 0.2);
+        border-radius: 50%;
+        animation: floatParticle 12s infinite alternate ease-in-out;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
+    }
+
+    .bg-particles span:nth-child(1) { top: 10%; left: 20%; animation-duration: 14s; width: 8px;  height: 8px; }
+    .bg-particles span:nth-child(2) { top: 60%; left: 80%; animation-duration: 16s; animation-delay: 2s; }
+    .bg-particles span:nth-child(3) { top: 30%; left: 70%; animation-duration: 18s; animation-delay: 4s; width: 10px; height: 10px; }
+    .bg-particles span:nth-child(4) { top: 80%; left: 10%; animation-duration: 15s; animation-delay: 1s; }
+    .bg-particles span:nth-child(5) { top: 50%; left: 40%; animation-duration: 20s; animation-delay: 3s; width: 12px; height: 12px; background: rgba(59,130,246,0.12); }
+    .bg-particles span:nth-child(6) { top: 15%; left: 90%; animation-duration: 13s; animation-delay: 5s; }
+    .bg-particles span:nth-child(7) { top: 70%; left: 50%; animation-duration: 17s; animation-delay: 2s; width: 7px;  height: 7px; }
+    .bg-particles span:nth-child(8) { top: 40%; left: 5%;  animation-duration: 19s; animation-delay: 3s; }
+
+    @@keyframes floatParticle {
+        0%   { transform: translate(0, 0) scale(1);        opacity: 0.2; }
+        50%  { transform: translate(30px, -60px) scale(1.6); opacity: 0.7; }
+        100% { transform: translate(-20px, 40px) scale(0.8); opacity: 0.1; }
+    }
+
+    /* ----- NAVBAR ----- */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 999;
+        padding: 14px 0;
+        transition: background 0.5s, backdrop-filter 0.5s, box-shadow 0.4s;
+        background: transparent;
+    }
+
+    .navbar.scrolled {
+        background: linear-gradient(135deg, rgba(10,14,23,0.92), rgba(20,30,48,0.92));
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 0 4px 40px rgba(0,0,0,0.4);
+    }
+
+    .navbar .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(59,130,246,0.15);
+    }
+
+    .logo span {
+        color: #3b82f6;
+        text-shadow: 0 0 30px rgba(59,130,246,0.3);
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 24px;
+        list-style: none;
+        font-size: 0.95rem;
+        font-weight: 500;
+        align-items: center;
+    }
+
+    .nav-links a {
+        color: #b8c4d6;
+        transition: 0.25s;
+        position: relative;
+        padding: 4px 0;
+        cursor: pointer;
+    }
+
+    .nav-links a:hover { color: #fff; }
+
+    .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        right: 0;
+        width: 0;
+        height: 2px;
+        background: #3b82f6;
+        transition: 0.35s;
+        box-shadow: 0 0 12px #3b82f6;
+    }
+
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* دکمه‌های navbar */
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 0 20px rgba(59,130,246,0.15);
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 12px 40px rgba(59,130,246,0.4);
+    }
+
+    .btn-dashboard {
+        background: rgba(59,130,246,0.15);
+        border: 1px solid rgba(59,130,246,0.3);
+        color: #3b82f6;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .btn-dashboard:hover {
+        background: rgba(59,130,246,0.25);
+        transform: scale(1.04);
+    }
+
+    .btn-admin {
+        background: rgba(139,92,246,0.15);
+        border: 1px solid rgba(139,92,246,0.3);
+        color: #a78bfa;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .btn-admin:hover {
+        background: rgba(139,92,246,0.25);
+        transform: scale(1.04);
+    }
+
+    .btn-login {
+        background: rgba(52,211,153,0.12);
+        border: 1px solid rgba(52,211,153,0.15);
+        color: #34d399;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .btn-login:hover { background: rgba(52,211,153,0.2); transform: scale(1.04); }
+
+    .btn-logout {
+        background: rgba(239,68,68,0.1);
+        border: 1px solid rgba(239,68,68,0.15);
+        color: #ef4444;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .btn-logout:hover { background: rgba(239,68,68,0.18); transform: scale(1.04); }
+
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+
+    .hamburger span {
+        display: block;
+        width: 28px;
+        height: 2.5px;
+        background: #eef2f8;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+    /* ----- FOOTER ----- */
+    .footer {
+        position: relative;
+        padding: 30px 0 20px;
+        border-top: 1px solid rgba(255,255,255,0.04);
+        background: rgba(0,0,0,0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1;
+        margin-top: 20px;
+    }
+
+    .footer .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .footer-links {
+        display: flex;
+        gap: 24px;
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+
+    .footer-links a:hover { color: #fff; }
+
+    .footer-copy {
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+
+    /* ----- PAGE WRAPPER ----- */
+    .page-wrapper {
+        min-height: 100vh;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ----- RESPONSIVE ----- */
+    @@media (max-width: 768px) {
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background: rgba(10,14,23,0.95);
+            backdrop-filter: blur(12px);
+            padding: 20px 0;
+            gap: 16px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            margin-top: 12px;
+            border-radius: 20px;
+            align-items: center;
+        }
+
+        .nav-links.open { display: flex; }
+
+        .hamburger { display: flex; }
+
+        .nav-actions .btn-login,
+        .nav-actions .btn-logout,
+        .nav-actions .btn-dashboard,
+        .nav-actions .btn-admin {
+            display: inline-flex;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+        }
+
+        .nav-actions .btn-primary {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .container { padding: 0 16px; }
+
+        .logo { font-size: 1.2rem; }
+
+        .footer .container {
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .footer-links {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+</style>
+
+<!-- ===== PARTICLES BACKGROUND ===== -->
+<div class="bg-particles">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<header class="navbar" id="navbar">
+    <div class="container">
+        <div class="logo">Mohammad<span>Dev</span></div>
+
+        <ul class="nav-links" id="navLinks">
+            <li><a href="/#about">درباره من</a></li>
+            <li><a href="/#skills">مهارت‌ها</a></li>
+            <li><a href="/#portfolio">نمونه کارها</a></li>
+            <li><a href="/#projects">پروژه‌ها</a></li>
+            <li><a href="/#purchase">خرید</a></li>
+            <li><a href="/#request">درخواست پروژه</a></li>
+            <li><a href="/Tutorials">آموزش‌ها</a></li>
+            <li><a href="/#contact">تماس</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            <a class="btn-primary" href="/Packages"><i class="fas fa-rocket"></i> خرید اشتراک</a>
+            <button class="hamburger" @onclick="ToggleMenu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ===== PAGE CONTENT ===== -->
+<div class="page-wrapper">
+    @Body
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-copy">© @DateTime.Now.Year محمد پارسا کریمی · تمامی حقوق محفوظ است</div>
+        <div class="footer-links">
+            <a href="/"><i class="fas fa-home"></i></a>
+            <a href="https://github.com/prsa9601" target="_blank"><i class="fab fa-github"></i></a>
+            <a href="https://www.linkedin.com/in/mohammad-parsa-karimi-49876728b" target="_blank"><i class="fab fa-linkedin"></i></a>
+            <a href="https://t.me/mohammad_Parsa_dev" target="_blank"><i class="fab fa-telegram"></i></a>
+        </div>
+    </div>
+</footer>
+
+@code {
+    private bool isMenuOpen = false;
+
+    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                const navbar = document.getElementById('navbar');
+                window.addEventListener('scroll', () => {
+                    navbar?.classList.toggle('scrolled', window.scrollY > 50);
+                });
+            ");
+        }
+    }
+}

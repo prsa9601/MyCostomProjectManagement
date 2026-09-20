@@ -7,6 +7,7 @@ using MyCostomProjectManagement.Facade.ProjectRequestV1;
 using MyCostomProjectManagement.Facade.Role;
 using MyCostomProjectManagement.Facade.SiteSettings;
 using MyCostomProjectManagement.Facade.Skills;
+using MyCostomProjectManagement.Facade.Subscription;
 using MyCostomProjectManagement.Facade.User;
 
 namespace MyCostomProjectManagement.Facade
@@ -24,6 +25,7 @@ namespace MyCostomProjectManagement.Facade
             services.AddScoped<IFAQFacade, FAQFacade>();
             services.AddScoped<ISiteSettingFacade, SiteSettingFacade>();
             services.AddScoped<IPageManagementFacade, PageManagementFacade>();
+            services.AddScoped<ISubscriptionFacade, SubscriptionFacade>();
             
             services.AddScoped<IProjectRequestV1Facade, ProjectRequestV1Facade>();
 
