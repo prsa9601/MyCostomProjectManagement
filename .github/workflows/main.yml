@@ -1,4 +1,4 @@
-name: Publish
+name: Publish .NET 10
 
 on:
   push:
@@ -11,16 +11,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'   # اگه نسخه Stable اومده این خط رو حذف کن
+
+      - name: Restore
+        run: dotnet restore
 
       - name: Publish
         run: dotnet publish -c Release -o ./publish
 
-      - name: Upload publish artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: publish-output
+          name: dotnet10-publish
           path: ./publish
