@@ -3,54 +3,81 @@
 @inject IJSRuntime JSRuntime
 
 <link rel="canonical" href="https://parsakarimidev.ir/" />
+
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
 
 <style>
-    /* ============================================================
-       GLOBAL STYLES - FrontLayout
-       این استایل‌ها در همه‌ی صفحات لندینگ اعمال می‌شن
-    ============================================================ */
 
-    /* ----- RESET & BASE ----- */
-    * {
+    /* ============================================================
+           RESET
+        ============================================================ */
+
+    *,
+    *::before,
+    *::after {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
     }
 
-    html, body {
+
+    html,
+    body {
+        width: 100%;
+        min-height: 100%;
         background: #0a0e17;
         color: #eef2f8;
-        min-height: 100vh;
-    }
-
-    body {
-        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        line-height: 1.7;
-        scroll-behavior: smooth;
         overflow-x: hidden;
     }
+
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        line-height: 1.7;
+        scroll-behavior: smooth;
+        direction: rtl;
+    }
+
+
+    a,
+    button {
+        font-family: inherit;
+    }
+
 
     a {
         text-decoration: none;
         color: inherit;
     }
 
-    .container {
+
+    /* ============================================================
+           GLOBAL CONTAINER
+        ============================================================ */
+
+    .front-container {
+        width: 100%;
         max-width: 1280px;
         margin: 0 auto;
-        padding: 0 24px;
+        padding: 0 clamp(16px, 3vw, 24px);
         position: relative;
         z-index: 2;
     }
 
-    /* ----- PARTICLES BACKGROUND ----- */
-    .bg-particles {
+
+    /* ============================================================
+           PARTICLES
+        ============================================================ */
+
+    .front-particles {
         position: fixed;
-        top: 0;
-        left: 0;
+        inset: 0;
         width: 100%;
         height: 100%;
         z-index: 0;
@@ -58,382 +85,976 @@
         pointer-events: none;
     }
 
-    .bg-particles span {
-        position: absolute;
-        display: block;
-        width: 6px;
-        height: 6px;
-        background: rgba(59, 130, 246, 0.2);
-        border-radius: 50%;
-        animation: floatParticle 12s infinite alternate ease-in-out;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
+
+        .front-particles span {
+            position: absolute;
+            display: block;
+            width: 6px;
+            height: 6px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            animation: frontFloatParticle 12s infinite alternate ease-in-out;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
+        }
+
+
+            .front-particles span:nth-child(1) {
+                top: 10%;
+                left: 20%;
+                width: 8px;
+                height: 8px;
+                animation-duration: 14s;
+            }
+
+
+            .front-particles span:nth-child(2) {
+                top: 60%;
+                left: 80%;
+                animation-duration: 16s;
+                animation-delay: 2s;
+            }
+
+
+            .front-particles span:nth-child(3) {
+                top: 30%;
+                left: 70%;
+                width: 10px;
+                height: 10px;
+                animation-duration: 18s;
+                animation-delay: 4s;
+            }
+
+
+            .front-particles span:nth-child(4) {
+                top: 80%;
+                left: 10%;
+                animation-duration: 15s;
+                animation-delay: 1s;
+            }
+
+
+            .front-particles span:nth-child(5) {
+                top: 50%;
+                left: 40%;
+                width: 12px;
+                height: 12px;
+                background: rgba(59, 130, 246, 0.12);
+                animation-duration: 20s;
+                animation-delay: 3s;
+            }
+
+
+            .front-particles span:nth-child(6) {
+                top: 15%;
+                left: 90%;
+                animation-duration: 13s;
+                animation-delay: 5s;
+            }
+
+
+            .front-particles span:nth-child(7) {
+                top: 70%;
+                left: 50%;
+                width: 7px;
+                height: 7px;
+                animation-duration: 17s;
+                animation-delay: 2s;
+            }
+
+
+            .front-particles span:nth-child(8) {
+                top: 40%;
+                left: 5%;
+                animation-duration: 19s;
+                animation-delay: 3s;
+            }
+
+
+    @@keyframes frontFloatParticle {
+
+        0% {
+            transform: translate(0, 0) scale(1);
+            opacity: 0.2;
+        }
+
+        50% {
+            transform: translate(30px, -60px) scale(1.6);
+            opacity: 0.7;
+        }
+
+        100% {
+            transform: translate(-20px, 40px) scale(0.8);
+            opacity: 0.1;
+        }
     }
 
-    .bg-particles span:nth-child(1) { top: 10%; left: 20%; animation-duration: 14s; width: 8px;  height: 8px; }
-    .bg-particles span:nth-child(2) { top: 60%; left: 80%; animation-duration: 16s; animation-delay: 2s; }
-    .bg-particles span:nth-child(3) { top: 30%; left: 70%; animation-duration: 18s; animation-delay: 4s; width: 10px; height: 10px; }
-    .bg-particles span:nth-child(4) { top: 80%; left: 10%; animation-duration: 15s; animation-delay: 1s; }
-    .bg-particles span:nth-child(5) { top: 50%; left: 40%; animation-duration: 20s; animation-delay: 3s; width: 12px; height: 12px; background: rgba(59,130,246,0.12); }
-    .bg-particles span:nth-child(6) { top: 15%; left: 90%; animation-duration: 13s; animation-delay: 5s; }
-    .bg-particles span:nth-child(7) { top: 70%; left: 50%; animation-duration: 17s; animation-delay: 2s; width: 7px;  height: 7px; }
-    .bg-particles span:nth-child(8) { top: 40%; left: 5%;  animation-duration: 19s; animation-delay: 3s; }
 
-    @@keyframes floatParticle {
-        0%   { transform: translate(0, 0) scale(1);        opacity: 0.2; }
-        50%  { transform: translate(30px, -60px) scale(1.6); opacity: 0.7; }
-        100% { transform: translate(-20px, 40px) scale(0.8); opacity: 0.1; }
-    }
+    /* ============================================================
+           NAVBAR
+        ============================================================ */
 
-    /* ----- NAVBAR ----- */
-    .navbar {
+    .front-navbar {
         position: fixed;
         top: 0;
+        left: 0;
         width: 100%;
-        z-index: 999;
-        padding: 14px 0;
-        transition: background 0.5s, backdrop-filter 0.5s, box-shadow 0.4s;
-        background: transparent;
+        z-index: 9999;
+        padding: 13px 0;
+        background: rgba(10, 14, 23, 0.60);
+        border-bottom: 1px solid transparent;
+        backdrop-filter: blur(0);
+        -webkit-backdrop-filter: blur(0);
+        transition: background 0.35s ease, backdrop-filter 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
     }
 
-    .navbar.scrolled {
-        background: linear-gradient(135deg, rgba(10,14,23,0.92), rgba(20,30,48,0.92));
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        box-shadow: 0 4px 40px rgba(0,0,0,0.4);
-    }
 
-    .navbar .container {
+        .front-navbar.scrolled {
+            background: linear-gradient( 135deg, rgba(10, 14, 23, 0.94), rgba(20, 30, 48, 0.94) );
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.40);
+        }
+
+
+    .front-navbar-inner {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        flex-wrap: wrap;
-    }
-
-    .logo {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #fff;
-        text-shadow: 0 0 20px rgba(59,130,246,0.15);
-    }
-
-    .logo span {
-        color: #3b82f6;
-        text-shadow: 0 0 30px rgba(59,130,246,0.3);
-    }
-
-    .nav-links {
-        display: flex;
         gap: 24px;
-        list-style: none;
-        font-size: 0.95rem;
-        font-weight: 500;
-        align-items: center;
+        min-height: 46px;
     }
 
-    .nav-links a {
-        color: #b8c4d6;
-        transition: 0.25s;
-        position: relative;
-        padding: 4px 0;
-        cursor: pointer;
+
+    /* ============================================================
+           LOGO
+        ============================================================ */
+
+    .front-logo {
+        flex: 0 0 auto;
+        font-size: clamp(1.15rem, 2vw, 1.5rem);
+        font-weight: 800;
+        color: #ffffff;
+        white-space: nowrap;
+        text-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+        transition: transform 0.25s ease;
     }
 
-    .nav-links a:hover { color: #fff; }
 
-    .nav-links a::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        right: 0;
-        width: 0;
-        height: 2px;
-        background: #3b82f6;
-        transition: 0.35s;
-        box-shadow: 0 0 12px #3b82f6;
-    }
+        .front-logo:hover {
+            transform: translateY(-1px);
+        }
 
-    .nav-links a:hover::after { width: 100%; }
 
-    .nav-actions {
+        .front-logo span {
+            color: #3b82f6;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.30);
+        }
+
+
+    /* ============================================================
+           NAV LINKS
+        ============================================================ */
+
+    .front-nav-links {
         display: flex;
         align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
+        justify-content: center;
+        gap: clamp(14px, 2vw, 24px);
+        list-style: none;
+        flex: 1;
+        min-width: 0;
     }
 
-    /* دکمه‌های navbar */
-    .btn-primary {
+
+        .front-nav-links li {
+            flex: 0 0 auto;
+        }
+
+
+        .front-nav-links a {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            color: #b8c4d6;
+            font-size: clamp(0.78rem, 1.1vw, 0.95rem);
+            font-weight: 500;
+            padding: 5px 0;
+            white-space: nowrap;
+            transition: color 0.25s ease;
+        }
+
+
+            .front-nav-links a:hover {
+                color: #ffffff;
+            }
+
+
+            .front-nav-links a::after {
+                content: "";
+                position: absolute;
+                bottom: -2px;
+                right: 0;
+                width: 0;
+                height: 2px;
+                background: #3b82f6;
+                box-shadow: 0 0 12px #3b82f6;
+                transition: width 0.3s ease;
+            }
+
+
+            .front-nav-links a:hover::after {
+                width: 100%;
+            }
+
+
+    /* ============================================================
+           ACTIONS
+        ============================================================ */
+
+    .front-nav-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        flex: 0 0 auto;
+    }
+
+
+    /* ============================================================
+           PRIMARY BUTTON
+        ============================================================ */
+
+    .front-btn-primary {
         background: #3b82f6;
-        color: #fff;
-        padding: 8px 22px;
+        color: #ffffff;
+        padding: 8px 20px;
+        min-height: 40px;
         border-radius: 40px;
         font-weight: 600;
-        font-size: 0.9rem;
-        transition: 0.3s;
-        border: none;
-        cursor: pointer;
+        font-size: clamp(0.72rem, 1vw, 0.9rem);
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
-        box-shadow: 0 0 20px rgba(59,130,246,0.15);
+        white-space: nowrap;
+        transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .btn-primary:hover {
-        background: #2563eb;
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 12px 40px rgba(59,130,246,0.4);
-    }
 
-    .btn-dashboard {
-        background: rgba(59,130,246,0.15);
-        border: 1px solid rgba(59,130,246,0.3);
-        color: #3b82f6;
-        padding: 6px 16px;
-        border-radius: 40px;
-        font-weight: 500;
-        font-size: 0.8rem;
-        transition: 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-    }
+        .front-btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.40);
+        }
 
-    .btn-dashboard:hover {
-        background: rgba(59,130,246,0.25);
-        transform: scale(1.04);
-    }
 
-    .btn-admin {
-        background: rgba(139,92,246,0.15);
-        border: 1px solid rgba(139,92,246,0.3);
-        color: #a78bfa;
-        padding: 6px 16px;
-        border-radius: 40px;
-        font-weight: 500;
-        font-size: 0.8rem;
-        transition: 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-    }
+    /* ============================================================
+           HAMBURGER
+        ============================================================ */
 
-    .btn-admin:hover {
-        background: rgba(139,92,246,0.25);
-        transform: scale(1.04);
-    }
-
-    .btn-login {
-        background: rgba(52,211,153,0.12);
-        border: 1px solid rgba(52,211,153,0.15);
-        color: #34d399;
-        padding: 6px 16px;
-        border-radius: 40px;
-        font-weight: 500;
-        font-size: 0.8rem;
-        transition: 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-    }
-
-    .btn-login:hover { background: rgba(52,211,153,0.2); transform: scale(1.04); }
-
-    .btn-logout {
-        background: rgba(239,68,68,0.1);
-        border: 1px solid rgba(239,68,68,0.15);
-        color: #ef4444;
-        padding: 6px 16px;
-        border-radius: 40px;
-        font-weight: 500;
-        font-size: 0.8rem;
-        transition: 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-    }
-
-    .btn-logout:hover { background: rgba(239,68,68,0.18); transform: scale(1.04); }
-
-    .hamburger {
+    .front-hamburger {
         display: none;
+        width: 42px;
+        height: 42px;
         flex-direction: column;
+        align-items: center;
+        justify-content: center;
         gap: 5px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
         cursor: pointer;
-        background: none;
-        border: none;
+        flex: 0 0 auto;
+        transition: background 0.25s ease, border-color 0.25s ease;
     }
 
-    .hamburger span {
-        display: block;
-        width: 28px;
-        height: 2.5px;
-        background: #eef2f8;
-        border-radius: 4px;
-        transition: 0.3s;
+
+        .front-hamburger:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(59, 130, 246, 0.25);
+        }
+
+
+        .front-hamburger span {
+            display: block;
+            width: 21px;
+            height: 2px;
+            background: #eef2f8;
+            border-radius: 5px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+
+        .front-hamburger.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+
+
+        .front-hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+
+        .front-hamburger.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+
+    /* ============================================================
+           PAGE WRAPPER
+        ============================================================ */
+
+    .front-page-wrapper {
+        width: 100%;
+        min-height: 100vh;
+        position: relative;
+        z-index: 1;
+        overflow-x: clip;
     }
 
-    /* ----- FOOTER ----- */
-    .footer {
+
+    /* ============================================================
+           FOOTER
+        ============================================================ */
+
+    .front-footer {
         position: relative;
         padding: 30px 0 20px;
-        border-top: 1px solid rgba(255,255,255,0.04);
-        background: rgba(0,0,0,0.2);
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(0, 0, 0, 0.20);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         z-index: 1;
         margin-top: 20px;
     }
 
-    .footer .container {
+
+    .front-footer-inner {
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
+        gap: 20px;
     }
 
-    .footer-links {
+
+    .front-footer-links {
         display: flex;
-        gap: 24px;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
         font-size: 0.85rem;
         color: #94a3b8;
     }
 
-    .footer-links a:hover { color: #fff; }
 
-    .footer-copy {
+        .front-footer-links a {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+        }
+
+
+            .front-footer-links a:hover {
+                color: #ffffff;
+                background: rgba(59, 130, 246, 0.10);
+                transform: translateY(-2px);
+            }
+
+
+    .front-footer-copy {
         color: #64748b;
-        font-size: 0.8rem;
+        font-size: clamp(0.7rem, 1vw, 0.8rem);
+        text-align: center;
     }
 
-    /* ----- PAGE WRAPPER ----- */
-    .page-wrapper {
-        min-height: 100vh;
-        position: relative;
-        z-index: 1;
+
+    /* ============================================================
+           TABLET
+        ============================================================ */
+
+    @@media (max-width: 1100px) {
+
+        .front-nav-links {
+            gap: 13px;
+        }
+
+            .front-nav-links a {
+                font-size: 0.75rem;
+            }
+
+        .front-btn-primary {
+            padding: 7px 14px;
+            font-size: 0.76rem;
+        }
     }
 
-    /* ----- RESPONSIVE ----- */
-    @@media (max-width: 768px) {
-        .nav-links {
+
+    /* ============================================================
+           MOBILE NAVBAR
+        ============================================================ */
+
+    @@media (max-width: 900px) {
+
+        .front-navbar {
+            padding: 10px 0;
+        }
+
+        .front-navbar-inner {
+            min-height: 44px;
+        }
+
+        .front-nav-links {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: clamp(8px, 3vw, 18px);
+            left: clamp(8px, 3vw, 18px);
+            width: auto;
             display: none;
             flex-direction: column;
-            width: 100%;
-            background: rgba(10,14,23,0.95);
-            backdrop-filter: blur(12px);
-            padding: 20px 0;
-            gap: 16px;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            margin-top: 12px;
-            border-radius: 20px;
-            align-items: center;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 0;
+            padding: 10px;
+            background: rgba(10, 14, 23, 0.97);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            max-height: calc(100vh - 90px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
         }
 
-        .nav-links.open { display: flex; }
 
-        .hamburger { display: flex; }
+            .front-nav-links.open {
+                display: flex;
+            }
 
-        .nav-actions .btn-login,
-        .nav-actions .btn-logout,
-        .nav-actions .btn-dashboard,
-        .nav-actions .btn-admin {
-            display: inline-flex;
-            font-size: 0.7rem;
-            padding: 4px 10px;
+
+            .front-nav-links li {
+                width: 100%;
+            }
+
+
+            .front-nav-links a {
+                width: 100%;
+                min-height: 45px;
+                padding: 10px 14px;
+                border-radius: 12px;
+                justify-content: flex-start;
+                font-size: 0.86rem;
+            }
+
+
+                .front-nav-links a:hover {
+                    background: rgba(59, 130, 246, 0.08);
+                }
+
+
+                .front-nav-links a::after {
+                    display: none;
+                }
+
+
+        .front-nav-actions {
+            gap: 8px;
         }
 
-        .nav-actions .btn-primary {
-            font-size: 0.7rem;
-            padding: 4px 10px;
+
+        .front-btn-primary {
+            min-height: 40px;
+            padding: 7px 13px;
+            font-size: 0.72rem;
+        }
+
+
+        .front-hamburger {
+            display: flex;
         }
     }
 
-    @@media (max-width: 480px) {
-        .container { padding: 0 16px; }
 
-        .logo { font-size: 1.2rem; }
+    /* ============================================================
+           MOBILE
+        ============================================================ */
 
-        .footer .container {
+    @@media (max-width: 600px) {
+
+        .front-container {
+            padding: 0 12px;
+        }
+
+
+        .front-logo {
+            font-size: 1.15rem;
+        }
+
+
+        .front-btn-primary {
+            padding: 7px 11px;
+            min-height: 38px;
+            font-size: 0.68rem;
+            gap: 5px;
+        }
+
+
+            .front-btn-primary i {
+                font-size: 0.7rem;
+            }
+
+
+        .front-hamburger {
+            width: 40px;
+            height: 40px;
+        }
+
+
+        .front-footer {
+            padding: 25px 0 18px;
+        }
+
+
+        .front-footer-inner {
             flex-direction: column;
-            gap: 16px;
+            justify-content: center;
             text-align: center;
+            gap: 15px;
         }
 
-        .footer-links {
-            flex-wrap: wrap;
-            justify-content: center;
+
+        .front-footer-copy {
+            order: 2;
+            line-height: 1.9;
+        }
+
+
+        .front-footer-links {
+            order: 1;
         }
     }
+
+
+    /* ============================================================
+           SMALL MOBILE
+        ============================================================ */
+
+    @@media (max-width: 430px) {
+
+        .front-container {
+            padding: 0 9px;
+        }
+
+
+        .front-logo {
+            font-size: 1.05rem;
+        }
+
+
+        .front-btn-primary {
+            width: 40px;
+            height: 40px;
+            min-height: 40px;
+            padding: 0;
+            border-radius: 12px;
+            font-size: 0;
+            gap: 0;
+        }
+
+
+            .front-btn-primary i {
+                font-size: 0.85rem;
+            }
+
+
+        .front-hamburger {
+            width: 40px;
+            height: 40px;
+        }
+
+
+        .front-nav-links {
+            right: 7px;
+            left: 7px;
+        }
+    }
+
+
+    /* ============================================================
+           VERY SMALL
+        ============================================================ */
+
+    @@media (max-width: 340px) {
+
+        .front-logo {
+            font-size: 0.98rem;
+        }
+
+
+        .front-navbar {
+            padding: 8px 0;
+        }
+
+
+        .front-btn-primary,
+        .front-hamburger {
+            width: 37px;
+            height: 37px;
+        }
+
+
+            .front-hamburger span {
+                width: 19px;
+            }
+
+
+        .front-nav-links {
+            top: calc(100% + 6px);
+        }
+
+
+            .front-nav-links a {
+                min-height: 42px;
+                font-size: 0.78rem;
+                padding: 9px 12px;
+            }
+
+
+        .front-footer-links {
+            gap: 10px;
+        }
+    }
+
+
+    /* ============================================================
+           REDUCED MOTION
+        ============================================================ */
+
+    @@media (prefers-reduced-motion: reduce) {
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
 </style>
 
-<!-- ===== PARTICLES BACKGROUND ===== -->
-<div class="bg-particles">
-    <span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span>
+
+<!-- ============================================================
+     GLOBAL PARTICLES
+============================================================ -->
+
+<div class="front-particles"
+     aria-hidden="true">
+
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+
 </div>
 
-<!-- ===== NAVBAR ===== -->
-<header class="navbar" id="navbar">
-    <div class="container">
-        <div class="logo">Mohammad<span>Dev</span></div>
 
-        <ul class="nav-links" id="navLinks">
-            <li><a href="/#about">درباره من</a></li>
-            <li><a href="/#skills">مهارت‌ها</a></li>
-            <li><a href="/#portfolio">نمونه کارها</a></li>
-            <li><a href="/#projects">پروژه‌ها</a></li>
-            <li><a href="/#purchase">خرید</a></li>
-            <li><a href="/#request">درخواست پروژه</a></li>
-            <li><a href="/Tutorials">آموزش‌ها</a></li>
-            <li><a href="/#contact">تماس</a></li>
-        </ul>
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
 
-        <div class="nav-actions">
-            <a class="btn-primary" href="/Packages"><i class="fas fa-rocket"></i> خرید اشتراک</a>
-            <button class="hamburger" @onclick="ToggleMenu">
-                <span></span><span></span><span></span>
-            </button>
+<header class="front-navbar"
+        id="frontNavbar">
+
+    <div class="front-container">
+
+        <div class="front-navbar-inner">
+
+            <!-- LOGO -->
+
+            <a href="/"
+               class="front-logo">
+
+                Mohammad<span>Dev</span>
+
+            </a>
+
+
+            <!-- NAVIGATION -->
+
+            <ul class="front-nav-links @(isMenuOpen ? "open" : "")"
+                id="frontNavLinks">
+
+                <li>
+                    <a href="/#about"
+                       @onclick="CloseMenu">
+
+                        درباره من
+
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/#skills"
+                       @onclick="CloseMenu">
+
+                        مهارت‌ها
+
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/#portfolio"
+                       @onclick="CloseMenu">
+
+                        نمونه کارها
+
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/#projects"
+                       @onclick="CloseMenu">
+
+                        پروژه‌ها
+
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/#purchase"
+                       @onclick="CloseMenu">
+
+                        خرید
+
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/#request"
+                       @onclick="CloseMenu">
+
+                        درخواست پروژه
+
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/Tutorials"
+                       @onclick="CloseMenu">
+
+                        آموزش‌ها
+
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/#contact"
+                       @onclick="CloseMenu">
+
+                        تماس
+
+                    </a>
+                </li>
+
+            </ul>
+
+
+            <!-- ACTIONS -->
+
+            <div class="front-nav-actions">
+
+                <a class="front-btn-primary"
+                   href="/Packages"
+                   @onclick="CloseMenu">
+
+                    <i class="fas fa-rocket"></i>
+
+                    <span>خرید اشتراک</span>
+
+                </a>
+
+
+                <!-- HAMBURGER -->
+
+                <button type="button"
+                        class="front-hamburger @(isMenuOpen ? "active" : "")"
+                        aria-label="باز کردن منو"
+                        aria-expanded="@isMenuOpen"
+                        @onclick="ToggleMenu">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </button>
+
+            </div>
+
         </div>
+
     </div>
+
 </header>
 
-<!-- ===== PAGE CONTENT ===== -->
-<div class="page-wrapper">
-    @Body
-</div>
 
-<!-- ===== FOOTER ===== -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-copy">© @DateTime.Now.Year محمد پارسا کریمی · تمامی حقوق محفوظ است</div>
-        <div class="footer-links">
-            <a href="/"><i class="fas fa-home"></i></a>
-            <a href="https://github.com/prsa9601" target="_blank"><i class="fab fa-github"></i></a>
-            <a href="https://www.linkedin.com/in/mohammad-parsa-karimi-49876728b" target="_blank"><i class="fab fa-linkedin"></i></a>
-            <a href="https://t.me/mohammad_Parsa_dev" target="_blank"><i class="fab fa-telegram"></i></a>
+<!-- ============================================================
+     PAGE CONTENT
+============================================================ -->
+
+<main class="front-page-wrapper">
+
+    @Body
+
+</main>
+
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+
+<footer class="front-footer">
+
+    <div class="front-container">
+
+        <div class="front-footer-inner">
+
+            <div class="front-footer-copy">
+
+                © @DateTime.Now.Year
+                محمد پارسا کریمی
+                · تمامی حقوق محفوظ است
+
+            </div>
+
+
+            <div class="front-footer-links">
+
+                <a href="/"
+                   aria-label="خانه">
+
+                    <i class="fas fa-home"></i>
+
+                </a>
+
+
+                <a href="https://github.com/prsa9601"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   aria-label="GitHub">
+
+                    <i class="fab fa-github"></i>
+
+                </a>
+
+
+                <a href="https://www.linkedin.com/in/mohammad-parsa-karimi-49876728b"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   aria-label="LinkedIn">
+
+                    <i class="fab fa-linkedin"></i>
+
+                </a>
+
+
+                <a href="https://t.me/mohammad_Parsa_dev"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   aria-label="Telegram">
+
+                    <i class="fab fa-telegram"></i>
+
+                </a>
+
+            </div>
+
         </div>
+
     </div>
+
 </footer>
 
+
 @code {
+
     private bool isMenuOpen = false;
 
-    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    /* ============================================================
+       TOGGLE MENU
+    ============================================================ */
+
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+
+
+    /* ============================================================
+       CLOSE MENU
+    ============================================================ */
+
+    private void CloseMenu()
+    {
+        isMenuOpen = false;
+    }
+
+
+    /* ============================================================
+       JAVASCRIPT
+    ============================================================ */
+
+    protected override async Task OnAfterRenderAsync(
+        bool firstRender)
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("eval", @"
-                const navbar = document.getElementById('navbar');
-                window.addEventListener('scroll', () => {
-                    navbar?.classList.toggle('scrolled', window.scrollY > 50);
-                });
-            ");
+            await JSRuntime.InvokeVoidAsync(
+                "eval",
+                @"
+                    (() => {
+
+                        const navbar =
+                            document.getElementById('frontNavbar');
+
+                        if (!navbar)
+                            return;
+
+                        const updateNavbar =
+                            () => {
+
+                                navbar.classList.toggle(
+                                    'scrolled',
+                                    window.scrollY > 35
+                                );
+
+                            };
+
+                        updateNavbar();
+
+                        window.addEventListener(
+                            'scroll',
+                            updateNavbar,
+                            { passive: true }
+                        );
+
+                    })();
+                "
+            );
         }
     }
+
 }

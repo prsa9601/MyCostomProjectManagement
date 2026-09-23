@@ -1,0 +1,1643 @@
+﻿@page "/Tutorials/{Id:int}"
+@layout FrontLayout
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject ITutorialApiService TutorialService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using System.Text.RegularExpressions
+@using System.Net
+@using BackEnd.Data.Infrastructure.Tutorial
+@using MyCostomProjectManagement.Helpers
+@using BackEnd.Data.Infrastructure.Tutorial.DTOs
+
+<PageTitle>@(tutorial?.Title ?? "آموزش") | محمد پارسا کریمی</PageTitle>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/powershell.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/shell.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dockerfile.min.js"></script>
+
+<script>
+    window.tdTutorial = window.tdTutorial || {};
+
+    window.tdTutorial.registerCustomLanguages = function() {
+        if (typeof hljs === 'undefined') return;
+
+        if (!hljs.getLanguage('ps-custom')) {
+            hljs.registerLanguage('ps-custom', function(hljs) {
+                return {
+                    name: 'PowerShell',
+                    aliases: ['ps', 'ps1'],
+                    case_insensitive: true,
+                    keywords: {
+                        keyword: 'if else elseif switch while for foreach do until try catch finally throw return break continue function filter param begin process end',
+                        built_in: 'Write-Host Write-Output Write-Error Get-Item Get-ChildItem Set-Item Remove-Item Copy-Item Move-Item New-Item Test-Path Join-Path Split-Path Resolve-Path Select-Object Where-Object ForEach-Object Sort-Object Group-Object Measure-Object',
+                        literal: 'true false null'
+                    },
+                    contains: [
+                        hljs.COMMENT('#', '$'),
+                        { className: 'string', begin: /"""/, end: /"""/ },
+                        { className: 'string', begin: /""/, end: /""/ },
+                        { className: 'string', begin: /'/, end: /'/, contains: [hljs.BACKSLASH_ESCAPE] },
+                        { className: 'attr', begin: /(?:^|\s)--?[a-zA-Z][\w-]*/ },
+                        { className: 'variable', begin: /\$[\w:]+/ },
+                        {
+                            className: 'built_in',
+                            begin: /\b(dotnet|npm|yarn|pnpm|git|docker|kubectl|az|aws|gcloud|helm|curl|wget|bash|sh|sudo|chmod|chown|mkdir|cd|ls|cat|echo|export|source|make|cmake|go|cargo|rustc|python|pip|node|java|mvn|gradle|aspire|new|run|build|test|add|package|restore|publish|starter|webapi|webapp)\b/
+                        },
+                        hljs.C_NUMBER_MODE
+                    ]
+                };
+            });
+        }
+
+        if (!hljs.getLanguage('smart-text')) {
+            hljs.registerLanguage('smart-text', function(hljs) {
+                return {
+                    name: 'SmartText',
+                    contains: [
+                        { className: 'comment', begin: /#/, end: /$/ },
+                        { className: 'comment', begin: /\/\//, end: /$/ },
+                        { className: 'symbol', begin: /[├└│─┌┐┘┴┬┼╭╮╯╰═║╔╗╚╝]+/ },
+                        {
+                            className: 'string',
+                            begin: /\b[\w-]+\.(sln|csproj|json|xml|yml|yaml|md|txt|config|cs|js|ts|html|css|razor|appsettings)\b/
+                        },
+                        hljs.C_NUMBER_MODE
+                    ]
+                };
+            });
+        }
+    };
+
+    window.tdTutorial.processContent = async function() {
+        window.tdTutorial.registerCustomLanguages();
+
+        await new Promise(function(r) { setTimeout(r, 30); });
+
+        document.querySelectorAll('#contentArea > table').forEach(function(table) {
+            if (table.parentElement.classList.contains('td-table-wrap')) return;
+            var wrap = document.createElement('div');
+            wrap.className = 'td-table-wrap';
+            table.parentNode.insertBefore(wrap, table);
+            wrap.appendChild(table);
+        });
+
+        document.querySelectorAll('#contentArea blockquote').forEach(function(bq) {
+            var text = (bq.textContent || '').trim();
+            var firstStrong = bq.querySelector('strong');
+            var strongText = firstStrong ? (firstStrong.textContent || '') : '';
+
+            if (text.indexOf('⚡') === 0 ||
+                text.indexOf('خلاصه سریع') !== -1 ||
+                strongText.indexOf('خلاصه سریع') !== -1) {
+
+                bq.classList.add('td-summary-box');
+
+                bq.querySelectorAll('strong').forEach(function(s) {
+                    s.textContent = (s.textContent || '').replace(/⚡/g, '').trim();
+                });
+            }
+        });
+
+        var langMap = {
+            'plaintext': 'smart-text',
+            'text': 'smart-text',
+            'txt': 'smart-text',
+            'powershell': 'ps-custom',
+            'ps': 'ps-custom',
+            'ps1': 'ps-custom'
+        };
+
+        document.querySelectorAll('#contentArea pre code').forEach(function(block) {
+            if (block.dataset.highlighted === 'yes') return;
+
+            var langMatch = (block.className || '').match(/language-([\w+-]+)/);
+            if (!langMatch) {
+                var pre = block.parentElement;
+                langMatch = (pre.className || '').match(/language-([\w+-]+)/);
+                if (langMatch) block.className = 'language-' + langMatch[1];
+            }
+
+            if (langMatch) {
+                var lang = langMatch[1].toLowerCase();
+                if (langMap[lang]) {
+                    block.className = 'language-' + langMap[lang];
+                }
+            }
+
+            try {
+                hljs.highlightElement(block);
+                block.dataset.highlighted = 'yes';
+            } catch (e) {
+                console.warn('hljs highlight failed:', e);
+            }
+        });
+
+        var reverseLangMap = {
+            'ps-custom': 'POWERSHELL',
+            'smart-text': 'TEXT'
+        };
+
+        document.querySelectorAll('#contentArea pre').forEach(function(pre) {
+            var code = pre.querySelector('code');
+            if (!code) return;
+
+            if (!pre.querySelector('.td-lang-badge')) {
+                var cls = code.className || pre.className || '';
+                var m = cls.match(/language-([\w+-]+)/);
+                var lang = m ? m[1] : 'code';
+                lang = reverseLangMap[lang] || lang.toUpperCase();
+
+                var badge = document.createElement('span');
+                badge.className = 'td-lang-badge';
+                badge.textContent = lang;
+                badge.style.cssText = 'position:absolute;top:9px;right:14px;font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(96,165,250,0.9);background:rgba(59,130,246,0.1);padding:3px 10px;border-radius:20px;border:1px solid rgba(59,130,246,0.2);font-family:monospace;z-index:2;pointer-events:none;';
+                pre.appendChild(badge);
+            }
+
+            if (!pre.querySelector('.td-copy-btn')) {
+                var btn = document.createElement('button');
+                btn.className = 'td-copy-btn';
+                btn.type = 'button';
+                btn.innerHTML = '<i class="fas fa-copy"></i><span>کپی</span>';
+                btn.style.cssText = 'position:absolute;top:7px;left:76px;display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 10px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;font-size:11px;font-family:inherit;z-index:3;transition:all 0.2s;white-space:nowrap;';
+
+                btn.onmouseenter = function() {
+                    btn.style.background = 'rgba(59,130,246,0.2)';
+                    btn.style.color = '#60a5fa';
+                    btn.style.borderColor = 'rgba(59,130,246,0.3)';
+                };
+                btn.onmouseleave = function() {
+                    btn.style.background = 'rgba(255,255,255,0.05)';
+                    btn.style.color = '#94a3b8';
+                    btn.style.borderColor = 'rgba(255,255,255,0.08)';
+                };
+                btn.onclick = function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    var text = code.innerText || '';
+                    navigator.clipboard.writeText(text).then(function() {
+                        btn.innerHTML = '<i class="fas fa-check"></i><span>کپی شد</span>';
+                        btn.style.color = '#34d399';
+                        btn.style.borderColor = 'rgba(52,211,153,0.4)';
+                        btn.style.background = 'rgba(52,211,153,0.15)';
+                        setTimeout(function() {
+                            btn.innerHTML = '<i class="fas fa-copy"></i><span>کپی</span>';
+                            btn.style.color = '#94a3b8';
+                            btn.style.borderColor = 'rgba(255,255,255,0.08)';
+                            btn.style.background = 'rgba(255,255,255,0.05)';
+                        }, 1500);
+                    });
+                };
+                pre.appendChild(btn);
+            }
+        });
+    };
+</script>
+
+<style>
+    /* ============================================================
+           TUTORIAL DETAIL (FRONT) - پالت لندینگ #0a0e17
+        ============================================================ */
+
+    .td-hero {
+        padding: 140px 0 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .td-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.06);
+        color: #b8c4d6;
+        padding: 9px 20px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        margin-bottom: 26px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+        .td-back:hover {
+            border-color: #3b82f6;
+            color: #fff;
+            background: rgba(59,130,246,0.08);
+            transform: translateX(-4px);
+            box-shadow: 0 8px 30px rgba(59,130,246,0.1);
+        }
+
+        .td-back i {
+            transition: transform 0.3s ease;
+        }
+
+        .td-back:hover i {
+            transform: translateX(-3px);
+        }
+
+    .td-title {
+        font-size: clamp(1.8rem, 5vw, 2.8rem);
+        font-weight: 900;
+        line-height: 1.3;
+        margin-bottom: 18px;
+        background: linear-gradient(to left, #f0f4ff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .td-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 30px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .td-tag {
+        font-size: 0.75rem;
+        padding: 5px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+    }
+
+    .tag-subject {
+        background: rgba(26,122,138,0.1);
+        color: #4dc9dd;
+        border-color: rgba(77,201,221,0.2);
+    }
+
+    .tag-level-beginner {
+        background: rgba(52,211,153,0.1);
+        color: #34d399;
+        border-color: rgba(52,211,153,0.2);
+    }
+
+    .tag-level-intermediate {
+        background: rgba(251,146,60,0.1);
+        color: #fb923c;
+        border-color: rgba(251,146,60,0.2);
+    }
+
+    .tag-level-advanced {
+        background: rgba(239,68,68,0.1);
+        color: #f87171;
+        border-color: rgba(239,68,68,0.2);
+    }
+
+    .tag-level-all {
+        background: rgba(139,92,246,0.1);
+        color: #a78bfa;
+        border-color: rgba(139,92,246,0.2);
+    }
+
+    .tag-topic {
+        background: rgba(255,255,255,0.04);
+        color: #94a3b8;
+        border-color: rgba(255,255,255,0.08);
+    }
+
+    /* ===== LAYOUT ===== */
+    .td-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 28px;
+        align-items: start;
+        padding-bottom: 90px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .td-main {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 24px;
+        padding: 36px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* ===== CONTENT ===== */
+    .td-content {
+        color: #d8e3e5;
+        font-size: 1rem;
+        line-height: 2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+        .td-content h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 32px 0 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid transparent;
+            background-image: linear-gradient(90deg, #3b82f6, #8b5cf6, transparent);
+            background-repeat: no-repeat;
+            background-size: 100% 2px;
+            background-position: 0 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .td-content h1:first-child {
+                margin-top: 0;
+            }
+
+            .td-content h1::before {
+                content: '\f0da';
+                font-family: 'Font Awesome 6 Free';
+                font-weight: 900;
+                color: #3b82f6;
+                font-size: 1.1rem;
+            }
+
+        .td-content h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #60a5fa;
+            margin: 28px 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-right: 14px;
+            position: relative;
+        }
+
+            .td-content h2::before {
+                content: '';
+                width: 4px;
+                height: 1.2rem;
+                background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+                border-radius: 4px;
+            }
+
+        .td-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #a78bfa;
+            margin: 22px 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .td-content h3::before {
+                content: '\f111';
+                font-family: 'Font Awesome 6 Free';
+                font-weight: 900;
+                color: #a78bfa;
+                font-size: 0.45rem;
+                opacity: 0.7;
+            }
+
+        .td-content h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #4dc9dd;
+            margin: 18px 0 8px;
+        }
+
+        .td-content p {
+            margin-bottom: 16px;
+        }
+
+        .td-content strong {
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .td-content em {
+            color: #a78bfa;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .td-content a {
+            color: #60a5fa;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(96,165,250,0.4);
+            transition: all 0.25s;
+            padding: 0 2px;
+        }
+
+            .td-content a:hover {
+                color: #8b5cf6;
+                border-bottom-color: #8b5cf6;
+                border-bottom-style: solid;
+                background: rgba(139,92,246,0.06);
+                border-radius: 4px;
+            }
+
+        /* ===== LISTS ===== */
+        .td-content ul {
+            margin: 14px 0 18px;
+            padding-right: 22px;
+            list-style: none;
+        }
+
+            .td-content ul li {
+                position: relative;
+                padding-right: 24px;
+                margin-bottom: 10px;
+            }
+
+                .td-content ul li::before {
+                    content: '\f0da';
+                    font-family: 'Font Awesome 6 Free';
+                    font-weight: 900;
+                    position: absolute;
+                    right: 0;
+                    top: 2px;
+                    color: #3b82f6;
+                    font-size: 0.75rem;
+                    transition: all 0.25s;
+                }
+
+                .td-content ul li:hover::before {
+                    color: #8b5cf6;
+                    transform: translateX(-3px);
+                }
+
+        .td-content ol {
+            margin: 14px 0 18px;
+            padding-right: 34px;
+            counter-reset: item;
+            list-style: none;
+        }
+
+            .td-content ol li {
+                position: relative;
+                margin-bottom: 10px;
+                counter-increment: item;
+            }
+
+                .td-content ol li::before {
+                    content: counter(item);
+                    position: absolute;
+                    right: -34px;
+                    top: 1px;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                    color: #fff;
+                    font-size: 0.72rem;
+                    font-weight: 700;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 10px rgba(59,130,246,0.25);
+                }
+
+        /* ===== INLINE CODE ===== */
+        .td-content code:not(pre code) {
+            background: rgba(59,130,246,0.1);
+            color: #7dd3fc;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.86em;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+            direction: ltr;
+            unicode-bidi: embed;
+            border: 1px solid rgba(59,130,246,0.18);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+            .td-content code:not(pre code):hover {
+                background: rgba(59,130,246,0.18);
+                border-color: rgba(59,130,246,0.3);
+            }
+
+        /* ===== CODE BLOCK ===== */
+        .td-content pre {
+            position: relative;
+            background: linear-gradient(180deg, #1e2227 0%, #1a1d22 100%) !important;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 46px 20px 20px 20px;
+            margin: 22px 0;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+            .td-content pre:hover {
+                border-color: rgba(59,130,246,0.25);
+                box-shadow: 0 16px 50px rgba(0,0,0,0.45), 0 0 0 1px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.03);
+            }
+
+            .td-content pre::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 36px;
+                background: rgba(255,255,255,0.02);
+                border-bottom: 1px solid rgba(255,255,255,0.04);
+                border-radius: 14px 14px 0 0;
+                z-index: 1;
+            }
+
+            .td-content pre::after {
+                content: '';
+                position: absolute;
+                top: 13px;
+                left: 16px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #ff5f56;
+                box-shadow: 18px 0 0 #ffbd2e, 36px 0 0 #27c93f;
+                z-index: 2;
+            }
+
+            .td-content pre::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            .td-content pre::-webkit-scrollbar-track {
+                background: rgba(0,0,0,0.2);
+                border-radius: 0 0 14px 14px;
+            }
+
+            .td-content pre::-webkit-scrollbar-thumb {
+                background: rgba(59,130,246,0.3);
+                border-radius: 4px;
+            }
+
+                .td-content pre::-webkit-scrollbar-thumb:hover {
+                    background: rgba(59,130,246,0.5);
+                }
+
+            .td-content pre code {
+                background: transparent !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                font-size: 0.9rem;
+                line-height: 1.75;
+                font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+                display: block;
+                color: #abb2bf;
+                direction: ltr;
+                unicode-bidi: embed;
+                tab-size: 4;
+                -moz-tab-size: 4;
+                border-radius: 0;
+            }
+
+                .td-content pre code.hljs {
+                    background: transparent !important;
+                    padding: 0 !important;
+                    color: inherit;
+                }
+
+                    .td-content pre code.hljs span {
+                        background: transparent;
+                    }
+
+                    /* ============================================================
+                           تقویت رنگ‌بندی کدها
+                        ============================================================ */
+
+                    .td-content pre code.hljs .hljs-keyword,
+                    .td-content pre code.hljs .hljs-built_in,
+                    .td-content pre code.hljs .hljs-selector-tag,
+                    .td-content pre code.hljs .hljs-literal {
+                        color: #c678dd !important;
+                        font-weight: 600;
+                    }
+
+                    .td-content pre code.hljs .hljs-title,
+                    .td-content pre code.hljs .hljs-title.function_,
+                    .td-content pre code.hljs .hljs-function .hljs-title {
+                        color: #61afef !important;
+                        font-weight: 600;
+                    }
+
+                    .td-content pre code.hljs .hljs-string,
+                    .td-content pre code.hljs .hljs-doctag,
+                    .td-content pre code.hljs .hljs-regexp {
+                        color: #98c379 !important;
+                    }
+
+                    .td-content pre code.hljs .hljs-number,
+                    .td-content pre code.hljs .hljs-symbol,
+                    .td-content pre code.hljs .hljs-bullet {
+                        color: #d19a66 !important;
+                    }
+
+                    .td-content pre code.hljs .hljs-variable,
+                    .td-content pre code.hljs .hljs-template-variable,
+                    .td-content pre code.hljs .hljs-attr {
+                        color: #e06c75 !important;
+                    }
+
+                    .td-content pre code.hljs .hljs-comment,
+                    .td-content pre code.hljs .hljs-quote {
+                        color: #5c6370 !important;
+                        font-style: italic;
+                        opacity: 0.9;
+                    }
+
+                    .td-content pre code.hljs .hljs-type,
+                    .td-content pre code.hljs .hljs-class .hljs-title,
+                    .td-content pre code.hljs .hljs-params {
+                        color: #e5c07b !important;
+                    }
+
+                    .td-content pre code.hljs .hljs-operator,
+                    .td-content pre code.hljs .hljs-punctuation {
+                        color: #abb2bf !important;
+                    }
+
+                    .td-content pre code.hljs .hljs-tag,
+                    .td-content pre code.hljs .hljs-name {
+                        color: #e06c75 !important;
+                    }
+
+                    .td-content pre code.hljs .hljs-attribute {
+                        color: #d19a66 !important;
+                    }
+
+                    .td-content pre code.hljs .hljs-meta,
+                    .td-content pre code.hljs .hljs-meta .hljs-keyword {
+                        color: #56b6c2 !important;
+                    }
+
+        /* ===== BLOCKQUOTE معمولی ===== */
+        .td-content blockquote {
+            position: relative;
+            border-right: 3px solid #3b82f6;
+            border-radius: 10px;
+            padding: 16px 20px 16px 22px;
+            margin: 22px 0;
+            background: linear-gradient(90deg, rgba(59,130,246,0.08) 0%, rgba(59,130,246,0.02) 60%, transparent 100%);
+            color: rgba(232,240,241,0.92);
+            font-style: normal;
+            font-size: 0.95rem;
+            line-height: 1.9;
+        }
+
+            .td-content blockquote::before {
+                content: '\f10d';
+                font-family: 'Font Awesome 6 Free';
+                font-weight: 900;
+                position: absolute;
+                top: 12px;
+                right: 14px;
+                color: rgba(59,130,246,0.25);
+                font-size: 1.1rem;
+            }
+
+            .td-content blockquote p:last-child {
+                margin-bottom: 0;
+            }
+
+            /* ============================================================
+                   ⚡ خلاصه سریع — ترکیب تیره طلایی + تیتر وسط‌چین + شماره ساده
+                ============================================================ */
+            .td-content blockquote.td-summary-box {
+                position: relative;
+                border: 1.5px solid rgba(232, 168, 56, 0.45);
+                border-radius: 18px;
+                padding: 34px 38px 30px;
+                margin: 34px 0;
+                background: linear-gradient(180deg, #1a1a15 0%, #14140f 100%);
+                color: #d8e3e5;
+                font-style: normal;
+                font-size: 1rem;
+                line-height: 2;
+                box-shadow: 0 0 60px rgba(232, 168, 56, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+                overflow: hidden;
+            }
+
+                /* گرادیان ملایم طلایی گوشه بالا-راست */
+                .td-content blockquote.td-summary-box::before {
+                    content: '';
+                    position: absolute;
+                    top: -100px;
+                    right: -100px;
+                    width: 280px;
+                    height: 280px;
+                    background: radial-gradient(circle, rgba(232, 168, 56, 0.15), transparent 70%);
+                    pointer-events: none;
+                    z-index: 0;
+                }
+
+                /* آیکون رعد گوشه بالا-چپ (کم‌رنگ) */
+                .td-content blockquote.td-summary-box::after {
+                    content: '\f0e7';
+                    font-family: 'Font Awesome 6 Free';
+                    font-weight: 900;
+                    position: absolute;
+                    top: 26px;
+                    left: 30px;
+                    font-size: 2.4rem;
+                    color: rgba(232, 168, 56, 0.25);
+                    pointer-events: none;
+                    line-height: 1;
+                    z-index: 0;
+                }
+
+                /* عنوان: اولین strong یا h2/h3 — وسط‌چین طلایی با ⚡ دو طرف */
+                .td-content blockquote.td-summary-box > p:first-child strong,
+                .td-content blockquote.td-summary-box h2,
+                .td-content blockquote.td-summary-box h3 {
+                    color: #f5c14a;
+                    font-size: 1.6rem;
+                    font-weight: 900;
+                    display: block;
+                    text-align: center;
+                    margin: 0 0 14px;
+                    letter-spacing: -0.01em;
+                    text-shadow: 0 0 30px rgba(232, 168, 56, 0.25);
+                    position: relative;
+                    z-index: 1;
+                }
+
+                    /* ⚡ قبل از تیتر */
+                    .td-content blockquote.td-summary-box > p:first-child strong::before {
+                        content: '⚡ ';
+                        color: #f5c14a;
+                    }
+
+                    /* ⚡ بعد از تیتر */
+                    .td-content blockquote.td-summary-box > p:first-child strong::after {
+                        content: ' ⚡';
+                        color: #f5c14a;
+                    }
+
+                /* پاراگراف توضیح زیر عنوان */
+                .td-content blockquote.td-summary-box > p:nth-child(2) {
+                    color: #cbd5e1;
+                    font-size: 0.92rem;
+                    font-weight: 500;
+                    text-align: center;
+                    margin: 0 0 22px;
+                    padding-bottom: 20px;
+                    border-bottom: 1px dashed rgba(232, 168, 56, 0.22);
+                    line-height: 1.85;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                /* لیست‌های داخل کارت */
+                .td-content blockquote.td-summary-box ul {
+                    margin: 0 0 8px;
+                    padding-right: 18px;
+                    list-style: none;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                    .td-content blockquote.td-summary-box ul li {
+                        position: relative;
+                        padding-right: 22px;
+                        margin-bottom: 10px;
+                        color: #e2e8f0;
+                        line-height: 2;
+                        font-size: 0.95rem;
+                    }
+
+                        /* بولت دایره‌ای کوچک زرد */
+                        .td-content blockquote.td-summary-box ul li::before {
+                            content: '';
+                            position: absolute;
+                            right: 2px;
+                            top: 14px;
+                            width: 6px;
+                            height: 6px;
+                            border-radius: 50%;
+                            background: #f5c14a;
+                            box-shadow: 0 0 8px rgba(245, 193, 74, 0.6);
+                        }
+
+                        /* strong داخل لیست — طلایی */
+                        .td-content blockquote.td-summary-box ul li strong {
+                            color: #f5c14a;
+                            font-weight: 700;
+                        }
+
+                /* کد inline داخل کارت */
+                .td-content blockquote.td-summary-box code:not(pre code) {
+                    background: rgba(0, 0, 0, 0.45);
+                    color: #f5c14a;
+                    border: 1px solid rgba(232, 168, 56, 0.2);
+                    padding: 2px 10px;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    direction: ltr;
+                    unicode-bidi: embed;
+                    display: inline-block;
+                    font-size: 0.82rem;
+                    font-family: 'Fira Code', 'Consolas', monospace;
+                }
+
+                    .td-content blockquote.td-summary-box code:not(pre code):hover {
+                        background: rgba(0, 0, 0, 0.6);
+                        border-color: rgba(232, 168, 56, 0.4);
+                    }
+
+                /* strong عمومی داخل کارت */
+                .td-content blockquote.td-summary-box strong {
+                    color: #f5c14a;
+                    font-weight: 700;
+                }
+
+                /* پاراگراف‌های میانی مثل «۳ اشتباه رایج:» — وسط‌چین، نارنجی */
+                .td-content blockquote.td-summary-box > p:not(:first-child):not(:nth-child(2)) {
+                    color: #f59e0b;
+                    font-size: 0.95rem;
+                    font-weight: 800;
+                    text-align: center;
+                    margin: 26px 0 18px;
+                    padding-top: 22px;
+                    border-top: 1px dashed rgba(232, 168, 56, 0.22);
+                    position: relative;
+                    z-index: 1;
+                }
+
+                    .td-content blockquote.td-summary-box > p:not(:first-child):not(:nth-child(2)) strong {
+                        color: #f59e0b;
+                        font-weight: 800;
+                    }
+
+                /* لیست ol — شماره ساده مثل 1. 2. 3. */
+                .td-content blockquote.td-summary-box ol {
+                    counter-reset: item;
+                    list-style: none;
+                    padding-right: 18px;
+                    margin: 8px 0;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                    .td-content blockquote.td-summary-box ol li {
+                        position: relative;
+                        padding-right: 28px;
+                        margin-bottom: 10px;
+                        counter-increment: item;
+                        color: #e2e8f0;
+                        line-height: 2;
+                        font-size: 0.95rem;
+                    }
+
+                        /* شماره ساده مثل 1. */
+                        .td-content blockquote.td-summary-box ol li::before {
+                            content: counter(item) '.';
+                            position: absolute;
+                            right: 2px;
+                            top: 0;
+                            color: #f5c14a;
+                            font-weight: 800;
+                            font-size: 0.95rem;
+                            font-family: 'Fira Code', 'Consolas', monospace;
+                            line-height: 2;
+                        }
+
+                        /* strong داخل ol — طلایی */
+                        .td-content blockquote.td-summary-box ol li strong {
+                            color: #f5c14a;
+                            font-weight: 700;
+                        }
+
+    /* ===== TABLE ===== */
+    .td-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        margin: 22px 0;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        background: rgba(255,255,255,0.01);
+    }
+
+        .td-table-wrap::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .td-table-wrap::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.15);
+        }
+
+        .td-table-wrap::-webkit-scrollbar-thumb {
+            background: rgba(59,130,246,0.3);
+            border-radius: 4px;
+        }
+
+    .td-content table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+        direction: rtl;
+        text-align: right;
+        min-width: 520px;
+    }
+
+        .td-content table thead {
+            background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.1));
+        }
+
+        .td-content table th {
+            padding: 13px 16px;
+            text-align: right;
+            color: #60a5fa;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-bottom: 2px solid rgba(59,130,246,0.2);
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+
+        .td-content table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #d8e3e5;
+            font-size: 0.9rem;
+            vertical-align: top;
+            line-height: 1.85;
+        }
+
+            .td-content table td code {
+                direction: ltr;
+                unicode-bidi: embed;
+                display: inline-block;
+                white-space: nowrap;
+            }
+
+        .td-content table tbody tr:nth-child(even) {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .td-content table tbody tr:hover {
+            background: rgba(59,130,246,0.05);
+        }
+
+        .td-content table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    .td-content hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #3b82f6, #8b5cf6, transparent);
+        margin: 32px 0;
+        border-radius: 4px;
+        opacity: 0.6;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .td-side {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        position: sticky;
+        top: 100px;
+    }
+
+    .td-side-card {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px;
+        padding: 22px;
+        transition: all 0.3s ease;
+    }
+
+        .td-side-card:hover {
+            border-color: rgba(59,130,246,0.15);
+        }
+
+        .td-side-card h4 {
+            font-size: 0.8rem;
+            color: #3b82f6;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .td-side-stat {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: all 0.3s ease;
+    }
+
+        .td-side-stat:hover {
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+            padding-right: 8px;
+            padding-left: 8px;
+            margin: 0 -8px;
+        }
+
+        .td-side-stat:last-child {
+            border-bottom: none;
+        }
+
+    .td-side-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        background: rgba(59,130,246,0.12);
+        color: #3b82f6;
+    }
+
+        .td-side-icon.purple {
+            background: rgba(139,92,246,0.12);
+            color: #a78bfa;
+        }
+
+        .td-side-icon.green {
+            background: rgba(52,211,153,0.12);
+            color: #34d399;
+        }
+
+        .td-side-icon.orange {
+            background: rgba(251,146,60,0.12);
+            color: #fb923c;
+        }
+
+    .td-side-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+        .td-side-info .label {
+            font-size: 0.72rem;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+
+        .td-side-info .value {
+            font-size: 0.9rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+    /* ===== STATE ===== */
+    .td-state {
+        text-align: center;
+        padding: 100px 20px;
+        color: #94a3b8;
+    }
+
+        .td-state i {
+            font-size: 3.5rem;
+            color: rgba(59,130,246,0.3);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .td-state h3 {
+            font-size: 1.3rem;
+            color: #eef2f8;
+            margin-bottom: 10px;
+        }
+
+        .td-state p {
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+    .td-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(59,130,246,0.15);
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin: 0 auto 20px;
+        box-shadow: 0 0 40px rgba(59,130,246,0.15);
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ===== TOAST ===== */
+    .td-toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(59,130,246,0.1));
+        border: 1px solid rgba(52,211,153,0.3);
+        color: #34d399;
+        padding: 12px 22px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        animation: toastIn 0.4s ease, toastOut 0.4s ease 2.1s forwards;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    @@keyframes toastIn {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes toastOut {
+        to {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 900px) {
+        .td-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .td-side {
+            position: static;
+        }
+
+        .td-main {
+            padding: 24px;
+        }
+    }
+
+    @@media (max-width: 500px) {
+        .td-hero {
+            padding: 120px 0 30px;
+        }
+
+        .td-main {
+            padding: 20px;
+        }
+
+        .td-content {
+            font-size: 0.92rem;
+            line-height: 1.9;
+        }
+
+            .td-content h1 {
+                font-size: 1.3rem;
+            }
+
+            .td-content h2 {
+                font-size: 1.1rem;
+            }
+
+            .td-content h3 {
+                font-size: 1rem;
+            }
+
+            .td-content pre {
+                padding: 40px 14px 14px 14px;
+                border-radius: 12px;
+            }
+
+                .td-content pre code {
+                    font-size: 0.8rem;
+                    line-height: 1.65;
+                }
+
+                .td-content pre::before {
+                    height: 30px;
+                }
+
+                .td-content pre::after {
+                    top: 10px;
+                    left: 12px;
+                }
+
+            .td-content table {
+                font-size: 0.82rem;
+                min-width: 460px;
+            }
+
+                .td-content table th,
+                .td-content table td {
+                    padding: 9px 12px;
+                }
+
+        .td-toast {
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            justify-content: center;
+        }
+
+        .td-content pre .td-copy-btn span {
+            display: none;
+        }
+
+        .td-content pre .td-copy-btn {
+            left: 72px !important;
+            width: 30px;
+            padding: 0 !important;
+            justify-content: center;
+        }
+        /* کارت خلاصه سریع روی موبایل */
+        .td-content blockquote.td-summary-box {
+            padding: 24px 20px 22px;
+            border-radius: 14px;
+            border-width: 1px;
+        }
+
+            .td-content blockquote.td-summary-box::after {
+                font-size: 1.7rem;
+                top: 18px;
+                left: 18px;
+            }
+
+            .td-content blockquote.td-summary-box > p:first-child strong,
+            .td-content blockquote.td-summary-box h2,
+            .td-content blockquote.td-summary-box h3 {
+                font-size: 1.2rem;
+            }
+
+            .td-content blockquote.td-summary-box ul li,
+            .td-content blockquote.td-summary-box ol li {
+                font-size: 0.88rem;
+                line-height: 1.9;
+            }
+    }
+</style>
+
+
+@if (isLoading)
+{
+    <section class="td-hero">
+        <div class="container">
+            <div class="td-state">
+                <div class="td-spinner"></div>
+                <h3>در حال بارگذاری...</h3>
+            </div>
+        </div>
+    </section>
+}
+else if (tutorial == null)
+{
+    <section class="td-hero">
+        <div class="container">
+            <div class="td-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>آموزش پیدا نشد</h3>
+                <p>ممکن است حذف شده باشد یا آدرس اشتباه باشد.</p>
+                <a href="/Tutorials" class="td-back">
+                    <i class="fas fa-arrow-right"></i>
+                    بازگشت به لیست آموزش‌ها
+                </a>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    <section class="td-hero">
+        <div class="container">
+            <a href="/Tutorials" class="td-back">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت به لیست آموزش‌ها
+            </a>
+
+            <h1 class="td-title">@tutorial.Title</h1>
+
+            <div class="td-meta">
+                @if (!string.IsNullOrWhiteSpace(tutorial.Subject))
+                {
+                    <span class="td-tag tag-subject">
+                        <i class="fas fa-code"></i> @tutorial.Subject
+                    </span>
+                }
+                <span class="td-tag @GetLevelClass(tutorial.Level)">
+                    <i class="fas fa-signal"></i> @GetLevelText(tutorial.Level)
+                </span>
+                @if (!string.IsNullOrWhiteSpace(tutorial.Topic))
+                {
+                    <span class="td-tag tag-topic">
+                        <i class="fas fa-hashtag"></i> @tutorial.Topic
+                    </span>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="container">
+        <div class="td-grid">
+            <article class="td-main">
+                <div class="td-content" id="contentArea">
+                    @((MarkupString)renderedContent)
+                </div>
+            </article>
+
+            <aside class="td-side">
+                <div class="td-side-card">
+                    <h4><i class="fas fa-info-circle"></i> اطلاعات</h4>
+
+                    <div class="td-side-stat">
+                        <div class="td-side-icon green">
+                            <i class="fas fa-list-ul"></i>
+                        </div>
+                        <div class="td-side-info">
+                            <div class="label">تعداد بخش‌ها</div>
+                            <div class="value">@tutorial.SectionCount</div>
+                        </div>
+                    </div>
+
+                    <div class="td-side-stat">
+                        <div class="td-side-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div class="td-side-info">
+                            <div class="label">بلوک‌های کد</div>
+                            <div class="value">@tutorial.CodeBlockCount</div>
+                        </div>
+                    </div>
+
+                    <div class="td-side-stat">
+                        <div class="td-side-icon purple">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="td-side-info">
+                            <div class="label">دسته‌بندی</div>
+                            <div class="value">@GetCategoryText(tutorial.Category)</div>
+                        </div>
+                    </div>
+
+                    <div class="td-side-stat">
+                        <div class="td-side-icon orange">
+                            <i class="far fa-calendar-alt"></i>
+                        </div>
+                        <div class="td-side-info">
+                            <div class="label">تاریخ انتشار</div>
+                            <div class="value">@ToPersianDate(tutorial.CreatedAt)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="td-side-card">
+                    <h4><i class="fas fa-share-alt"></i> اشتراک‌گذاری</h4>
+
+                    <div class="td-side-stat" style="cursor:pointer;" @onclick="CopyLink">
+                        <div class="td-side-icon">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <div class="td-side-info">
+                            <div class="value">کپی لینک</div>
+                        </div>
+                        <i class="fas fa-chevron-left" style="color:rgba(232,240,241,0.3);"></i>
+                    </div>
+
+                    <div class="td-side-stat" style="cursor:pointer;" @onclick="CopyContent">
+                        <div class="td-side-icon purple">
+                            <i class="fas fa-copy"></i>
+                        </div>
+                        <div class="td-side-info">
+                            <div class="value">کپی محتوا</div>
+                        </div>
+                        <i class="fas fa-chevron-left" style="color:rgba(232,240,241,0.3);"></i>
+                    </div>
+
+                    <div class="td-side-stat" style="cursor:pointer;" @onclick="PrintPage">
+                        <div class="td-side-icon green">
+                            <i class="fas fa-print"></i>
+                        </div>
+                        <div class="td-side-info">
+                            <div class="value">چاپ صفحه</div>
+                        </div>
+                        <i class="fas fa-chevron-left" style="color:rgba(232,240,241,0.3);"></i>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    @if (showToast)
+    {
+        <div class="td-toast">
+            <i class="fas fa-check-circle"></i>
+            @toastMessage
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private TutorialDto? tutorial;
+    private bool isLoading = true;
+    private string renderedContent = "";
+    private bool needsHighlight = false;
+    private bool showToast = false;
+    private string toastMessage = "";
+    private System.Timers.Timer? toastTimer;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id <= 0)
+        {
+            tutorial = null;
+            isLoading = false;
+            return;
+        }
+
+        await LoadTutorial();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (needsHighlight)
+        {
+            needsHighlight = false;
+            await HighlightCode();
+        }
+    }
+
+    private async Task LoadTutorial()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            tutorial = await TutorialService.Get(Id);
+
+            if (tutorial != null && !string.IsNullOrWhiteSpace(tutorial.Content))
+            {
+                renderedContent = MarkdownRenderer.Render(tutorial.Content);
+                needsHighlight = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[TutorialDetail] Load error: {ex.Message}");
+            tutorial = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HighlightCode()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("tdTutorial.processContent");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[TutorialDetail] Highlight error: {ex.Message}");
+        }
+    }
+
+    private async Task CopyLink()
+    {
+        try
+        {
+            var safeUrl = Navigation.Uri.Replace("'", "\\'");
+            await JSRuntime.InvokeVoidAsync("eval",
+                $"navigator.clipboard.writeText('{safeUrl}')");
+            ShowToast("لینک کپی شد!");
+        }
+        catch { ShowToast("خطا در کپی لینک"); }
+    }
+
+    private async Task CopyContent()
+    {
+        if (tutorial == null) return;
+        try
+        {
+            var safeContent = tutorial.Content
+                .Replace("\\", "\\\\")
+                .Replace("`", "\\`")
+                .Replace("$", "\\$");
+            await JSRuntime.InvokeVoidAsync("eval",
+                $"navigator.clipboard.writeText(`{safeContent}`)");
+            ShowToast("محتوا کپی شد!");
+        }
+        catch { ShowToast("خطا در کپی محتوا"); }
+    }
+
+    private async Task PrintPage()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", "window.print()");
+        }
+        catch { }
+    }
+
+    private void ShowToast(string message)
+    {
+        toastMessage = message;
+        showToast = true;
+        StateHasChanged();
+
+        toastTimer?.Stop();
+        toastTimer = new System.Timers.Timer(2500);
+        toastTimer.Elapsed += (s, e) =>
+        {
+            toastTimer?.Stop();
+            InvokeAsync(() =>
+            {
+                showToast = false;
+                StateHasChanged();
+            });
+        };
+        toastTimer.Start();
+    }
+
+    private static string GetLevelClass(string? level) => level?.ToLower() switch
+    {
+        "beginner" => "tag-level-beginner",
+        "intermediate" => "tag-level-intermediate",
+        "advanced" => "tag-level-advanced",
+        _ => "tag-level-all"
+    };
+
+    private static string GetLevelText(string? level) => level?.ToLower() switch
+    {
+        "beginner" => "مبتدی",
+        "intermediate" => "متوسط",
+        "advanced" => "پیشرفته",
+        "all" => "همه سطوح",
+        _ => "نامشخص"
+    };
+
+    private static string GetCategoryText(string? category) => category?.ToLower() switch
+    {
+        "language" => "زبان برنامه‌نویسی",
+        "framework" => "فریم‌ورک",
+        "tool" => "ابزار",
+        "concept" => "مفهوم",
+        _ => "نامشخص"
+    };
+
+    private static string ToPersianDate(DateTime dt)
+    {
+        try
+        {
+            var pc = new System.Globalization.PersianCalendar();
+            return $"{pc.GetYear(dt):0000}/{pc.GetMonth(dt):00}/{pc.GetDayOfMonth(dt):00}";
+        }
+        catch
+        {
+            return dt.ToString("yyyy/MM/dd");
+        }
+    }
+}
+
