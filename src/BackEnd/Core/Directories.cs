@@ -19,7 +19,7 @@
 }
 public static class SiteSettings
 {
-    public static string ServerPath { get; set; } = $"http://parsakarimidev.ir";
+    public static string ServerPath { get; set; } = $"https://parsakarimidev.ir";
     //public static string ServerPath { get; set; } = $"http://parsakarimidev.ir/httpdocs";
     //public static string ServerPath { get; set; } = $"https://localhost:7259";
 }
