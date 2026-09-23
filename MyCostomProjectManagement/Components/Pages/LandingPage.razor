@@ -5,6 +5,8 @@
 @using BackEnd.Core.SiteSetting.Queries.DTOs
 @using BackEnd.Data.Entities.Role
 @using BackEnd.Shared.Extentions.Enum
+@using BackEnd.Core.Project.Commands.ProjectRequestV1.Create
+@using BackEnd.Data.Entities.ProjectRequestV1
 @using MyCostomProjectManagement.Facade.ContactUs
 @using MyCostomProjectManagement.Facade.FAQ
 @using MyCostomProjectManagement.Facade.Portfolio
@@ -14,7 +16,7 @@
 @using MyCostomProjectManagement.Facade.User
 @using MyCostomProjectManagement.Infrastructure
 @using MyCostomProjectManagement.Shared.Attributes
-@layout MainLayout
+@layout FrontLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
@@ -454,6 +456,7 @@
         border-radius: 40px;
         font-weight: 500;
         transition: 0.3s;
+        cursor: pointer;
     }
 
         .btn-outline:hover {
@@ -1988,13 +1991,30 @@
                 padding: 3px 8px;
             }
     }
-</style>
 
-<!-- ===== PARTICLE BACKGROUND ===== -->
-<div class="bg-particles">
-    <span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span>
-</div>
+    /* ============================================================
+       Alert Boxes (برای پیام‌های فرم درخواست پروژه)
+    ============================================================ */
+    .alert-success,
+    .alert-danger {
+        margin-top: 14px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+    }
+
+    .alert-success {
+        background: rgba(16,185,129,0.12);
+        color: #34d399;
+        border: 1px solid rgba(16,185,129,0.2);
+    }
+
+    .alert-danger {
+        background: rgba(239,68,68,0.12);
+        color: #f87171;
+        border: 1px solid rgba(239,68,68,0.2);
+    }
+</style>
 
 @code {
     private bool _hasAdminAccess { get; set; } = false;
@@ -2019,53 +2039,6 @@
 
     }
 }
-<!-- ===== NAVBAR ===== -->
-<header class="navbar" id="navbar">
-    <div class="container">
-        <div class="logo">Mohammad<span>Dev</span></div>
-        <ul class="nav-links @(isMenuOpen ? "open" : "")" id="navLinks">
-            <li><a @onclick='() => ScrollToSection("about")' @onclick:preventDefault="true">درباره من</a></li>
-            <li><a @onclick='() => ScrollToSection("skills")' @onclick:preventDefault="true">مهارت‌ها</a></li>
-            <li><a @onclick='() => ScrollToSection("portfolio")' @onclick:preventDefault="true">نمونه کارها</a></li>
-            <li><a @onclick='() => ScrollToSection("projects")' @onclick:preventDefault="true">پروژه‌ها</a></li>
-            <li><a @onclick='() => ScrollToSection("purchase")' @onclick:preventDefault="true">خرید</a></li>
-            <li><a @onclick='() => ScrollToSection("request")' @onclick:preventDefault="true">درخواست پروژه</a></li>
-            <li><a @onclick='() => NavigationManager.NavigateTo("tutorials", true)' @onclick:preventDefault="true">آموزش‌ها</a></li>
-            <li><a @onclick='() => ScrollToSection("contact")' @onclick:preventDefault="true">تماس</a></li>
-        </ul>
-        <div class="nav-actions">
-
-            @if (!UserIsAuthenticate)
-            {
-                <button class="btn-login" @onclick="NavigateToLogin"><i class="fas fa-sign-in-alt"></i> ورود</button>
-            }
-            @if (UserIsAuthenticate)
-            {
-                <button class="btn-logout" @onclick="Logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
-            }
-            <button class="btn-dashboard" @onclick="NavigateToDashboard"><i class="fas fa-chart-pie"></i> داشبورد</button>
-
-            @if (_hasAdminAccess)
-            {
-                <button class="btn-admin" @onclick="NavigateToAdminDashboard"><i class="fas fa-user-cog"></i> ادمین</button>
-            }
-            <a class="btn-primary" onclick="@(() => NavigationManager.NavigateTo("/Packages", true))"><i class="fas fa-rocket"></i> خرید اشتراک</a>
-            <button class="hamburger" @onclick="ToggleMenu">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </div>
-</header>
-
-<!-- ===== LOADING OVERLAY ===== -->
-@* <div class="loading-overlay @(IsLoading ? "" : "hidden")">
-    <div class="loader-spinner"></div>
-    <div class="loader-text">در حال بارگذاری اطلاعات...</div>
-    <div class="loader-progress">
-        <div class="bar"></div>
-    </div>
-</div> *@
-
 
 <!-- ===== HERO ===== -->
 <section class="hero">
@@ -2442,32 +2415,11 @@
     </div>
 </section>
 
-<!-- ===== FOOTER ===== -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-copy">© @(DateTime.Now.Year) محمد پارسا کریمی · تمامی حقوق محفوظ است</div>
-        <div class="footer-links">
-            @* <a href="#">حریم خصوصی</a>
-            <a href="#">قوانین</a> *@
-            @{
-                foreach (var item in siteLinksDtos)
-                {
-                    <a href="@item.Address"><i class="@item.Icon"></i></a>
-                }
-            }
-            @* <a href="#"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-telegram"></i></a> *@
-        </div>
-    </div>
-</footer>
-
 @* ============================================================
     کدهای سی‌شارپ (تمام منطق)
     ============================================================ *@
 @code {
     // ---- متغیرهای وضعیت ----
-    private bool isMenuOpen = false;
     private string typewriterText = "محمد پارسا کریمی";
 
     private bool isLoading = true;
@@ -2556,7 +2508,7 @@
         var result = await _contactUsFacade.Create(ContactUsModel);
         if (result.Status == BackEnd.Shared.CoreShared.OperationResultStatus.Success)
         {
-            await JSRuntime.InvokeVoidAsync("showUserAlert", result.Message, "success", "✅ موفقیت", 5000); ;
+            await JSRuntime.InvokeVoidAsync("showUserAlert", result.Message, "success", "✅ موفقیت", 5000); ; 
             ContactUsModel = new();
         }
         else
@@ -2743,28 +2695,16 @@
         await JSRuntime.InvokeVoidAsync("eval", $@"
             const element = document.getElementById('{sectionId}');
             if (element) {{
-                const navbarHeight = document.querySelector('.navbar')?.offsetHeight || 80;
+                const navbar = document.querySelector('.navbar') || document.querySelector('.front-navbar');
+                const navbarHeight = navbar?.offsetHeight || 80;
                 const offset = element.getBoundingClientRect().top + window.pageYOffset - navbarHeight - 20;
                 window.scrollTo({{ top: offset, behavior: 'smooth' }});
             }}
         ");
-        // بستن منو در موبایل
-        isMenuOpen = false;
-        StateHasChanged();
     }
 
     // ---- متدهای ناوبری ----
-    private void NavigateToDashboard() => NavigationManager.NavigateTo("/Dashboard", true);
-    private void NavigateToAdminDashboard() => NavigationManager.NavigateTo("/Admin", true);
-    private void NavigateToLogin() => NavigationManager.NavigateTo("/Auth", true);
-    private void Logout()
-    {
-        // در دنیای واقعی، اینجا باید توکن یا نشست را پاک کنید
-        NavigationManager.NavigateTo("/Auth/Logout", true);
-    }
 
-    // ---- متدهای UI ----
-    private void ToggleMenu() => isMenuOpen = !isMenuOpen;
 
     // ---- آکاردئون سوالات ----
     private void ToggleFaq(FaqItem item)
