@@ -1,9 +1,7 @@
 ﻿@page "/Tutorials/{Id:int}"
 @layout FrontLayout
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
-@inject ITutorialApiService TutorialService
-@inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
+@rendermode @(new InteractiveServerRenderMode(prerender: true))
+@using Markdig
 @using System.Text.RegularExpressions
 @using System.Net
 @using System.Text.Json
@@ -11,6 +9,9 @@
 @using BackEnd.Data.Infrastructure.Tutorial
 @using MyCostomProjectManagement.Helpers
 @using BackEnd.Data.Infrastructure.Tutorial.DTOs
+@inject ITutorialApiService TutorialService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <PageTitle>@seoTitle</PageTitle>
 
@@ -55,8 +56,8 @@
 
     @* ═══════════ TWITTER CARD ═══════════ *@
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@("@parsakarimidev")" />
-    <meta name="twitter:creator" content="@("@parsakarimidev")" />
+    <meta name="twitter:site" content="@TwitterHandle" />
+    <meta name="twitter:creator" content="@TwitterHandle" />
     <meta name="twitter:title" content="@seoTitle" />
     <meta name="twitter:description" content="@seoDescription" />
     <meta name="twitter:image" content="@ogImage" />
@@ -2073,6 +2074,7 @@ else
        SEO CONFIG
        ═══════════════════════════════════════════ */
     private const string BaseUrl = "https://parsakarimidev.ir";
+    private const string TwitterHandle = "@parsakarimidev";
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -2172,6 +2174,22 @@ else
         : $"{BaseUrl}/Tutorials";
 
     private string ogImage => $"{BaseUrl}/images/og/tutorial-{tutorial?.Id ?? 0}.png";
+
+    /* ═══════════════════════════════════════════
+       ✅ FIX: Markdown Renderer با Custom Containers
+       ═══════════════════════════════════════════ */
+    private string RenderMarkdown(string md)
+    {
+        if (string.IsNullOrWhiteSpace(md)) return "";
+
+        var pipeline = new MarkdownPipelineBuilder()
+            .UseAdvancedExtensions()
+            .UseCustomContainers()      // ⬅️ این خط کلیدیه — `::: summary` رو تبدیل می‌کنه
+            .UseSoftlineBreakAsHardlineBreak()
+            .Build();
+
+        return Markdown.ToHtml(md, pipeline);
+    }
 
     /* ═══════════════════════════════════════════
        HELPERS
@@ -2283,6 +2301,9 @@ else
         return JsonSerializer.Serialize(data, JsonOpts);
     }
 
+    /* ═══════════════════════════════════════════
+       ✅ FIX: حذف duplicate key `inLanguage`
+       ═══════════════════════════════════════════ */
     private string BuildCourseJsonLd()
     {
         if (tutorial == null) return "{}";
@@ -2305,7 +2326,6 @@ else
             ["educationalLevel"] = GetLevelText(tutorial.Level),
             ["teaches"] = tutorial.Subject,
             ["about"] = tutorial.Subject,
-            ["inLanguage"] = "fa-IR",
             ["hasCourseInstance"] = new Dictionary<string, object>
             {
                 ["@type"] = "CourseInstance",
@@ -2398,7 +2418,8 @@ else
 
             if (tutorial != null && !string.IsNullOrWhiteSpace(tutorial.Content))
             {
-                renderedContent = MarkdownRenderer.Render(tutorial.Content);
+                // ✅ استفاده از RenderMarkdown به‌جای MarkdownRenderer.Render
+                renderedContent = RenderMarkdown(tutorial.Content);
                 needsHighlight = true;
             }
         }

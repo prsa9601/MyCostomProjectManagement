@@ -2,6 +2,13 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
+@using BackEnd.Data.Entities.Role
+@using MyCostomProjectManagement.Facade.User
+@using MyCostomProjectManagement.Infrastructure
+@inject GetUserPermission _getUserPermission
+@inject UserAuthentication _userAuthentication
+@inject IUserFacade _userFacade
+
 <link rel="canonical" href="https://parsakarimidev.ir/" />
 
 <meta charset="UTF-8" />
@@ -282,6 +289,7 @@
             padding: 5px 0;
             white-space: nowrap;
             transition: color 0.25s ease;
+            cursor: pointer;
         }
 
 
@@ -338,6 +346,8 @@
         justify-content: center;
         gap: 8px;
         white-space: nowrap;
+        border: none;
+        cursor: pointer;
         transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
     }
 
@@ -346,6 +356,122 @@
             background: #2563eb;
             transform: translateY(-2px) scale(1.02);
             box-shadow: 0 12px 40px rgba(59, 130, 246, 0.40);
+        }
+
+
+    /* ============================================================
+           LOGIN BUTTON
+        ============================================================ */
+
+    .front-btn-login {
+        background: rgba(52, 211, 153, 0.12);
+        border: 1px solid rgba(52, 211, 153, 0.20);
+        color: #34d399;
+        padding: 8px 16px;
+        min-height: 40px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: clamp(0.72rem, 1vw, 0.9rem);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .front-btn-login:hover {
+            background: rgba(52, 211, 153, 0.22);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(52, 211, 153, 0.15);
+        }
+
+
+    /* ============================================================
+           LOGOUT BUTTON
+        ============================================================ */
+
+    .front-btn-logout {
+        background: rgba(239, 68, 68, 0.10);
+        border: 1px solid rgba(239, 68, 68, 0.20);
+        color: #ef4444;
+        padding: 8px 16px;
+        min-height: 40px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: clamp(0.72rem, 1vw, 0.9rem);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .front-btn-logout:hover {
+            background: rgba(239, 68, 68, 0.20);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.15);
+        }
+
+
+    /* ============================================================
+           DASHBOARD BUTTON
+        ============================================================ */
+
+    .front-btn-dashboard {
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.30);
+        color: #3b82f6;
+        padding: 8px 16px;
+        min-height: 40px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: clamp(0.72rem, 1vw, 0.9rem);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .front-btn-dashboard:hover {
+            background: rgba(59, 130, 246, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.20);
+        }
+
+
+    /* ============================================================
+           ADMIN BUTTON
+        ============================================================ */
+
+    .front-btn-admin {
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.30);
+        color: #a78bfa;
+        padding: 8px 16px;
+        min-height: 40px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: clamp(0.72rem, 1vw, 0.9rem);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .front-btn-admin:hover {
+            background: rgba(139, 92, 246, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.20);
         }
 
 
@@ -488,8 +614,12 @@
                 font-size: 0.75rem;
             }
 
-        .front-btn-primary {
-            padding: 7px 14px;
+        .front-btn-primary,
+        .front-btn-login,
+        .front-btn-logout,
+        .front-btn-dashboard,
+        .front-btn-admin {
+            padding: 7px 13px;
             font-size: 0.76rem;
         }
     }
@@ -564,13 +694,17 @@
 
 
         .front-nav-actions {
-            gap: 8px;
+            gap: 6px;
         }
 
 
-        .front-btn-primary {
-            min-height: 40px;
-            padding: 7px 13px;
+        .front-btn-primary,
+        .front-btn-login,
+        .front-btn-logout,
+        .front-btn-dashboard,
+        .front-btn-admin {
+            min-height: 38px;
+            padding: 6px 12px;
             font-size: 0.72rem;
         }
 
@@ -597,15 +731,23 @@
         }
 
 
-        .front-btn-primary {
-            padding: 7px 11px;
-            min-height: 38px;
+        .front-btn-primary,
+        .front-btn-login,
+        .front-btn-logout,
+        .front-btn-dashboard,
+        .front-btn-admin {
+            padding: 6px 10px;
+            min-height: 36px;
             font-size: 0.68rem;
             gap: 5px;
         }
 
 
-            .front-btn-primary i {
+            .front-btn-primary i,
+            .front-btn-login i,
+            .front-btn-logout i,
+            .front-btn-dashboard i,
+            .front-btn-admin i {
                 font-size: 0.7rem;
             }
 
@@ -657,10 +799,15 @@
         }
 
 
-        .front-btn-primary {
-            width: 40px;
-            height: 40px;
-            min-height: 40px;
+        /* مخفی کردن متن دکمه‌های navbar */
+        .front-btn-primary,
+        .front-btn-login,
+        .front-btn-logout,
+        .front-btn-dashboard,
+        .front-btn-admin {
+            width: 38px;
+            height: 38px;
+            min-height: 38px;
             padding: 0;
             border-radius: 12px;
             font-size: 0;
@@ -668,14 +815,26 @@
         }
 
 
-            .front-btn-primary i {
+            .front-btn-primary i,
+            .front-btn-login i,
+            .front-btn-logout i,
+            .front-btn-dashboard i,
+            .front-btn-admin i {
                 font-size: 0.85rem;
+            }
+
+            .front-btn-primary span,
+            .front-btn-login span,
+            .front-btn-logout span,
+            .front-btn-dashboard span,
+            .front-btn-admin span {
+                display: none;
             }
 
 
         .front-hamburger {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
         }
 
 
@@ -703,9 +862,13 @@
 
 
         .front-btn-primary,
+        .front-btn-login,
+        .front-btn-logout,
+        .front-btn-dashboard,
+        .front-btn-admin,
         .front-hamburger {
-            width: 37px;
-            height: 37px;
+            width: 35px;
+            height: 35px;
         }
 
 
@@ -876,18 +1039,72 @@
 
             <div class="front-nav-actions">
 
+                @* ==================== LOGIN / LOGOUT ==================== *@
+
+                @if (!UserIsAuthenticate)
+                {
+                    <button type="button"
+                            class="front-btn-login"
+                            @onclick="NavigateToLogin">
+
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>ورود</span>
+
+                    </button>
+                }
+                else
+                {
+                    <button type="button"
+                            class="front-btn-logout"
+                            @onclick="Logout">
+
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>خروج</span>
+
+                    </button>
+                }
+
+
+                @* ==================== DASHBOARD ==================== *@
+
+               @*  <button type="button"
+                        class="front-btn-dashboard"
+                        @onclick="NavigateToDashboard">
+
+                    <i class="fas fa-chart-pie"></i>
+                    <span>داشبورد</span>
+
+                </button>
+ *@
+
+                @* ==================== ADMIN (فقط کاربران مجاز) ==================== *@
+
+                @if (_hasAdminAccess)
+                {
+                    <button type="button"
+                            class="front-btn-admin"
+                            @onclick="NavigateToAdminDashboard">
+
+                        <i class="fas fa-user-cog"></i>
+                        <span>ادمین</span>
+
+                    </button>
+                }
+
+
+                @* ==================== BUY PACKAGE ==================== *@
+
                 <a class="front-btn-primary"
                    href="/Packages"
                    @onclick="CloseMenu">
 
                     <i class="fas fa-rocket"></i>
-
                     <span>خرید اشتراک</span>
 
                 </a>
 
 
-                <!-- HAMBURGER -->
+                @* ==================== HAMBURGER ==================== *@
 
                 <button type="button"
                         class="front-hamburger @(isMenuOpen ? "active" : "")"
@@ -990,11 +1207,88 @@
 
 @code {
 
+    /* ============================================================
+       STATE
+    ============================================================ */
+
     private bool isMenuOpen = false;
+
+    private bool _hasAdminAccess = false;
+    private bool UserIsAuthenticate = false;
 
 
     /* ============================================================
-       TOGGLE MENU
+       LIFECYCLE
+    ============================================================ */
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetUserPermission(Permissions.AccessToAdminPanel);
+        await GetUser();
+    }
+
+
+    /* ============================================================
+       PERMISSION & AUTH
+    ============================================================ */
+
+    private async Task GetUserPermission(Permissions permissions)
+    {
+        try
+        {
+            _hasAdminAccess = await _getUserPermission.CheckAccess(permissions);
+        }
+        catch
+        {
+            _hasAdminAccess = false;
+        }
+    }
+
+
+    private async Task GetUser()
+    {
+        try
+        {
+            Guid userId = await _userAuthentication.GetCurrentUserId();
+
+            if (userId == Guid.Empty)
+            {
+                UserIsAuthenticate = false;
+                return;
+            }
+
+            var user = await _userFacade.GetId(userId);
+            UserIsAuthenticate = user != null;
+        }
+        catch
+        {
+            UserIsAuthenticate = false;
+        }
+    }
+
+
+    /* ============================================================
+       NAVIGATION
+    ============================================================ */
+
+    private void NavigateToDashboard()
+        => Navigation.NavigateTo("/Dashboard", true);
+
+
+    private void NavigateToAdminDashboard()
+        => Navigation.NavigateTo("/Admin", true);
+
+
+    private void NavigateToLogin()
+        => Navigation.NavigateTo("/Auth", true);
+
+
+    private void Logout()
+        => Navigation.NavigateTo("/Auth/Logout", true);
+
+
+    /* ============================================================
+       MENU
     ============================================================ */
 
     private void ToggleMenu()
@@ -1003,10 +1297,6 @@
     }
 
 
-    /* ============================================================
-       CLOSE MENU
-    ============================================================ */
-
     private void CloseMenu()
     {
         isMenuOpen = false;
@@ -1014,46 +1304,48 @@
 
 
     /* ============================================================
-       JAVASCRIPT
+       JAVASCRIPT (Navbar Scroll Effect)
     ============================================================ */
 
-    protected override async Task OnAfterRenderAsync(
-        bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync(
-                "eval",
-                @"
-                    (() => {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync(
+                    "eval",
+                    @"
+                        (() => {
 
-                        const navbar =
-                            document.getElementById('frontNavbar');
+                            const navbar = document.getElementById('frontNavbar');
 
-                        if (!navbar)
-                            return;
+                            if (!navbar)
+                                return;
 
-                        const updateNavbar =
-                            () => {
-
+                            const updateNavbar = () => {
                                 navbar.classList.toggle(
                                     'scrolled',
                                     window.scrollY > 35
                                 );
-
                             };
 
-                        updateNavbar();
+                            updateNavbar();
 
-                        window.addEventListener(
-                            'scroll',
-                            updateNavbar,
-                            { passive: true }
-                        );
+                            window.addEventListener(
+                                'scroll',
+                                updateNavbar,
+                                { passive: true }
+                            );
 
-                    })();
-                "
-            );
+                        })();
+                    "
+                );
+            }
+            catch
+            {
+                // اگر JS در دسترس نبود، خطا را نادیده بگیر
+            }
         }
     }
 
