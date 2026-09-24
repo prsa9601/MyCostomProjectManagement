@@ -21,7 +21,7 @@ namespace BackEnd.Data.Infrastructure.Tutorial
 
         public async Task<TutorialDto?> Get(int id)
         {
-            string url = $"{UrlManagement.tutorial}{ModuleName}/{id}";
+            string url = $"{UrlManagement.tutorialTest}{ModuleName}/{id}";
 
 
             var result = await _httpClient.GetFromJsonAsync<TutorialDto>(url);
@@ -32,7 +32,7 @@ namespace BackEnd.Data.Infrastructure.Tutorial
         {
             try
             {
-                string url = $"{UrlManagement.tutorial}{ModuleName}?take={filterParam.Take}&pageId={filterParam.PageId}";
+                string url = $"{UrlManagement.tutorialTest}{ModuleName}?take={filterParam.Take}&pageId={filterParam.PageId}";
 
 
                 var result = await _httpClient.GetFromJsonAsync<TutorialFilterResult>(url);
