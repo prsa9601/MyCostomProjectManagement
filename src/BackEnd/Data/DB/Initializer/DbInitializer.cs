@@ -1,4 +1,6 @@
-﻿using BackEnd.Data.Entities.Role;
+﻿using BackEnd.Data.Entities.FAQ;
+using BackEnd.Data.Entities.Portfolio;
+using BackEnd.Data.Entities.Role;
 using BackEnd.Data.Entities.Skills;
 using BackEnd.Data.Entities.User;
 using MediatR;
@@ -171,12 +173,35 @@ namespace BackEnd.Data.DB.Initializer
                      new TechnicalSkills ( "Postman", 75, "fas fa-paper-plane", SkillTypes.Others, false)
                 };
 
-
-
+                
                 await context.TechnicalSkills.AddRangeAsync(allSkills);
 
-                await context.SaveChangesAsync();
             }
+            if (!context.FAQs.Any())
+            {
+                var allFAQ = new List<FAQ>
+                    {
+                        new FAQ ("هزینه طراحی سایت یا پروژه چقدر است؟", "هزینه دقیق پس از بررسی نیازهای شما مشخص می‌شود، اما به‌طور کلی پروژه‌ها از ۱۵ میلیون تومان شروع می‌شوند. قیمت نهایی به پیچیدگی، تعداد صفحات، و امکانات جانبی بستگی دارد. برای دریافت برآورد دقیق، فرم درخواست پروژه را پر کنید.,2", 2, true),
+                        new FAQ ("چطور می‌توانم سفارش بدم و مراحل کار چیه؟","مراحل به این صورت است:\r\n۱. شما فرم درخواست پروژه را پر می‌کنید یا پیام می‌دهید.\r\n۲. جلسه مشاوره (آنلاین یا حضوری) برای بررسی دقیق نیازها.\r\n۳. ارائه برآورد هزینه و زمان به شما.\r\n۴. عقد قرارداد و دریافت پیش‌پرداخت.\r\n۵. شروع توسعه و تحویل نسخه‌های آزمایشی.\r\n۶. تحویل نهایی و پشتیبانی یک‌ماهه.", 4,true),
+                        new FAQ ("بعد از تحویل، پشتیبانی می‌دهید؟","بله، شش ماه پشتیبانی رایگان شامل رفع باگ‌های احتمالی، آموزش کار با پنل مدیریت، و تغییرات جزئی (مثل ویرایش متن یا عکس) ارائه می‌شود. پس از آن، قرارداد نگهداری ماهانه یا ساعتی قابل تنظیم است.",1,true),
+                        new FAQ ("اگر ایده‌ای دارم ولی نمی‌دانم فنی‌اش چطور است، کمک می‌کنید؟","حتماً! من در جلسه مشاوره اولیه، ایده شما را از نظر فنی بررسی می‌کنم، نقاط قوت و ضعف آن را می‌گویم، و بهترین مسیر پیاده‌سازی را پیشنهاد می‌دهم. حتی اگر پروژه را به من نسپارید، خوشحال می‌شوم راهنمایی کنم.", 3,true)
+                    };
+            await context.FAQs.AddRangeAsync(allFAQ);
+            }
+
+            if (!context.Portfolios.Any())
+            {
+                var allPortfolio = new List<Portfolio>
+                    {
+                        new Portfolio ("فاکتور ساز","فاکتور ساز آنلاین",PortfolioCategory.Others,"https://invoice.parsakarimidev.ir"),
+                        new Portfolio ("مقاله ساز خودکار","مقاله ساز خودکار",PortfolioCategory.Others,"https://articlegenerator.parsakarimidev.ir/")
+                    };
+                await context.Portfolios.AddRangeAsync(allPortfolio);
+
+            }
+
+
+            await context.SaveChangesAsync();
             await SetSiteSetting.SiteSettingInitializeAsync(serviceProvider);
         }
     }

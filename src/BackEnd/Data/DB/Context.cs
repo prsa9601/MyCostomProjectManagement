@@ -9,6 +9,7 @@ using BackEnd.Data.Entities.Role;
 using BackEnd.Data.Entities.SiteSettings;
 using BackEnd.Data.Entities.Skills;
 using BackEnd.Data.Entities.Subscription;
+using BackEnd.Data.Entities.Tutorial;
 using BackEnd.Data.Entities.User;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,7 @@ namespace BackEnd.Data.DB
     {
         public Context(DbContextOptions<Context> options) : base(options)
         {
-            
+
         }
 
         #region DbSets
@@ -32,11 +33,12 @@ namespace BackEnd.Data.DB
         public DbSet<Portfolio> Portfolios { get; set; }
         public DbSet<FAQ> FAQs { get; set; }
         public DbSet<PageManagement> PageManagements { get; set; }
-        public DbSet<ProjectRequestV1> ProjectRequestV1{ get; set; }
-        public DbSet<Subscription> Subscriptions{ get; set; }
-        public DbSet<SubscriptionUser> SubscriptionUsers{ get; set; }
-        
-        public DbSet<Models.Logs> Logs{ get; set; }
+        public DbSet<ProjectRequestV1> ProjectRequestV1 { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<SubscriptionUser> SubscriptionUsers { get; set; }
+        public DbSet<Tutorial> Tutorials { get; set; }
+
+        public DbSet<Models.Logs> Logs { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -52,8 +54,8 @@ namespace BackEnd.Data.DB
             {
                 builder.ToTable("faq", "FAQ");
             });
-                
-                modelBuilder.Entity<Portfolio>(builder =>
+
+            modelBuilder.Entity<Portfolio>(builder =>
             {
                 builder.ToTable("Portfolios", "portfolio");
                 builder.OwnsOne(b => b.File, image =>
@@ -62,7 +64,15 @@ namespace BackEnd.Data.DB
 
                 });
             });
-                base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Tutorial>(builder =>
+            {
+                builder.ToTable("Tutorials", "tutorial");
+
+                builder.HasIndex(b => b.TutorialApiId).IsUnique();
+            });
+
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

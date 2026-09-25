@@ -11,6 +11,7 @@ using BackEnd.Core.Role.Queries.Mappers;
 using BackEnd.Core.SiteSetting.Queries.Mappers;
 using BackEnd.Core.Skills.Queries.Mappers;
 using BackEnd.Core.Subscription;
+using BackEnd.Core.Tutorial;
 using BackEnd.Core.User.Commands.Register;
 using BackEnd.Core.User.Queries.GetId;
 using BackEnd.Core.User.Queries.Mappers;
@@ -46,6 +47,7 @@ namespace BackEnd.Core
             //});
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CoreConfiguration).Assembly));
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<ITutorialService, TutorialService>();
 
             services.AddScoped<IJwtSettingsFactory, JwtSettingsFactory>();
             services.AddScoped<IHashStrategy, Sha256Hasher>();

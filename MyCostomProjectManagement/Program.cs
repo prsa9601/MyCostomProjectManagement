@@ -168,6 +168,14 @@ builder.Services.CoreConfig(builder.Configuration);
 
 builder.Services.AddHttpClient();
 var app = builder.Build();
+// اجرای خودکار Migration ها در زمان بالا آمدن برنامه
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<Context>();
+    dbContext.Database.Migrate();  // همه Migrationهای اعمال‌نشده را اجرا می‌کند
+}
+
+
 app.UseMiddleware<CustomExceptionHandler>();
 
 // Configure the HTTP request pipeline.
