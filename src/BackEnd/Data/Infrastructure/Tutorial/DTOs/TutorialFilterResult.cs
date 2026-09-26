@@ -6,4 +6,8 @@ namespace BackEnd.Data.Infrastructure.Tutorial.DTOs
     {
 
     }
+    public class TutorialsFilterResult : BaseFilter<Data.Entities.Tutorial.Tutorial, TutorialFilterParam>
+    {
+
+    }
 }

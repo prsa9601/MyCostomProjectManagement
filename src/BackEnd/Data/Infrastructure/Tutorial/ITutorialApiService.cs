@@ -7,7 +7,7 @@ namespace BackEnd.Data.Infrastructure.Tutorial
 {
     public interface ITutorialApiService
     {
-        Task<TutorialFilterResult> GetFilter(TutorialFilterParam filterParam);
+        Task<TutorialsFilterResult> GetFilter(TutorialFilterParam filterParam);
         Task<TutorialDto?> Get(int id);
     }
     public class TutorialApiService : ITutorialApiService
@@ -31,7 +31,7 @@ namespace BackEnd.Data.Infrastructure.Tutorial
             return result;
         }
 
-        public async Task<TutorialFilterResult> GetFilter(TutorialFilterParam filterParam)
+        public async Task<TutorialsFilterResult> GetFilter(TutorialFilterParam filterParam)
         {
             try
             {
@@ -40,8 +40,8 @@ namespace BackEnd.Data.Infrastructure.Tutorial
 
                 var result = await _httpClient.GetFromJsonAsync<TutorialFilterResult>(url);
 
-                await _service.AddRangeAsync(result.Data);
-                return result;
+                var tutorials = await _service.AddRangeAsync(result.Data, filterParam);
+                return tutorials;
             }
             catch (Exception e)
             {
