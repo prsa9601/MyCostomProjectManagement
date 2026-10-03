@@ -1,4 +1,5 @@
-﻿using BackEnd.Data.Entities.ContactUs;
+﻿using BackEnd.Data.Entities.Blogs;
+using BackEnd.Data.Entities.ContactUs;
 using BackEnd.Data.Entities.FAQ;
 using BackEnd.Data.Entities.Package;
 using BackEnd.Data.Entities.PageManagement;
@@ -24,6 +25,7 @@ namespace BackEnd.Data.DB
 
         #region DbSets
         public DbSet<User> Users { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
         public DbSet<ContactUs> ContactUs { get; set; }
         public DbSet<SiteSetting> SiteSettings { get; set; }
         public DbSet<Package> Packages { get; set; }

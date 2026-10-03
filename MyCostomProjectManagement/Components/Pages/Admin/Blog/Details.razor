@@ -1,0 +1,2049 @@
+﻿@page "/Admin/Blogs/Details/{Id:int}"
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject IDbContextFactory<Context> _dbFactory
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using BackEnd.Data.DB
+@using BackEnd.Data.Entities.Blogs
+@using Microsoft.EntityFrameworkCore
+@using Markdig
+
+<PageTitle>جزئیات مقاله | پنل ادمین</PageTitle>
+
+<!-- Highlight.js CSS -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+
+<!-- ============================================================
+     STYLES
+============================================================ -->
+<style>
+    .blog-details-page {
+        color: #eaeaea;
+        animation: bd-fade-in .3s ease;
+    }
+
+    @@keyframes bd-fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ============================================================
+           TOP BAR
+        ============================================================ */
+    .bd-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .bd-back {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        background: #1c1c24;
+        border: 1px solid #2a2a34;
+        color: #b8b8c0;
+        padding: .55rem 1rem;
+        border-radius: 10px;
+        font-size: .85rem;
+        cursor: pointer;
+        font-family: inherit;
+        transition: .2s;
+    }
+
+        .bd-back:hover {
+            border-color: #4dc9dd;
+            color: #4dc9dd;
+            transform: translateX(-2px);
+            box-shadow: 0 0 20px rgba(77, 201, 221, .15);
+        }
+
+    .bd-actions {
+        display: flex;
+        gap: .4rem;
+        flex-wrap: wrap;
+    }
+
+    .bd-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        padding: .55rem 1rem;
+        border-radius: 10px;
+        font-size: .85rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        font-family: inherit;
+        transition: .2s;
+    }
+
+        .bd-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+    .bd-btn-approve {
+        background: rgba(82, 183, 136, .12);
+        color: #52b788;
+        border-color: rgba(82, 183, 136, .35);
+    }
+
+        .bd-btn-approve:hover:not(:disabled) {
+            background: rgba(82, 183, 136, .22);
+            border-color: #52b788;
+            box-shadow: 0 0 20px rgba(82, 183, 136, .2);
+        }
+
+        .bd-btn-approve.is-off {
+            background: #1c1c24;
+            color: #8a8a95;
+            border-color: #2a2a34;
+        }
+
+            .bd-btn-approve.is-off:hover:not(:disabled) {
+                color: #52b788;
+                border-color: #52b788;
+            }
+
+    .bd-btn-active {
+        background: rgba(77, 201, 221, .12);
+        color: #4dc9dd;
+        border-color: rgba(77, 201, 221, .35);
+    }
+
+        .bd-btn-active:hover:not(:disabled) {
+            background: rgba(77, 201, 221, .22);
+            border-color: #4dc9dd;
+            box-shadow: 0 0 20px rgba(77, 201, 221, .2);
+        }
+
+        .bd-btn-active.is-off {
+            background: #1c1c24;
+            color: #8a8a95;
+            border-color: #2a2a34;
+        }
+
+            .bd-btn-active.is-off:hover:not(:disabled) {
+                color: #4dc9dd;
+                border-color: #4dc9dd;
+            }
+
+    .bd-btn-danger {
+        background: #1c1c24;
+        color: #8a8a95;
+        border-color: #2a2a34;
+    }
+
+        .bd-btn-danger:hover:not(:disabled) {
+            background: rgba(231, 76, 60, .12);
+            color: #e74c3c;
+            border-color: #e74c3c;
+            box-shadow: 0 0 20px rgba(231, 76, 60, .2);
+        }
+
+    .bd-btn-restore {
+        background: #1c1c24;
+        color: #8a8a95;
+        border-color: #2a2a34;
+    }
+
+        .bd-btn-restore:hover:not(:disabled) {
+            background: rgba(241, 196, 15, .12);
+            color: #f1c40f;
+            border-color: #f1c40f;
+            box-shadow: 0 0 20px rgba(241, 196, 15, .2);
+        }
+
+    /* ============================================================
+           STATE BOXES
+        ============================================================ */
+    .bd-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .75rem;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #1c1c24, #181820);
+        border: 1px solid #2a2a34;
+        border-radius: 14px;
+        color: #8a8a95;
+        text-align: center;
+    }
+
+        .bd-state i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #4dc9dd, #52b788);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: .8;
+        }
+
+        .bd-state h3 {
+            margin: 0;
+            color: #eaeaea;
+            font-size: 1.1rem;
+        }
+
+        .bd-state p {
+            margin: 0;
+            font-size: .9rem;
+        }
+
+    .bd-spinner {
+        width: 42px;
+        height: 42px;
+        border: 3px solid #2a2a34;
+        border-top-color: #4dc9dd;
+        border-right-color: #52b788;
+        border-radius: 50%;
+        animation: bd-spin .8s linear infinite;
+    }
+
+    @@keyframes bd-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ============================================================
+           GRID & CARDS
+        ============================================================ */
+    .bd-grid {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 1.25rem;
+        align-items: flex-start;
+    }
+
+    .bd-card {
+        background: #1c1c24;
+        border: 1px solid #2a2a34;
+        border-radius: 14px;
+        overflow: hidden;
+        transition: border-color .25s ease;
+    }
+
+        .bd-card:hover {
+            border-color: rgba(77, 201, 221, .2);
+        }
+
+    .bd-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #2a2a34;
+        background: linear-gradient(90deg, rgba(77, 201, 221, .04), rgba(82, 183, 136, .04));
+    }
+
+    .bd-card-title {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        font-size: .95rem;
+        font-weight: 600;
+        color: #eaeaea;
+        margin: 0;
+    }
+
+        .bd-card-title i {
+            background: linear-gradient(135deg, #4dc9dd, #52b788);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+    .bd-card-body {
+        padding: 1.25rem;
+    }
+
+    /* ============================================================
+           HERO
+        ============================================================ */
+    .bd-hero {
+        background: linear-gradient(135deg, #1c1c24 0%, #14141c 50%, #181824 100%);
+        border: 1px solid #2a2a34;
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .bd-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #4dc9dd, #52b788, #f1c40f);
+            box-shadow: 0 0 20px rgba(77, 201, 221, .4);
+        }
+
+        .bd-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(77, 201, 221, .08), transparent 70%);
+            pointer-events: none;
+        }
+
+    .bd-hero-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ffffff 0%, #b8e6ee 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0 0 .65rem 0;
+        line-height: 1.5;
+    }
+
+    .bd-hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .85rem;
+        font-size: .82rem;
+        color: #8a8a95;
+        margin-bottom: 1rem;
+    }
+
+        .bd-hero-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .bd-hero-meta i {
+            background: linear-gradient(135deg, #4dc9dd, #52b788);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+    /* ============================================================
+           TAGS
+        ============================================================ */
+    .bd-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .4rem;
+    }
+
+    .bd-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: .75rem;
+        padding: .3rem .7rem;
+        border-radius: 20px;
+        font-weight: 500;
+        border: 1px solid transparent;
+        white-space: nowrap;
+        transition: .2s;
+    }
+
+    .bd-tag-approved {
+        background: rgba(82, 183, 136, .14);
+        color: #52b788;
+        border-color: rgba(82, 183, 136, .35);
+        box-shadow: 0 0 12px rgba(82, 183, 136, .08);
+    }
+
+    .bd-tag-pending {
+        background: rgba(241, 196, 15, .14);
+        color: #f1c40f;
+        border-color: rgba(241, 196, 15, .35);
+        box-shadow: 0 0 12px rgba(241, 196, 15, .08);
+    }
+
+    .bd-tag-active {
+        background: rgba(77, 201, 221, .14);
+        color: #4dc9dd;
+        border-color: rgba(77, 201, 221, .35);
+        box-shadow: 0 0 12px rgba(77, 201, 221, .08);
+    }
+
+    .bd-tag-inactive {
+        background: rgba(138, 138, 149, .14);
+        color: #a8a8b0;
+        border-color: rgba(138, 138, 149, .35);
+    }
+
+    .bd-tag-deleted {
+        background: rgba(231, 76, 60, .14);
+        color: #ff7b6b;
+        border-color: rgba(231, 76, 60, .35);
+        box-shadow: 0 0 12px rgba(231, 76, 60, .08);
+    }
+
+    .bd-tag-useful {
+        background: rgba(155, 89, 182, .14);
+        color: #c084fc;
+        border-color: rgba(155, 89, 182, .35);
+        box-shadow: 0 0 12px rgba(155, 89, 182, .08);
+    }
+
+    .bd-tag-neutral {
+        background: rgba(77, 201, 221, .14);
+        color: #4dc9dd;
+        border-color: rgba(77, 201, 221, .35);
+    }
+
+    /* ============================================================
+           INFO LIST
+        ============================================================ */
+    .bd-info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bd-info-item {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: .75rem;
+        padding: .7rem 0;
+        border-bottom: 1px dashed #2a2a34;
+        font-size: .85rem;
+    }
+
+        .bd-info-item:last-child {
+            border-bottom: none;
+        }
+
+    .bd-info-label {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        color: #8a8a95;
+        flex-shrink: 0;
+    }
+
+        .bd-info-label i {
+            color: #4dc9dd;
+            width: 14px;
+            text-align: center;
+            font-size: .8rem;
+        }
+
+    .bd-info-value {
+        color: #eaeaea;
+        font-weight: 500;
+        text-align: left;
+        word-break: break-word;
+    }
+
+        .bd-info-value.mono {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: .8rem;
+            color: #4dc9dd;
+        }
+
+    /* ============================================================
+           MARKDOWN
+        ============================================================ */
+    .bd-markdown {
+        color: #d0d0d8;
+        font-size: .95rem;
+        line-height: 1.9;
+        word-wrap: break-word;
+        word-break: break-word;
+    }
+
+        .bd-markdown > *:first-child {
+            margin-top: 0;
+        }
+
+        .bd-markdown > *:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Headings with colorful underlines */
+        .bd-markdown h1,
+        .bd-markdown h2,
+        .bd-markdown h3,
+        .bd-markdown h4,
+        .bd-markdown h5,
+        .bd-markdown h6 {
+            font-weight: 700;
+            line-height: 1.4;
+            margin: 1.75em 0 .75em;
+            padding-bottom: .35em;
+            scroll-margin-top: 90px;
+            position: relative;
+        }
+
+        .bd-markdown h1 {
+            font-size: 1.75rem;
+            color: #ffffff;
+            background: linear-gradient(135deg, #ffffff 0%, #4dc9dd 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(90deg, #4dc9dd, #52b788, transparent) 1;
+        }
+
+        .bd-markdown h2 {
+            font-size: 1.45rem;
+            color: #7edce8;
+            padding-inline-start: .6rem;
+            border-inline-start: 3px solid #4dc9dd;
+        }
+
+        .bd-markdown h3 {
+            font-size: 1.2rem;
+            color: #9be3a8;
+            padding-inline-start: .5rem;
+            border-inline-start: 3px solid #52b788;
+        }
+
+        .bd-markdown h4 {
+            font-size: 1.05rem;
+            color: #f5d76e;
+        }
+
+        .bd-markdown h5 {
+            font-size: .95rem;
+            color: #d4b8f0;
+        }
+
+        .bd-markdown h6 {
+            font-size: .88rem;
+            color: #8a8a95;
+        }
+
+        /* Paragraph */
+        .bd-markdown p {
+            margin: 0 0 1em;
+            color: #d0d0d8;
+        }
+
+        /* Links */
+        .bd-markdown a {
+            color: #4dc9dd;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(77, 201, 221, .5);
+            transition: .2s;
+            padding-inline-end: 2px;
+        }
+
+            .bd-markdown a:hover {
+                color: #7edce8;
+                border-bottom-style: solid;
+                text-shadow: 0 0 12px rgba(77, 201, 221, .4);
+            }
+
+        /* Lists */
+        .bd-markdown ul,
+        .bd-markdown ol {
+            margin: 0 0 1em;
+            padding-inline-start: 1.75em;
+        }
+
+        .bd-markdown li {
+            margin-bottom: .35em;
+            color: #d0d0d8;
+        }
+
+            .bd-markdown li > ul,
+            .bd-markdown li > ol {
+                margin-top: .35em;
+                margin-bottom: .35em;
+            }
+
+        .bd-markdown ul li::marker {
+            color: #4dc9dd;
+        }
+
+        .bd-markdown ol li::marker {
+            color: #52b788;
+            font-weight: 600;
+        }
+
+        /* ============================================================
+           INLINE CODE
+        ============================================================ */
+        .bd-markdown code {
+            direction: ltr;
+            unicode-bidi: embed;
+            background: linear-gradient(135deg, #1f1a2e, #1a1a24);
+            color: #ffa657;
+            padding: .18em .5em;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: .88em;
+            border: 1px solid rgba(255, 166, 87, .25);
+            text-align: left;
+            font-weight: 500;
+        }
+
+        /* ============================================================
+           CODE BLOCK
+        ============================================================ */
+        .bd-markdown pre {
+            position: relative;
+            direction: ltr !important;
+            text-align: left !important;
+            unicode-bidi: embed;
+            background: #0d0d13;
+            border: 1px solid #2a2a34;
+            border-radius: 10px;
+            padding: 2.85rem 1.15rem 1rem 1.15rem;
+            margin: 0 0 1.4em;
+            overflow-x: auto;
+            line-height: 1.65;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            transition: border-color .25s ease, box-shadow .25s ease;
+        }
+
+            .bd-markdown pre:hover {
+                border-color: rgba(77, 201, 221, .35);
+                box-shadow: 0 0 0 1px rgba(77, 201, 221, .08), 0 8px 30px rgba(77, 201, 221, .06);
+            }
+
+            .bd-markdown pre code {
+                direction: ltr !important;
+                text-align: left !important;
+                unicode-bidi: embed;
+                background: transparent !important;
+                color: #e0e0e8;
+                padding: 0 !important;
+                border: none !important;
+                font-size: .85rem;
+                display: block;
+                white-space: pre;
+                font-family: inherit;
+                border-radius: 0;
+                tab-size: 4;
+                font-weight: 400;
+            }
+
+                /* Override highlight.js theme background */
+                .bd-markdown pre code.hljs {
+                    background: transparent !important;
+                    padding: 0 !important;
+                }
+
+            /* Custom scrollbar */
+            .bd-markdown pre::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            .bd-markdown pre::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .bd-markdown pre::-webkit-scrollbar-thumb {
+                background: #2a2a34;
+                border-radius: 4px;
+            }
+
+                .bd-markdown pre::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(90deg, #4dc9dd, #52b788);
+                }
+
+        /* ============================================================
+           COPY BUTTON & LANGUAGE BADGE
+        ============================================================ */
+        .bd-markdown .bd-copy-btn {
+            position: absolute;
+            top: .5rem;
+            right: .5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .3rem .7rem;
+            background: #1c1c24;
+            border: 1px solid #2a2a34;
+            color: #b8b8c0;
+            border-radius: 6px;
+            font-size: .72rem;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            cursor: pointer;
+            transition: all .2s;
+            z-index: 3;
+            line-height: 1;
+            direction: rtl;
+        }
+
+            .bd-markdown .bd-copy-btn:hover {
+                background: #2a2a34;
+                color: #4dc9dd;
+                border-color: #4dc9dd;
+                box-shadow: 0 0 15px rgba(77, 201, 221, .3);
+            }
+
+            .bd-markdown .bd-copy-btn.copied {
+                background: rgba(82, 183, 136, .15);
+                color: #52b788;
+                border-color: #52b788;
+                box-shadow: 0 0 15px rgba(82, 183, 136, .3);
+            }
+
+            .bd-markdown .bd-copy-btn i {
+                font-size: .72rem;
+            }
+
+        .bd-markdown .bd-lang-badge {
+            position: absolute;
+            top: .5rem;
+            left: .5rem;
+            padding: .25rem .6rem;
+            background: #1c1c24;
+            border: 1px solid #2a2a34;
+            color: #8a8a95;
+            border-radius: 6px;
+            font-size: .65rem;
+            font-family: 'Consolas', monospace;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            z-index: 3;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+            /* Colorful language badges */
+            .bd-markdown .bd-lang-badge[data-lang="csharp"],
+            .bd-markdown .bd-lang-badge[data-lang="cs"] {
+                color: #9b59b6;
+                border-color: rgba(155, 89, 182, .4);
+                background: rgba(155, 89, 182, .1);
+            }
+
+            .bd-markdown .bd-lang-badge[data-lang="javascript"],
+            .bd-markdown .bd-lang-badge[data-lang="js"] {
+                color: #f1c40f;
+                border-color: rgba(241, 196, 15, .4);
+                background: rgba(241, 196, 15, .1);
+            }
+
+            .bd-markdown .bd-lang-badge[data-lang="typescript"],
+            .bd-markdown .bd-lang-badge[data-lang="ts"] {
+                color: #3498db;
+                border-color: rgba(52, 152, 219, .4);
+                background: rgba(52, 152, 219, .1);
+            }
+
+            .bd-markdown .bd-lang-badge[data-lang="python"],
+            .bd-markdown .bd-lang-badge[data-lang="py"] {
+                color: #4dc9dd;
+                border-color: rgba(77, 201, 221, .4);
+                background: rgba(77, 201, 221, .1);
+            }
+
+            .bd-markdown .bd-lang-badge[data-lang="sql"] {
+                color: #e74c3c;
+                border-color: rgba(231, 76, 60, .4);
+                background: rgba(231, 76, 60, .1);
+            }
+
+            .bd-markdown .bd-lang-badge[data-lang="html"] {
+                color: #e67e22;
+                border-color: rgba(230, 126, 34, .4);
+                background: rgba(230, 126, 34, .1);
+            }
+
+            .bd-markdown .bd-lang-badge[data-lang="css"] {
+                color: #3498db;
+                border-color: rgba(52, 152, 219, .4);
+                background: rgba(52, 152, 219, .1);
+            }
+
+            .bd-markdown .bd-lang-badge[data-lang="json"] {
+                color: #f39c12;
+                border-color: rgba(243, 156, 18, .4);
+                background: rgba(243, 156, 18, .1);
+            }
+
+            .bd-markdown .bd-lang-badge[data-lang="bash"],
+            .bd-markdown .bd-lang-badge[data-lang="shell"] {
+                color: #52b788;
+                border-color: rgba(82, 183, 136, .4);
+                background: rgba(82, 183, 136, .1);
+            }
+
+            .bd-markdown .bd-lang-badge[data-lang="xml"] {
+                color: #e67e22;
+                border-color: rgba(230, 126, 34, .4);
+                background: rgba(230, 126, 34, .1);
+            }
+
+        /* ============================================================
+           BLOCKQUOTE
+        ============================================================ */
+        .bd-markdown blockquote {
+            border-inline-start: 4px solid;
+            border-image: linear-gradient(180deg, #4dc9dd, #52b788) 1;
+            background: linear-gradient(90deg, rgba(77, 201, 221, .06), transparent);
+            padding: .85rem 1.15rem;
+            margin: 0 0 1.2em;
+            border-radius: 0 10px 10px 0;
+            color: #b8c8d0;
+            font-style: italic;
+            position: relative;
+        }
+
+            .bd-markdown blockquote::before {
+                content: '"';
+                position: absolute;
+                top: -8px;
+                inset-inline-start: 8px;
+                font-size: 3rem;
+                color: rgba(77, 201, 221, .15);
+                font-family: Georgia, serif;
+                line-height: 1;
+            }
+
+            .bd-markdown blockquote > *:last-child {
+                margin-bottom: 0;
+            }
+
+        /* ============================================================
+           HORIZONTAL RULE
+        ============================================================ */
+        .bd-markdown hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #4dc9dd, #52b788, transparent);
+            margin: 2em 0;
+            opacity: .5;
+        }
+
+        /* ============================================================
+           TABLES
+        ============================================================ */
+        .bd-markdown table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 1.4em;
+            font-size: .88rem;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #2a2a34;
+        }
+
+        .bd-markdown thead {
+            background: linear-gradient(135deg, rgba(77, 201, 221, .12), rgba(82, 183, 136, .08));
+        }
+
+        .bd-markdown th {
+            color: #7edce8;
+            text-align: right;
+            padding: .75rem .95rem;
+            font-weight: 700;
+            border-bottom: 2px solid rgba(77, 201, 221, .3);
+            font-size: .85rem;
+        }
+
+        .bd-markdown td {
+            padding: .6rem .95rem;
+            border-bottom: 1px solid #2a2a34;
+            color: #d0d0d8;
+        }
+
+        .bd-markdown tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, .015);
+        }
+
+        .bd-markdown tbody tr:hover {
+            background: rgba(77, 201, 221, .05);
+        }
+
+        .bd-markdown tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ============================================================
+           IMAGES, STRONG, EM
+        ============================================================ */
+        .bd-markdown img {
+            max-width: 100%;
+            border-radius: 10px;
+            border: 1px solid #2a2a34;
+            margin: .5em 0;
+            transition: transform .3s ease, box-shadow .3s ease;
+        }
+
+            .bd-markdown img:hover {
+                transform: scale(1.01);
+                box-shadow: 0 8px 30px rgba(0, 0, 0, .4);
+            }
+
+        .bd-markdown strong {
+            color: #ffffff;
+            font-weight: 700;
+            text-shadow: 0 0 8px rgba(255, 255, 255, .1);
+        }
+
+        .bd-markdown em {
+            color: #c084fc;
+            font-style: italic;
+        }
+
+        /* Task list */
+        .bd-markdown input[type="checkbox"] {
+            margin-inline-end: .4em;
+            accent-color: #4dc9dd;
+        }
+
+        /* Keyboard key */
+        .bd-markdown kbd {
+            background: #14141c;
+            border: 1px solid #2a2a34;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: .15em .5em;
+            font-size: .8em;
+            color: #f1c40f;
+            font-family: 'Consolas', monospace;
+        }
+
+    /* ============================================================
+           SCORE
+        ============================================================ */
+    .bd-content-empty {
+        color: #8a8a95;
+        font-style: italic;
+        font-size: .9rem;
+        text-align: center;
+        padding: 2rem 0;
+    }
+
+    .bd-score-box {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, #14141c, #1a1a24);
+        border: 1px solid #2a2a34;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .bd-score-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        font-weight: 800;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+        .bd-score-circle::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, .12);
+        }
+
+    .bd-score-high {
+        background: linear-gradient(135deg, rgba(82, 183, 136, .2), rgba(82, 183, 136, .1));
+        color: #52b788;
+        box-shadow: 0 0 30px rgba(82, 183, 136, .25);
+    }
+
+    .bd-score-mid {
+        background: linear-gradient(135deg, rgba(241, 196, 15, .2), rgba(241, 196, 15, .1));
+        color: #f1c40f;
+        box-shadow: 0 0 30px rgba(241, 196, 15, .25);
+    }
+
+    .bd-score-low {
+        background: linear-gradient(135deg, rgba(231, 76, 60, .2), rgba(231, 76, 60, .1));
+        color: #ff7b6b;
+        box-shadow: 0 0 30px rgba(231, 76, 60, .25);
+    }
+
+    .bd-score-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .bd-score-label {
+        font-size: .78rem;
+        color: #8a8a95;
+        margin-bottom: .25rem;
+    }
+
+    .bd-score-value {
+        font-size: 1rem;
+        color: #eaeaea;
+        font-weight: 600;
+    }
+
+    .bd-score-max {
+        font-size: .8rem;
+        color: #8a8a95;
+        font-weight: 400;
+    }
+
+    .bd-reason {
+        background: linear-gradient(90deg, #14141c, #181822);
+        border-right: 3px solid;
+        border-image: linear-gradient(180deg, #4dc9dd, #52b788) 1;
+        padding: .85rem 1rem;
+        border-radius: 0 10px 10px 0;
+        color: #d0d0d8;
+        font-size: .88rem;
+        line-height: 1.8;
+        white-space: pre-wrap;
+    }
+
+    /* ============================================================
+           MODAL
+        ============================================================ */
+    .bd-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .65);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+        animation: bd-fade-in .2s;
+    }
+
+    .bd-modal {
+        background: #1c1c24;
+        border: 1px solid #2a2a34;
+        border-radius: 16px;
+        max-width: 420px;
+        width: 100%;
+        padding: 2rem 1.5rem 1.25rem;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+        animation: bd-slide-up .25s;
+    }
+
+    @@keyframes bd-slide-up {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .bd-modal-icon {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 1rem;
+        background: linear-gradient(135deg, rgba(231, 76, 60, .2), rgba(231, 76, 60, .08));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ff7b6b;
+        font-size: 1.8rem;
+        box-shadow: 0 0 30px rgba(231, 76, 60, .2);
+    }
+
+    .bd-modal h3 {
+        margin: 0 0 .5rem;
+        color: #eaeaea;
+        font-size: 1.15rem;
+    }
+
+    .bd-modal p {
+        color: #8a8a95;
+        font-size: .9rem;
+        line-height: 1.7;
+        margin: 0 0 1.5rem;
+    }
+
+    .bd-modal strong {
+        color: #eaeaea;
+    }
+
+    .bd-modal-actions {
+        display: flex;
+        gap: .6rem;
+        justify-content: center;
+    }
+
+    /* ============================================================
+           TOAST
+        ============================================================ */
+    .bd-toast {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: .85rem 1.4rem;
+        border-radius: 12px;
+        font-size: .9rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        z-index: 2000;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+        animation: bd-toast-in .3s;
+    }
+
+    @@keyframes bd-toast-in {
+        from {
+            transform: translate(-50%, 20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
+
+    .bd-toast-success {
+        background: linear-gradient(135deg, #52b788, #3d9970);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(82, 183, 136, .35);
+    }
+
+    .bd-toast-error {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(231, 76, 60, .35);
+    }
+
+    /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+    @@media (max-width: 992px) {
+        .bd-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .bd-hero-title {
+            font-size: 1.2rem;
+        }
+
+        .bd-topbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .bd-actions {
+            justify-content: center;
+        }
+
+        .bd-back {
+            justify-content: center;
+        }
+
+        .bd-markdown h1 {
+            font-size: 1.4rem;
+        }
+
+        .bd-markdown h2 {
+            font-size: 1.2rem;
+        }
+
+        .bd-markdown h3 {
+            font-size: 1.05rem;
+        }
+    }
+</style>
+
+<!-- ============================================================
+     PAGE
+============================================================ -->
+<div class="blog-details-page">
+
+    @if (isLoading)
+    {
+        <div class="bd-state">
+            <div class="bd-spinner"></div>
+            <h3>در حال بارگذاری...</h3>
+        </div>
+    }
+    else if (blog == null)
+    {
+        <div class="bd-state">
+            <i class="fas fa-newspaper"></i>
+            <h3>مقاله یافت نشد</h3>
+            <p>
+                مقاله‌ای با شناسه
+                <strong>@(Id)</strong>
+                در پایگاه داده موجود نیست.
+            </p>
+            <button class="bd-back" style="margin-top:1rem;"
+                    @onclick="GoBack">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت به لیست
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Top Bar -->
+        <div class="bd-topbar">
+            <button class="bd-back" @onclick="GoBack" disabled="@isProcessing">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت به لیست
+            </button>
+
+            <div class="bd-actions">
+                <button class="bd-btn @(blog.IsApproved ? "bd-btn-approve" : "bd-btn-approve is-off")"
+                        @onclick="ToggleApproved"
+                        disabled="@isProcessing">
+                    <i class="fas @(blog.IsApproved ? "fa-check-circle" : "fa-circle-notch")"></i>
+                    @(blog.IsApproved ? "لغو تأیید" : "تأیید مقاله")
+                </button>
+
+                <button class="bd-btn @(blog.IsActive ? "bd-btn-active" : "bd-btn-active is-off")"
+                        @onclick="ToggleActive"
+                        disabled="@isProcessing">
+                    <i class="fas @(blog.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                    @(blog.IsActive ? "غیرفعال کردن" : "فعال کردن")
+                </button>
+
+                @if (blog.IsDelete)
+                {
+                    <button class="bd-btn bd-btn-restore"
+                            @onclick="RestoreBlog"
+                            disabled="@isProcessing">
+                        <i class="fas fa-undo"></i>
+                        بازگردانی
+                    </button>
+                }
+                else
+                {
+                    <button class="bd-btn bd-btn-danger"
+                            @onclick="() => showDeleteModal = true"
+                            disabled="@isProcessing">
+                        <i class="fas fa-trash"></i>
+                        حذف
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="bd-hero">
+            <h1 class="bd-hero-title">@blog.Title</h1>
+
+            <div class="bd-hero-meta">
+                <span>
+                    <i class="fas fa-hashtag"></i>
+                    @(string.IsNullOrWhiteSpace(blog.Topic) ? "بدون موضوع" : blog.Topic)
+                </span>
+                <span>
+                    <i class="far fa-calendar-alt"></i>
+                    @ToPersianDate(blog.CreatedAt == default ? blog.CreationDate : blog.CreatedAt)
+                </span>
+                <span>
+                    <i class="fas fa-fingerprint"></i>
+                    API ID: @blog.BlogApiId
+                </span>
+            </div>
+
+            <div class="bd-tags">
+                @if (!string.IsNullOrWhiteSpace(blog.Mode))
+                {
+                    <span class="bd-tag bd-tag-neutral">
+                        <i class="fas fa-cog"></i> @blog.Mode
+                    </span>
+                }
+
+                <span class="bd-tag @GetScoreTagClass(blog.Score)">
+                    <i class="fas fa-star"></i> امتیاز: @blog.Score از ۱۰
+                </span>
+
+                @if (blog.IsUseful)
+                {
+                    <span class="bd-tag bd-tag-useful">
+                        <i class="fas fa-thumbs-up"></i> مفید
+                    </span>
+                }
+
+                <span class="bd-tag @GetSeoTagClass(blog.SeoStatus)">
+                    <i class="fas fa-search"></i> سئو: @GetSeoText(blog.SeoStatus)
+                </span>
+
+                <span class="bd-tag @(blog.IsApproved ? "bd-tag-approved" : "bd-tag-pending")">
+                    <i class="fas @(blog.IsApproved ? "fa-check-circle" : "fa-clock")"></i>
+                    @(blog.IsApproved ? "تأیید شده" : "در انتظار")
+                </span>
+
+                <span class="bd-tag @(blog.IsActive ? "bd-tag-active" : "bd-tag-inactive")">
+                    <i class="fas @(blog.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                    @(blog.IsActive ? "فعال" : "غیرفعال")
+                </span>
+
+                @if (blog.IsDelete)
+                {
+                    <span class="bd-tag bd-tag-deleted">
+                        <i class="fas fa-trash"></i> حذف‌شده
+                    </span>
+                }
+            </div>
+        </div>
+
+        <!-- Grid -->
+        <div class="bd-grid">
+
+            <!-- LEFT: Main Content -->
+            <div>
+
+                <!-- Score Card -->
+                <div class="bd-card" style="margin-bottom:1.25rem;">
+                    <div class="bd-card-header">
+                        <h2 class="bd-card-title">
+                            <i class="fas fa-star"></i>
+                            ارزیابی و امتیاز
+                        </h2>
+                    </div>
+                    <div class="bd-card-body">
+                        <div class="bd-score-box">
+                            <div class="bd-score-circle @GetScoreCircleClass(blog.Score)">
+                                @blog.Score
+                            </div>
+                            <div class="bd-score-info">
+                                <div class="bd-score-label">امتیاز کلی</div>
+                                <div class="bd-score-value">
+                                    @GetScoreLabel(blog.Score)
+                                    <span class="bd-score-max">(@blog.Score از ۱۰)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(blog.ScoreReason))
+                        {
+                            <div class="bd-reason">
+                                <strong style="color:#4dc9dd;">
+                                    <i class="fas fa-info-circle"></i>
+                                    دلیل امتیاز:
+                                </strong>
+                                <br />
+                                @blog.ScoreReason
+                            </div>
+                        }
+                        else
+                        {
+                            <p style="color:#8a8a95; font-size:.85rem; margin:0; font-style:italic;">
+                                دلیلی برای امتیاز ثبت نشده است.
+                            </p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Content Card (Markdown) -->
+                <div class="bd-card">
+                    <div class="bd-card-header">
+                        <h2 class="bd-card-title">
+                            <i class="fas fa-file-alt"></i>
+                            محتوای مقاله
+                        </h2>
+                        <span style="font-size:.75rem; color:#8a8a95;">
+                            @(blog.Content?.Length ?? 0) کاراکتر
+                        </span>
+                    </div>
+                    <div class="bd-card-body">
+                        @if (string.IsNullOrWhiteSpace(blog.Content))
+                        {
+                            <div class="bd-content-empty">
+                                <i class="fas fa-inbox" style="display:block; font-size:2rem; margin-bottom:.75rem; opacity:.4;"></i>
+                                محتوایی ثبت نشده است.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="bd-markdown">
+                                @((MarkupString)RenderMarkdown(blog.Content))
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT: Sidebar -->
+            <div>
+
+                <div class="bd-card" style="margin-bottom:1.25rem;">
+                    <div class="bd-card-header">
+                        <h2 class="bd-card-title">
+                            <i class="fas fa-info-circle"></i>
+                            اطلاعات
+                        </h2>
+                    </div>
+                    <div class="bd-card-body" style="padding:.6rem 1.25rem;">
+                        <ul class="bd-info-list">
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-fingerprint"></i>
+                                    شناسه API
+                                </span>
+                                <span class="bd-info-value mono">@blog.BlogApiId</span>
+                            </li>
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-key"></i>
+                                    شناسه داخلی
+                                </span>
+                                <span class="bd-info-value mono" title="@blog.Id">
+                                    @ShortenGuid(blog.Id)
+                                </span>
+                            </li>
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-cog"></i>
+                                    حالت
+                                </span>
+                                <span class="bd-info-value">
+                                    @(string.IsNullOrWhiteSpace(blog.Mode) ? "—" : blog.Mode)
+                                </span>
+                            </li>
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-star"></i>
+                                    امتیاز
+                                </span>
+                                <span class="bd-info-value">
+                                    @blog.Score از ۱۰
+                                </span>
+                            </li>
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-search"></i>
+                                    وضعیت سئو
+                                </span>
+                                <span class="bd-info-value">@GetSeoText(blog.SeoStatus)</span>
+                            </li>
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    مفید
+                                </span>
+                                <span class="bd-info-value">
+                                    @(blog.IsUseful ? "بله" : "خیر")
+                                </span>
+                            </li>
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="far fa-calendar-alt"></i>
+                                    تاریخ ایجاد
+                                </span>
+                                <span class="bd-info-value">
+                                    @ToPersianDate(blog.CreatedAt == default ? blog.CreationDate : blog.CreatedAt)
+                                </span>
+                            </li>
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-clock"></i>
+                                    تاریخ ثبت در سیستم
+                                </span>
+                                <span class="bd-info-value">
+                                    @ToPersianDate(blog.CreationDate)
+                                </span>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bd-card">
+                    <div class="bd-card-header">
+                        <h2 class="bd-card-title">
+                            <i class="fas fa-shield-alt"></i>
+                            وضعیت
+                        </h2>
+                    </div>
+                    <div class="bd-card-body" style="padding:.6rem 1.25rem;">
+                        <ul class="bd-info-list">
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-check-circle"></i>
+                                    تأیید
+                                </span>
+                                <span class="bd-info-value">
+                                    <span class="bd-tag @(blog.IsApproved ? "bd-tag-approved" : "bd-tag-pending")">
+                                        @(blog.IsApproved ? "تأیید شده" : "در انتظار")
+                                    </span>
+                                </span>
+                            </li>
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-toggle-on"></i>
+                                    فعال
+                                </span>
+                                <span class="bd-info-value">
+                                    <span class="bd-tag @(blog.IsActive ? "bd-tag-active" : "bd-tag-inactive")">
+                                        @(blog.IsActive ? "فعال" : "غیرفعال")
+                                    </span>
+                                </span>
+                            </li>
+
+                            <li class="bd-info-item">
+                                <span class="bd-info-label">
+                                    <i class="fas fa-trash"></i>
+                                    حذف
+                                </span>
+                                <span class="bd-info-value">
+                                    <span class="bd-tag @(blog.IsDelete ? "bd-tag-deleted" : "bd-tag-approved")">
+                                        @(blog.IsDelete ? "حذف‌شده" : "سالم")
+                                    </span>
+                                </span>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- DELETE MODAL -->
+    @if (showDeleteModal && blog != null)
+    {
+        <div class="bd-modal-overlay" @onclick="() => showDeleteModal = false">
+            <div class="bd-modal" @onclick:stopPropagation="true">
+                <div class="bd-modal-icon">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h3>حذف مقاله</h3>
+                <p>
+                    آیا از حذف مقاله
+                    <strong>«@blog.Title»</strong>
+                    اطمینان دارید؟<br />
+                    این عمل قابل بازگشت است (Soft Delete).
+                </p>
+                <div class="bd-modal-actions">
+                    <button class="bd-btn"
+                            style="background:#2a2a34; color:#eaeaea;"
+                            @onclick="() => showDeleteModal = false"
+                            disabled="@isProcessing">
+                        انصراف
+                    </button>
+                    <button class="bd-btn"
+                            style="background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff;"
+                            @onclick="ConfirmDelete"
+                            disabled="@isProcessing">
+                        @if (isProcessing)
+                        {
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>در حال حذف...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-trash"></i>
+                            <span>حذف کن</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- TOAST -->
+    @if (!string.IsNullOrEmpty(toastMessage))
+    {
+        <div class="bd-toast @(toastIsError ? "bd-toast-error" : "bd-toast-success")">
+            <i class="fas @(toastIsError ? "fa-exclamation-circle" : "fa-check-circle")"></i>
+            @toastMessage
+        </div>
+    }
+
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Blog? blog;
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private bool showDeleteModal = false;
+
+    private string toastMessage = "";
+    private bool toastIsError = false;
+    private System.Threading.Timer? toastTimer;
+
+    private bool _jsReady = false;
+    private bool _needsCodeEnhance = false;
+
+    private static readonly MarkdownPipeline MdPipeline =
+        new MarkdownPipelineBuilder()
+            .UseAdvancedExtensions()
+            .UseSoftlineBreakAsHardlineBreak()
+            .Build();
+
+    // ============================================================
+    // JS: Highlight + Copy + Language Badge
+    // ============================================================
+    private const string CodeEnhanceJs = """
+        (function () {
+            // ---- بارگذاری highlight.js فقط یک بار ----
+            if (!window.__hljsLoaded) {
+                window.__hljsLoaded = true;
+                var s1 = document.createElement('script');
+                s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+                s1.onload = function () {
+                    // زبان‌های رایج
+                    var langs = ['csharp','javascript','typescript','python','sql','xml','json','bash','css','plaintext'];
+                    var loaded = 0;
+                    langs.forEach(function (l) {
+                        if (l === 'plaintext') return;
+                        var s = document.createElement('script');
+                        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/' + l + '.min.js';
+                        s.onload = s.onerror = function () {
+                            loaded++;
+                            if (loaded === langs.length - 1) window.__hljsReady = true;
+                        };
+                        document.head.appendChild(s);
+                    });
+                };
+                document.head.appendChild(s1);
+            }
+
+            // ---- تابع اصلی: تزئین کد بلاک‌ها ----
+            window.__bdEnhanceCodeBlocks = function () {
+                var pres = document.querySelectorAll('.bd-markdown pre');
+                pres.forEach(function (pre) {
+                    if (pre.getAttribute('data-enhanced') === '1') return;
+                    pre.setAttribute('data-enhanced', '1');
+
+                    var code = pre.querySelector('code');
+                    var lang = '';
+                    if (code && code.className) {
+                        var m = code.className.match(/language-([A-Za-z0-9_+-]+)/);
+                        if (m) lang = m[1].toLowerCase();
+                    }
+
+                    // ---- Language badge ----
+                    if (lang) {
+                        var badge = document.createElement('span');
+                        badge.className = 'bd-lang-badge';
+                        badge.setAttribute('data-lang', lang);
+                        badge.textContent = lang === 'csharp' ? 'C#' : lang;
+                        pre.appendChild(badge);
+                    }
+
+                    // ---- Copy button ----
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'bd-copy-btn';
+                    btn.setAttribute('aria-label', 'کپی کد');
+                    btn.innerHTML = '<i class="fas fa-copy"></i><span>کپی</span>';
+
+                    btn.addEventListener('click', function () {
+                        var codeEl = pre.querySelector('code');
+                        var text = codeEl ? codeEl.textContent : pre.textContent;
+
+                        var finish = function (ok) {
+                            if (ok) {
+                                btn.classList.add('copied');
+                                btn.innerHTML = '<i class="fas fa-check"></i><span>کپی شد!</span>';
+                            } else {
+                                btn.innerHTML = '<i class="fas fa-times"></i><span>خطا</span>';
+                            }
+                            setTimeout(function () {
+                                btn.classList.remove('copied');
+                                btn.innerHTML = '<i class="fas fa-copy"></i><span>کپی</span>';
+                            }, 2000);
+                        };
+
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(text)
+                                .then(function () { finish(true); })
+                                .catch(function () { finish(false); });
+                        } else {
+                            try {
+                                var ta = document.createElement('textarea');
+                                ta.value = text;
+                                ta.style.position = 'fixed';
+                                ta.style.top = '-9999px';
+                                document.body.appendChild(ta);
+                                ta.focus();
+                                ta.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(ta);
+                                finish(true);
+                            } catch (e) { finish(false); }
+                        }
+                    });
+
+                    pre.appendChild(btn);
+                });
+
+                // ---- اعمال highlight ----
+                var applyHl = function () {
+                    if (typeof hljs === 'undefined') return;
+                    document.querySelectorAll('.bd-markdown pre code').forEach(function (el) {
+                        if (el.getAttribute('data-highlighted') === '1') return;
+                        try {
+                            hljs.highlightElement(el);
+                            el.setAttribute('data-highlighted', '1');
+                        } catch (e) { /* ignore */ }
+                    });
+                };
+
+                if (typeof hljs !== 'undefined') {
+                    applyHl();
+                } else {
+                    // منتظر بمان تا اسکریپت‌ها لود شوند
+                    var tries = 0;
+                    var iv = setInterval(function () {
+                        tries++;
+                        if (typeof hljs !== 'undefined' || tries > 40) {
+                            clearInterval(iv);
+                            applyHl();
+                        }
+                    }, 100);
+                }
+            };
+        })();
+        """;
+
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadBlog();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_jsReady)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("eval", CodeEnhanceJs);
+                _jsReady = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[BlogDetails] JS init error: {ex.Message}");
+                return;
+            }
+        }
+
+        if (_needsCodeEnhance)
+        {
+            _needsCodeEnhance = false;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("__bdEnhanceCodeBlocks");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[BlogDetails] Enhance error: {ex.Message}");
+            }
+        }
+    }
+
+    // ============================================================
+    // DATA
+    // ============================================================
+    private async Task LoadBlog()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            blog = await db.Blogs.AsNoTracking()
+                                 .FirstOrDefaultAsync(x => x.BlogApiId == Id);
+
+            if (blog != null)
+                _needsCodeEnhance = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BlogDetails] Load error: {ex.Message}");
+            blog = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    // ============================================================
+    // MARKDOWN RENDER
+    // ============================================================
+    private static string RenderMarkdown(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return "";
+        try
+        {
+            return Markdown.ToHtml(content, MdPipeline);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BlogDetails] Markdown error: {ex.Message}");
+            return $"<pre>{System.Net.WebUtility.HtmlEncode(content)}</pre>";
+        }
+    }
+
+    // ============================================================
+    // ACTIONS
+    // ============================================================
+    private async Task ToggleApproved()
+    {
+        if (blog == null || isProcessing) return;
+
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Blogs.FirstOrDefaultAsync(x => x.Id == blog.Id);
+            if (entity == null) return;
+
+            entity.IsApproved = !entity.IsApproved;
+
+            if (!entity.IsApproved && entity.IsActive)
+                entity.IsActive = false;
+
+            await db.SaveChangesAsync();
+
+            ShowToast(entity.IsApproved ? "مقاله تأیید شد" : "تأیید مقاله لغو شد");
+            await LoadBlog();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BlogDetails] ToggleApproved error: {ex.Message}");
+            ShowToast("خطا در تغییر وضعیت تأیید", true);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleActive()
+    {
+        if (blog == null || isProcessing) return;
+
+        if (!blog.IsActive && !blog.IsApproved)
+        {
+            ShowToast("ابتدا باید مقاله را تأیید کنید", true);
+            return;
+        }
+
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Blogs.FirstOrDefaultAsync(x => x.Id == blog.Id);
+            if (entity == null) return;
+
+            entity.IsActive = !entity.IsActive;
+            await db.SaveChangesAsync();
+
+            ShowToast(entity.IsActive ? "مقاله فعال شد" : "مقاله غیرفعال شد");
+            await LoadBlog();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BlogDetails] ToggleActive error: {ex.Message}");
+            ShowToast("خطا در تغییر وضعیت", true);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (blog == null || isProcessing) return;
+
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Blogs.FirstOrDefaultAsync(x => x.Id == blog.Id);
+            if (entity != null)
+            {
+                entity.IsDelete = true;
+                entity.IsActive = false;
+                await db.SaveChangesAsync();
+            }
+
+            showDeleteModal = false;
+            ShowToast("مقاله با موفقیت حذف شد");
+            await LoadBlog();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BlogDetails] Delete error: {ex.Message}");
+            ShowToast("خطا در حذف مقاله", true);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RestoreBlog()
+    {
+        if (blog == null || isProcessing) return;
+
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Blogs.FirstOrDefaultAsync(x => x.Id == blog.Id);
+            if (entity == null) return;
+
+            entity.IsDelete = false;
+            await db.SaveChangesAsync();
+
+            ShowToast("مقاله با موفقیت بازگردانی شد");
+            await LoadBlog();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BlogDetails] Restore error: {ex.Message}");
+            ShowToast("خطا در بازگردانی مقاله", true);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/Admin/Blogs");
+
+    private void ShowToast(string message, bool isError = false)
+    {
+        toastMessage = message;
+        toastIsError = isError;
+        StateHasChanged();
+
+        toastTimer?.Dispose();
+        toastTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                toastMessage = "";
+                StateHasChanged();
+            });
+        }, null, 3000, System.Threading.Timeout.Infinite);
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    private static string GetSeoTagClass(string? seo) => seo?.ToLower() switch
+    {
+        "approved" => "bd-tag-approved",
+        "pending" => "bd-tag-pending",
+        "rejected" => "bd-tag-deleted",
+        _ => "bd-tag-inactive"
+    };
+
+    private static string GetSeoText(string? seo) => seo?.ToLower() switch
+    {
+        "approved" => "تأیید شده",
+        "pending" => "در انتظار",
+        "rejected" => "رد شده",
+        _ => "بدون وضعیت"
+    };
+
+    private static string GetScoreTagClass(int score) => score switch
+    {
+        >= 8 => "bd-tag-approved",
+        >= 5 => "bd-tag-pending",
+        _ => "bd-tag-deleted"
+    };
+
+    private static string GetScoreCircleClass(int score) => score switch
+    {
+        >= 8 => "bd-score-high",
+        >= 5 => "bd-score-mid",
+        _ => "bd-score-low"
+    };
+
+    private static string GetScoreLabel(int score) => score switch
+    {
+        >= 9 => "عالی",
+        >= 7 => "خوب",
+        >= 5 => "متوسط",
+        >= 3 => "ضعیف",
+        _ => "خیلی ضعیف"
+    };
+
+    private static string ShortenGuid(Guid id)
+    {
+        var s = id.ToString();
+        return s.Length > 12 ? s[..8] + "…" : s;
+    }
+
+    private static string ToPersianDate(DateTime dt)
+    {
+        try
+        {
+            var pc = new System.Globalization.PersianCalendar();
+            return $"{pc.GetYear(dt):0000}/{pc.GetMonth(dt):00}/{pc.GetDayOfMonth(dt):00}";
+        }
+        catch
+        {
+            return dt.ToString("yyyy/MM/dd");
+        }
+    }
+}

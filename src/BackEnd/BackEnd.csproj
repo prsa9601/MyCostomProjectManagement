@@ -23,11 +23,9 @@
     <Folder Include="Core\User\Commands\Edit\" />
     <Folder Include="Data\DB\Migrations\" />
     <Folder Include="Data\Entities\ApiProducts\Repository\" />
-    <Folder Include="Data\Entities\Blogs\" />
     <Folder Include="Data\Entities\PurchaseReport\" />
     <Folder Include="Data\Entities\Package\Repository\" />
     <Folder Include="Data\Entities\Projects\Repository\" />
-    <Folder Include="Data\Infrastructure\Blog\" />
     <Folder Include="Infrastructure\InternalAPIs\" />
     <Folder Include="Infrastructure\Repositories\ApiProduct\" />
     <Folder Include="Infrastructure\Repositories\Project\" />

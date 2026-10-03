@@ -1,0 +1,840 @@
+﻿@page "/Blogs"
+@layout FrontLayout
+@rendermode InteractiveServer
+@inject IBlogApiService BlogApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using BackEnd.Data.Infrastructure.Blog
+@using BackEnd.Data.Infrastructure.Blog.DTOs
+@using BackEnd.Data.Entities.Blogs
+
+<PageTitle>مقالات | محمد پارسا کریمی</PageTitle>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<style>
+    /* ============================================================
+                   BLOG LIST — هماهنگ با Home
+                ============================================================ */
+
+    /* ----- HERO ----- */
+    .hero {
+        padding: 160px 0 80px;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: rgba(59,130,246,0.12);
+        padding: 6px 22px;
+        border-radius: 40px;
+        font-size: 0.8rem;
+        color: #3b82f6;
+        border: 1px solid rgba(59,130,246,0.15);
+        margin-bottom: 28px;
+        backdrop-filter: blur(4px);
+    }
+
+    .hero h1 {
+        font-size: clamp(2.2rem, 7vw, 4rem);
+        font-weight: 900;
+        line-height: 1.15;
+        margin-bottom: 20px;
+        background: linear-gradient(to left, #f0f4ff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+    .hero p {
+        font-size: 1.15rem;
+        max-width: 720px;
+        margin: 0 auto;
+        color: #b8c4d6;
+    }
+
+    /* ----- SEARCH ----- */
+    .search-wrapper {
+        max-width: 620px;
+        margin: 0 auto 32px;
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 16px 56px 16px 20px;
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 50px;
+        color: #eef2f8;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: 0.25s;
+        outline: none;
+    }
+
+        .search-input::placeholder {
+            color: #64748b;
+        }
+
+        .search-input:focus {
+            border-color: #3b82f6;
+            background: rgba(59,130,246,0.05);
+            box-shadow: 0 0 30px rgba(59,130,246,0.05);
+        }
+
+    .search-icon {
+        position: absolute;
+        right: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #3b82f6;
+        font-size: 1.05rem;
+        pointer-events: none;
+    }
+
+    /* ----- FILTER PILLS ----- */
+    .filter-pills {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 48px;
+    }
+
+    .filter-pill {
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.06);
+        color: #b8c4d6;
+        padding: 9px 20px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.3s;
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+        .filter-pill:hover {
+            border-color: #3b82f6;
+            color: #fff;
+            background: rgba(59,130,246,0.08);
+            transform: translateY(-2px);
+        }
+
+        .filter-pill.active {
+            background: rgba(59,130,246,0.15);
+            border-color: #3b82f6;
+            color: #3b82f6;
+            box-shadow: 0 0 30px rgba(59,130,246,0.15);
+        }
+
+    /* ----- GRID ----- */
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 32px;
+        margin-bottom: 48px;
+    }
+
+    /* ----- CARD ----- */
+    .blog-item {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 24px;
+        overflow: hidden;
+        transition: 0.35s;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+        .blog-item::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: 26px;
+            background: conic-gradient(from 0deg, #3b82f6, #a78bfa, #3b82f6);
+            background-size: 300% 300%;
+            animation: rotateBorder 12s linear infinite;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .blog-item:hover::before {
+            opacity: 0.5;
+        }
+
+        .blog-item:hover {
+            transform: translateY(-8px);
+            border-color: transparent;
+            box-shadow: 0 20px 50px rgba(59,130,246,0.08);
+        }
+
+    /* Card Header */
+    .blog-header {
+        padding: 26px 26px 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .blog-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        background: rgba(59,130,246,0.1);
+        color: #3b82f6;
+        transition: 0.35s;
+    }
+
+    .blog-item:hover .blog-icon {
+        transform: scale(1.1) rotate(-6deg);
+        background: rgba(59,130,246,0.2);
+    }
+
+    .blog-head-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .blog-item h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.5;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: color 0.3s;
+    }
+
+    .blog-item:hover h3 {
+        color: #60a5fa;
+    }
+
+    .blog-topic {
+        font-size: 0.78rem;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .blog-topic i {
+            color: #3b82f6;
+            font-size: 0.7rem;
+        }
+
+    /* Tags */
+    .blog-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 16px 26px 0;
+    }
+
+    .blog-tag {
+        font-size: 0.7rem;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid transparent;
+    }
+
+    .tag-mode {
+        background: rgba(59,130,246,0.1);
+        color: #60a5fa;
+        border-color: rgba(59,130,246,0.2);
+    }
+
+    .tag-useful {
+        background: rgba(16,185,129,0.12);
+        color: #34d399;
+        border-color: rgba(16,185,129,0.15);
+    }
+
+    .tag-score {
+        background: rgba(139,92,246,0.1);
+        color: #a78bfa;
+        border-color: rgba(139,92,246,0.2);
+    }
+
+    .tag-approved {
+        background: rgba(16,185,129,0.12);
+        color: #34d399;
+        border-color: rgba(16,185,129,0.15);
+    }
+
+    .tag-pending {
+        background: rgba(251,146,60,0.12);
+        color: #fb923c;
+        border-color: rgba(251,146,60,0.15);
+    }
+
+    .tag-rejected {
+        background: rgba(239,68,68,0.12);
+        color: #f87171;
+        border-color: rgba(239,68,68,0.15);
+    }
+
+    /* Score */
+    .blog-score {
+        padding: 16px 26px 0;
+    }
+
+    .blog-score-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-bottom: 6px;
+    }
+
+    .blog-score-value {
+        color: #3b82f6;
+        font-weight: 700;
+        font-family: 'Fira Code', monospace;
+    }
+
+    .blog-score-bar {
+        height: 5px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 100px;
+        overflow: hidden;
+    }
+
+    .blog-score-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        border-radius: 100px;
+        box-shadow: 0 0 12px rgba(59,130,246,0.3);
+        transition: width 0.5s;
+    }
+
+    /* Footer */
+    .blog-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 22px 26px;
+        margin-top: auto;
+        gap: 10px;
+    }
+
+    .blog-date {
+        font-size: 0.72rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .blog-open {
+        background: rgba(59,130,246,0.1);
+        border: 1px solid rgba(59,130,246,0.2);
+        color: #3b82f6;
+        padding: 6px 14px;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.3s;
+    }
+
+    .blog-item:hover .blog-open {
+        background: #3b82f6;
+        color: #fff;
+        border-color: #3b82f6;
+        box-shadow: 0 6px 20px rgba(59,130,246,0.3);
+    }
+
+    /* ----- EMPTY/LOADING ----- */
+    .state-box {
+        text-align: center;
+        padding: 80px 20px;
+        background: rgba(255,255,255,0.02);
+        border: 1px dashed rgba(255,255,255,0.08);
+        border-radius: 24px;
+        color: #94a3b8;
+    }
+
+        .state-box i {
+            font-size: 3rem;
+            color: rgba(59,130,246,0.3);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .state-box h3 {
+            font-size: 1.2rem;
+            color: #eef2f8;
+            margin-bottom: 8px;
+        }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(59,130,246,0.15);
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin: 0 auto 20px;
+        box-shadow: 0 0 40px rgba(59,130,246,0.15);
+    }
+
+    /* ----- PAGINATION ----- */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+        .pagination button {
+            min-width: 42px;
+            height: 42px;
+            padding: 0 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.03);
+            color: #b8c4d6;
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            backdrop-filter: blur(6px);
+        }
+
+            .pagination button:hover:not(:disabled):not(.active) {
+                background: rgba(59,130,246,0.1);
+                border-color: rgba(59,130,246,0.3);
+                color: #fff;
+                transform: translateY(-2px);
+            }
+
+            .pagination button.active {
+                background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                border-color: transparent;
+                color: #fff;
+                font-weight: 700;
+                box-shadow: 0 8px 25px rgba(59,130,246,0.3);
+            }
+
+            .pagination button:disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
+            }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes rotateBorder {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        100% {
+            background-position: 400% 50%;
+        }
+    }
+
+    /* ----- RESPONSIVE ----- */
+    @@media (max-width: 768px) {
+        .hero {
+            padding: 130px 0 50px;
+        }
+
+        .blog-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .filter-pills {
+            gap: 6px;
+        }
+
+        .filter-pill {
+            font-size: 0.75rem;
+            padding: 6px 14px;
+        }
+    }
+</style>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-badge"><i class="fas fa-feather-alt"></i> مقالات و یادداشت‌های فنی</div>
+        <h1>
+            مقالات <span>تخصصی</span>
+        </h1>
+        <p>مجموعه مقالات، تحلیل‌ها و یادداشت‌های فنی در حوزه برنامه‌نویسی، سئو و توسعه نرم‌افزار</p>
+    </div>
+</section>
+
+<!-- ===== MAIN ===== -->
+<section class="section" id="blogs">
+    <div class="container">
+
+        <!-- Search -->
+        <div class="search-wrapper fade-up">
+            <input type="text"
+                   class="search-input"
+                   placeholder="جستجو در مقالات..."
+                   @bind="searchTerm"
+                   @bind:event="oninput"
+                   @onkeydown="OnSearchKeyDown" />
+            <i class="fas fa-search search-icon"></i>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="filter-pills fade-up">
+            <button class="filter-pill @(selectedFilter == null ? "active" : "")" @onclick="() => FilterBy(null)">
+                <i class="fas fa-th"></i> همه
+            </button>
+            <button class="filter-pill @(selectedFilter == "useful" ? "active" : "")" @onclick='() => FilterBy("useful")'>
+                <i class="fas fa-check-circle"></i> مفید
+            </button>
+            <button class="filter-pill @(selectedFilter == "approved" ? "active" : "")" @onclick='() => FilterBy("approved")'>
+                <i class="fas fa-shield-alt"></i> تأیید شده
+            </button>
+            <button class="filter-pill @(selectedFilter == "pending" ? "active" : "")" @onclick='() => FilterBy("pending")'>
+                <i class="fas fa-clock"></i> در انتظار
+            </button>
+        </div>
+
+        <!-- Content -->
+        @if (isLoading)
+        {
+            <div class="state-box">
+                <div class="spinner"></div>
+                <h3>در حال بارگذاری...</h3>
+            </div>
+        }
+        else if (blogs == null || blogs.Count == 0)
+        {
+            <div class="state-box">
+                <i class="fas fa-inbox"></i>
+                <h3>مقاله‌ای یافت نشد</h3>
+                <p>سعی کنید عبارت دیگری را جستجو کنید یا فیلترها را تغییر دهید.</p>
+            </div>
+        }
+        else
+        {
+            <div class="blog-grid">
+                @foreach (var b in blogs)
+                {
+                    if (b == null) continue;
+
+                    <a class="blog-item fade-up" href="@($"/Blogs/{b.BlogApiId}")">
+                        <div class="blog-header">
+                            <div class="blog-icon">
+                                <i class="fas fa-newspaper"></i>
+                            </div>
+                            <div class="blog-head-info">
+                                <h3 title="@(b.Title ?? "")">@(b.Title ?? "بدون عنوان")</h3>
+                                @if (!string.IsNullOrWhiteSpace(b.Topic))
+                                {
+                                    <div class="blog-topic">
+                                        <i class="fas fa-hashtag"></i>
+                                        @b.Topic
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="blog-tags">
+                            @if (!string.IsNullOrWhiteSpace(b.Mode))
+                            {
+                                <span class="blog-tag tag-mode"><i class="fas fa-cog"></i> @b.Mode</span>
+                            }
+                            @if (b.IsUseful)
+                            {
+                                <span class="blog-tag tag-useful"><i class="fas fa-star"></i> مفید</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(b.SeoStatus))
+                            {
+                                <span class="blog-tag @GetSeoStatusClass(b.SeoStatus)">
+                                    <i class="fas @GetSeoStatusIcon(b.SeoStatus)"></i>
+                                    @GetSeoStatusText(b.SeoStatus)
+                                </span>
+                            }
+                        </div>
+
+                        @if (b.Score > 0)
+                        {
+                            <div class="blog-score">
+                                <div class="blog-score-head">
+                                    <span><i class="fas fa-chart-line"></i> امتیاز</span>
+                                    <span class="blog-score-value">@b.Score/10</span>
+                                </div>
+                                <div class="blog-score-bar">
+                                    <div class="blog-score-fill" style="width: @(Math.Min(b.Score * 10, 100))%"></div>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="blog-footer">
+                            <div class="blog-date">
+                                <i class="far fa-calendar-alt"></i>
+                                @ToPersianDate(b.CreatedAt)
+                            </div>
+                            <span class="blog-open">
+                                مطالعه
+                                <i class="fas fa-arrow-left"></i>
+                            </span>
+                        </div>
+                    </a>
+                }
+            </div>
+
+            @if (totalPages > 1)
+            {
+                <div class="pagination fade-up">
+                    <button @onclick="() => GoToPage(currentPage - 1)" disabled="@(currentPage <= 1)">
+                        <i class="fas fa-chevron-right"></i> قبلی
+                    </button>
+
+                    @foreach (var p in GetPageNumbers())
+                    {
+                        var pageNum = p;
+                        <button class="@(pageNum == currentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">
+                            @pageNum
+                        </button>
+                    }
+
+                    <button @onclick="() => GoToPage(currentPage + 1)" disabled="@(currentPage >= totalPages)">
+                        بعدی <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+            }
+        }
+
+    </div>
+</section>
+
+@code {
+    private const int PageSize = 9;
+
+    private List<Blog> blogs = new();
+    private int currentPage = 1;
+    private int totalCount = 0;
+    private int totalPages = 0;
+    private bool isLoading = true;
+
+    private string searchTerm = "";
+    private string? selectedFilter = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+            await LoadBlogs();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsInterop();
+            await LoadBlogs();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadBlogs()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var filter = new BlogFilterParam
+            {
+                PageId = currentPage,
+                Take = PageSize,
+                IsAdmin = false
+            };
+
+            var result = await BlogApiService.GetFilter(filter);
+
+            var rawData = result?.Data;
+            if (rawData == null)
+            {
+                blogs = new List<Blog>();
+                totalCount = 0;
+                totalPages = 0;
+                return;
+            }
+
+            blogs = rawData.Where(x => x != null).ToList();
+
+            if (result?.FilterParams != null && result.FilterParams.Take > 0)
+                totalCount = result.FilterParams.PageId * result.FilterParams.Take;
+            else
+                totalCount = blogs.Count;
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.ToLower();
+                blogs = blogs.Where(b => (b.Title ?? "").ToLower().Contains(term) ||
+                                         (b.Topic ?? "").ToLower().Contains(term)).ToList();
+            }
+
+            if (selectedFilter == "useful")
+                blogs = blogs.Where(b => b.IsUseful).ToList();
+
+            if (selectedFilter == "approved")
+                blogs = blogs.Where(b => string.Equals(b.SeoStatus, "approved", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (selectedFilter == "pending")
+                blogs = blogs.Where(b => string.Equals(b.SeoStatus, "pending", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Blog] Load error: {ex.Message}");
+            blogs = new List<Blog>();
+            totalCount = 0;
+            totalPages = 0;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task FilterBy(string? filter)
+    {
+        selectedFilter = filter;
+        currentPage = 1;
+        await LoadBlogs();
+        await InitializeJsInterop();
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            currentPage = 1;
+            await LoadBlogs();
+            await InitializeJsInterop();
+        }
+    }
+
+    private async Task GoToPage(int page)
+    {
+        if (page < 1 || (totalPages > 0 && page > totalPages)) return;
+        currentPage = page;
+        await LoadBlogs();
+        try { await JSRuntime.InvokeVoidAsync("eval", "window.scrollTo({ top: 0, behavior: 'smooth' })"); } catch { }
+        await InitializeJsInterop();
+    }
+
+    private IEnumerable<int> GetPageNumbers()
+    {
+        if (totalPages <= 1) { yield return 1; yield break; }
+        const int maxVisible = 5;
+        var start = Math.Max(1, currentPage - maxVisible / 2);
+        var end = Math.Min(totalPages, start + maxVisible - 1);
+        if (end - start + 1 < maxVisible) start = Math.Max(1, end - maxVisible + 1);
+        for (int i = start; i <= end; i++) yield return i;
+    }
+
+    private async Task InitializeJsInterop()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                const fadeElements = document.querySelectorAll('.fade-up');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) entry.target.classList.add('visible');
+                    });
+                }, { threshold: 0.15, rootMargin: '0px 0px -30px 0px' });
+                fadeElements.forEach(el => observer.observe(el));
+                setTimeout(() => {
+                    fadeElements.forEach(el => {
+                        if (el.getBoundingClientRect().top < window.innerHeight)
+                            el.classList.add('visible');
+                    });
+                }, 400);
+            ");
+        }
+        catch { }
+    }
+
+    private static string GetSeoStatusClass(string? status) => status?.ToLower() switch
+    {
+        "approved" => "tag-approved",
+        "pending" => "tag-pending",
+        "rejected" => "tag-rejected",
+        _ => "tag-mode"
+    };
+
+    private static string GetSeoStatusIcon(string? status) => status?.ToLower() switch
+    {
+        "approved" => "fa-check-circle",
+        "pending" => "fa-clock",
+        "rejected" => "fa-times-circle",
+        _ => "fa-circle"
+    };
+
+    private static string GetSeoStatusText(string? status) => status?.ToLower() switch
+    {
+        "approved" => "تأیید شده",
+        "pending" => "در انتظار",
+        "rejected" => "رد شده",
+        _ => status ?? ""
+    };
+
+    private static string ToPersianDate(DateTime dt)
+    {
+        try
+        {
+            var pc = new System.Globalization.PersianCalendar();
+            return $"{pc.GetYear(dt):0000}/{pc.GetMonth(dt):00}/{pc.GetDayOfMonth(dt):00}";
+        }
+        catch { return dt.ToString("yyyy/MM/dd"); }
+    }
+}

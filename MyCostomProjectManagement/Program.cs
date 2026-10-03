@@ -1,8 +1,10 @@
 using BackEnd.Core;
 using BackEnd.Core.Abstraction.Jwt.Interfaces;
+using BackEnd.Core.Blog;
 using BackEnd.Data.DB;
 using BackEnd.Data.DB.Initializer;
 using BackEnd.Data.Entities.Role;
+using BackEnd.Data.Infrastructure.Blog;
 using BackEnd.Data.Infrastructure.Tutorial;
 using BackEnd.Infrastructure.Auth.Jwt;
 using BackEnd.Infrastructure.Auth.Middlewares;
@@ -154,6 +156,8 @@ builder.Services.AddScoped<ITutorialApiService, TutorialApiService>();
 builder.Services.AddScoped<UserAuthentication>();
 builder.Services.AddScoped<PageManagementUtil>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<IBlogService, BlogService>();
+builder.Services.AddScoped<IBlogApiService, BlogApiService>();
 builder.Services.AddScoped<CircuitHandler, CustomCircuitHandler>();
 
 builder.Services.AddHttpContextAccessor();

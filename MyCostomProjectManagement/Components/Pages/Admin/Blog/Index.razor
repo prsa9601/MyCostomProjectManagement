@@ -1,1475 +1,1755 @@
-﻿@page "/Admin/Blog"
-@using MyCostomProjectManagement.Infrastructure
+﻿@page "/Admin/Blogs"
 @layout AdminLayout
 @rendermode InteractiveServer
+@inject IBlogApiService BlogApiService
+@inject NavigationManager Navigation
+@inject IDbContextFactory<Context> _dbFactory
 @inject IJSRuntime JSRuntime
-@inject NavigationManager NavigationManager
-@inject JsAlertService _alertService
+@using BackEnd.Data.DB
+@using BackEnd.Data.Entities.Blogs
+@using BackEnd.Data.Infrastructure.Blog
+@using BackEnd.Data.Infrastructure.Blog.DTOs
+@using Microsoft.EntityFrameworkCore
 
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>مدیریت وبلاگ | پنل ادمین</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<PageTitle>مدیریت مقالات | پنل ادمین</PageTitle>
 
+<!-- ============================================================
+     STYLES
+============================================================ -->
 <style>
-    /* ============================================================
-           BLOG MANAGEMENT PAGE
-        ============================================================ */
-
-    .page-header {
+    /* ---------- Header ---------- */
+    .blogs-page .tutorials-header {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
         flex-wrap: wrap;
-        gap: 16px;
-        margin-bottom: 32px;
-        padding-top: 20px;
     }
 
-        .page-header h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-            .page-header h1 i {
-                color: #e8a838;
-            }
-
-        .page-header .subtitle {
-            color: rgba(232, 240, 241, 0.5);
-            font-size: 0.9rem;
-            margin-top: 4px;
-        }
-
-        .page-header .actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #e8a838, #d4952e);
-        color: #fff;
-        padding: 9px 24px;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        transition: all 0.35s ease;
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
-        font-family: inherit;
-    }
-
-        .btn-primary:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
-        }
-
-    .btn-outline {
-        background: transparent;
-        border: 1.5px solid rgba(255, 255, 255, 0.1);
-        color: #eef2f8;
-        padding: 8px 22px;
-        border-radius: 40px;
-        font-weight: 500;
-        font-size: 0.85rem;
-        transition: all 0.35s ease;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-family: inherit;
-        text-decoration: none;
-    }
-
-        .btn-outline:hover {
-            border-color: #e8a838;
-            color: #fff;
-            background: rgba(232, 168, 56, 0.04);
-            transform: translateY(-2px);
-        }
-
-    .btn-success {
-        background: linear-gradient(135deg, #52b788, #409f73);
-        color: #fff;
-        padding: 8px 22px;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        transition: all 0.35s ease;
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.12);
-        font-family: inherit;
-    }
-
-        .btn-success:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 32px rgba(82, 183, 136, 0.2);
-        }
-
-    .btn-danger {
-        background: linear-gradient(135deg, #dc3545, #b02a37);
-        color: #fff;
-        padding: 8px 22px;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        transition: all 0.35s ease;
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 4px 20px rgba(220, 53, 69, 0.12);
-        font-family: inherit;
-    }
-
-        .btn-danger:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 32px rgba(220, 53, 69, 0.2);
-        }
-
-    .btn-icon-sm {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        background: rgba(255, 255, 255, 0.02);
-        color: rgba(232, 240, 241, 0.2);
-        transition: all 0.35s ease;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-    }
-
-        .btn-icon-sm:hover {
-            border-color: rgba(232, 168, 56, 0.06);
-            color: #e8f0f1;
-            background: rgba(232, 168, 56, 0.02);
-            transform: scale(1.05);
-        }
-
-        .btn-icon-sm.edit:hover {
-            border-color: rgba(82, 183, 136, 0.06);
-            color: #52b788;
-            background: rgba(82, 183, 136, 0.02);
-        }
-
-        .btn-icon-sm.delete:hover {
-            border-color: rgba(220, 53, 69, 0.06);
-            color: #dc3545;
-            background: rgba(220, 53, 69, 0.02);
-        }
-
-        .btn-icon-sm.view:hover {
-            border-color: rgba(59, 130, 246, 0.06);
-            color: #3b82f6;
-            background: rgba(59, 130, 246, 0.02);
-        }
-
-    /* ===== STATS ROW ===== */
-    .stats-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 16px;
-        margin-bottom: 32px;
-    }
-
-    .stat-mini {
-        padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: 14px;
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        transition: all 0.3s ease;
-    }
-
-        .stat-mini:hover {
-            transform: translateY(-3px);
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(232, 168, 56, 0.06);
-        }
-
-        .stat-mini i {
+        .blogs-page .tutorials-header h1 {
             font-size: 1.6rem;
-            color: #e8a838;
-            opacity: 0.5;
-            width: 40px;
-            text-align: center;
-        }
-
-        .stat-mini .info .number {
-            font-size: 1.4rem;
             font-weight: 700;
-            color: #ffffff;
-            line-height: 1.2;
-        }
-
-        .stat-mini .info .label {
-            font-size: 0.75rem;
-            color: rgba(232, 240, 241, 0.3);
-        }
-
-    /* ===== FILTER BAR ===== */
-    .filter-bar {
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-bottom: 32px;
-        padding: 16px 24px;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        align-items: center;
-    }
-
-        .filter-bar .search-box {
-            flex: 1;
-            min-width: 200px;
+            color: #eaeaea;
             display: flex;
             align-items: center;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            padding: 0 16px;
-            transition: all 0.35s ease;
+            gap: .6rem;
+            margin: 0;
         }
 
-            .filter-bar .search-box:focus-within {
-                border-color: #e8a838;
-                background: rgba(255, 255, 255, 0.04);
-                box-shadow: 0 0 20px rgba(232, 168, 56, 0.02);
+            .blogs-page .tutorials-header h1 .fa-newspaper {
+                color: #4dc9dd;
             }
 
-            .filter-bar .search-box input {
-                background: transparent;
-                border: none;
-                padding: 12px 12px;
-                color: #e8f0f1;
-                font-size: 0.9rem;
-                width: 100%;
-                outline: none;
-            }
-
-                .filter-bar .search-box input::placeholder {
-                    color: rgba(232, 240, 241, 0.3);
-                }
-
-            .filter-bar .search-box i {
-                color: rgba(232, 240, 241, 0.2);
-                font-size: 0.9rem;
-            }
-
-        .filter-bar .filter-group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-            .filter-bar .filter-group .filter-btn {
-                padding: 8px 18px;
-                border-radius: 40px;
-                border: 1px solid rgba(255, 255, 255, 0.04);
-                background: rgba(255, 255, 255, 0.02);
-                color: rgba(232, 240, 241, 0.4);
-                font-size: 0.8rem;
-                font-weight: 500;
-                transition: all 0.35s ease;
-                cursor: pointer;
-            }
-
-                .filter-bar .filter-group .filter-btn:hover {
-                    border-color: rgba(232, 168, 56, 0.1);
-                    color: #e8f0f1;
-                }
-
-                .filter-bar .filter-group .filter-btn.active {
-                    background: rgba(232, 168, 56, 0.08);
-                    border-color: rgba(232, 168, 56, 0.1);
-                    color: #e8a838;
-                }
-
-    /* ===== BLOG TABLE ===== */
-    .table-wrapper {
-        overflow-x: auto;
-        margin-bottom: 20px;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.03);
-        border-radius: 16px;
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        padding: 4px;
+    .blogs-page .badge-count {
+        background: rgba(77, 201, 221, .15);
+        color: #4dc9dd;
+        padding: .25rem .7rem;
+        border-radius: 20px;
+        font-size: .8rem;
+        font-weight: 500;
+        margin-inline-start: .5rem;
     }
 
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.9rem;
+    .blogs-page .btn-add {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        background: linear-gradient(135deg, #4dc9dd, #3aa8bd);
+        color: #fff;
+        border: none;
+        padding: .6rem 1.1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: .9rem;
+        cursor: pointer;
+        transition: .2s;
+        box-shadow: 0 4px 12px rgba(77, 201, 221, .25);
     }
 
-        .data-table thead th {
-            text-align: right;
-            padding: 14px 18px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            color: #94a3b8;
-            font-weight: 500;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
+        .blogs-page .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(77, 201, 221, .35);
         }
 
-        .data-table tbody td {
-            padding: 12px 18px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-            vertical-align: middle;
+    /* ---------- Filters ---------- */
+    .blogs-page .filters-bar {
+        display: flex;
+        gap: .75rem;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 1rem;
+        background: #1c1c24;
+        border: 1px solid #2a2a34;
+        border-radius: 14px;
+        margin-bottom: 1.5rem;
+    }
+
+    .blogs-page .filter-input {
+        flex: 1;
+        min-width: 200px;
+        background: #14141c;
+        border: 1px solid #2a2a34;
+        color: #eaeaea;
+        padding: .6rem 1rem;
+        border-radius: 10px;
+        font-size: .9rem;
+        outline: none;
+        transition: .2s;
+        font-family: inherit;
+    }
+
+        .blogs-page .filter-input:focus {
+            border-color: #4dc9dd;
+            box-shadow: 0 0 0 3px rgba(77, 201, 221, .15);
         }
 
-        .data-table tbody tr:hover {
-            background: rgba(255, 255, 255, 0.02);
+    .blogs-page .filter-select {
+        background: #14141c;
+        border: 1px solid #2a2a34;
+        color: #eaeaea;
+        padding: .6rem 1rem;
+        border-radius: 10px;
+        font-size: .9rem;
+        outline: none;
+        cursor: pointer;
+        font-family: inherit;
+        min-width: 130px;
+        transition: .2s;
+    }
+
+        .blogs-page .filter-select:focus {
+            border-color: #4dc9dd;
         }
 
-        .data-table .post-title {
-            color: #e8edf5;
-            font-weight: 500;
+    .blogs-page .btn-search {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        background: #2a2a34;
+        color: #eaeaea;
+        border: 1px solid #353540;
+        padding: .6rem 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: .85rem;
+        font-family: inherit;
+        transition: .2s;
+    }
+
+        .blogs-page .btn-search:hover {
+            background: #353540;
+            border-color: #4dc9dd;
+            color: #4dc9dd;
         }
 
-        .data-table .post-excerpt {
-            color: #94a3b8;
-            font-size: 0.8rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            max-width: 200px;
-        }
-
-        .data-table .status-badge {
-            font-size: 0.65rem;
-            padding: 3px 12px;
-            border-radius: 30px;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-            .data-table .status-badge.published {
-                background: rgba(82, 183, 136, 0.06);
-                color: #52b788;
-                border: 1px solid rgba(82, 183, 136, 0.02);
-            }
-
-            .data-table .status-badge.draft {
-                background: rgba(232, 168, 56, 0.06);
-                color: #e8a838;
-                border: 1px solid rgba(232, 168, 56, 0.02);
-            }
-
-        .data-table .lang-badge {
-            font-size: 0.6rem;
-            padding: 2px 10px;
-            border-radius: 30px;
-            font-weight: 500;
-        }
-
-            .data-table .lang-badge.fa {
-                background: rgba(59, 130, 246, 0.06);
-                color: #3b82f6;
-                border: 1px solid rgba(59, 130, 246, 0.02);
-            }
-
-            .data-table .lang-badge.en {
-                background: rgba(139, 92, 246, 0.06);
-                color: #a78bfa;
-                border: 1px solid rgba(139, 92, 246, 0.02);
-            }
-
-        .data-table .actions-cell {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-        }
-
-    /* ============================================================
-           MODAL (Add/Edit Post)
-        ============================================================ */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        z-index: 9999;
-        display: none;
+    /* ---------- State Box ---------- */
+    .blogs-page .state-box {
+        display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        animation: fadeIn 0.3s ease;
+        padding: 4rem 2rem;
+        background: #1c1c24;
+        border: 1px solid #2a2a34;
+        border-radius: 14px;
+        color: #8a8a95;
+        text-align: center;
+        gap: .75rem;
     }
 
-        .modal-overlay.active {
-            display: flex;
+        .blogs-page .state-box i {
+            font-size: 3rem;
+            color: #4dc9dd;
+            opacity: .6;
         }
 
-    @@keyframes fadeIn {
-        0% {
-            opacity: 0;
-        }
-
-        100% {
-            opacity: 1;
-        }
-    }
-
-    .modal-box {
-        background: #0a0e17;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 28px;
-        padding: 40px 36px;
-        max-width: 720px;
-        width: 100%;
-        margin: 20px;
-        box-shadow: 0 8px 64px rgba(0, 0, 0, 0.5);
-        animation: scaleIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
-        max-height: 95vh;
-        overflow-y: auto;
-    }
-
-    @@keyframes scaleIn {
-        0% {
-            transform: scale(0.95);
-            opacity: 0;
-        }
-
-        100% {
-            transform: scale(1);
-            opacity: 1;
-        }
-    }
-
-    .modal-box .modal-title {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-        .modal-box .modal-title i {
-            color: #e8a838;
-        }
-
-    .modal-box .modal-subtitle {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        margin-bottom: 20px;
-    }
-
-    .modal-box .form-group {
-        margin-bottom: 18px;
-    }
-
-        .modal-box .form-group label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #94a3b8;
-            margin-bottom: 4px;
-        }
-
-        .modal-box .form-group input,
-        .modal-box .form-group textarea,
-        .modal-box .form-group select {
-            width: 100%;
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 12px;
-            color: #eef2f8;
-            font-size: 0.95rem;
-            outline: none;
-            transition: all 0.35s ease;
-            font-family: inherit;
-        }
-
-            .modal-box .form-group input:focus,
-            .modal-box .form-group textarea:focus,
-            .modal-box .form-group select:focus {
-                border-color: #e8a838;
-                background: rgba(255, 255, 255, 0.04);
-                box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
-            }
-
-            .modal-box .form-group input::placeholder,
-            .modal-box .form-group textarea::placeholder {
-                color: #64748b;
-            }
-
-            .modal-box .form-group select option {
-                background: #0a0e17;
-                color: #eef2f8;
-            }
-
-        .modal-box .form-group textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .modal-box .form-group .code-editor {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 12px;
-            padding: 10px 14px;
-            color: #eef2f8;
-            font-size: 0.9rem;
-            width: 100%;
-            min-height: 150px;
-            outline: none;
-            transition: all 0.35s ease;
-            font-family: 'Consolas', 'Courier New', monospace;
-            resize: vertical;
-            background: rgba(0, 0, 0, 0.2);
-            tab-size: 2;
-            line-height: 1.6;
-        }
-
-            .modal-box .form-group .code-editor:focus {
-                border-color: #e8a838;
-                background: rgba(0, 0, 0, 0.3);
-                box-shadow: 0 0 24px rgba(232, 168, 56, 0.02);
-            }
-
-        .modal-box .form-group .editor-toolbar {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 8px;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-            .modal-box .form-group .editor-toolbar button {
-                padding: 4px 10px;
-                border-radius: 6px;
-                border: 1px solid rgba(255, 255, 255, 0.04);
-                background: rgba(255, 255, 255, 0.02);
-                color: #94a3b8;
-                font-size: 0.7rem;
-                cursor: pointer;
-                transition: 0.3s;
-                font-family: inherit;
-            }
-
-                .modal-box .form-group .editor-toolbar button:hover {
-                    border-color: rgba(232, 168, 56, 0.06);
-                    color: #e8f0f1;
-                    background: rgba(232, 168, 56, 0.02);
-                }
-
-                .modal-box .form-group .editor-toolbar button i {
-                    margin-left: 4px;
-                }
-
-        .modal-box .form-group .toggle-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 4px 0;
-        }
-
-            .modal-box .form-group .toggle-wrapper .toggle-label {
-                font-size: 0.85rem;
-                color: #94a3b8;
-            }
-
-    .modal-box .toggle-switch {
-        position: relative;
-        width: 48px;
-        height: 26px;
-        background: rgba(255, 255, 255, 0.04);
-        border-radius: 40px;
-        cursor: pointer;
-        transition: all 0.35s ease;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        flex-shrink: 0;
-    }
-
-        .modal-box .toggle-switch.active {
-            background: rgba(82, 183, 136, 0.15);
-            border-color: rgba(82, 183, 136, 0.1);
-        }
-
-        .modal-box .toggle-switch .toggle-knob {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: rgba(232, 240, 241, 0.15);
-            transition: all 0.35s ease;
-        }
-
-        .modal-box .toggle-switch.active .toggle-knob {
-            right: 24px;
-            background: #52b788;
-            box-shadow: 0 0 16px rgba(82, 183, 136, 0.15);
-        }
-
-    .modal-box .modal-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 24px;
-        padding-top: 16px;
-        border-top: 1px solid rgba(255, 255, 255, 0.03);
-        flex-wrap: wrap;
-    }
-
-        .modal-box .modal-actions .btn-modal-primary {
-            flex: 1;
-            padding: 12px;
-            border-radius: 40px;
-            border: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.35s ease;
-            font-family: inherit;
-            background: linear-gradient(135deg, #e8a838, #d4952e);
-            color: #0a0e17;
-            box-shadow: 0 4px 20px rgba(232, 168, 56, 0.12);
-        }
-
-            .modal-box .modal-actions .btn-modal-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 32px rgba(232, 168, 56, 0.2);
-            }
-
-        .modal-box .modal-actions .btn-modal-secondary {
-            flex: 1;
-            padding: 12px;
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            background: transparent;
-            color: #94a3b8;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.35s ease;
-            font-family: inherit;
-        }
-
-            .modal-box .modal-actions .btn-modal-secondary:hover {
-                background: rgba(255, 255, 255, 0.04);
-                border-color: rgba(255, 255, 255, 0.1);
-                color: #eef2f8;
-                transform: translateY(-2px);
-            }
-
-    /* ============================================================
-           RESPONSIVE
-        ============================================================ */
-    @@media (max-width: 992px) {
-        .stats-row {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .modal-box {
-            max-width: 90%;
-            padding: 28px 20px;
-        }
-    }
-
-    @@media (max-width: 768px) {
-        .page-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-            .page-header h1 {
-                font-size: 1.5rem;
-            }
-
-            .page-header .actions {
-                width: 100%;
-            }
-
-                .page-header .actions .btn-primary {
-                    flex: 1;
-                    justify-content: center;
-                }
-
-        .stats-row {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .stat-mini .info .number {
+        .blogs-page .state-box h3 {
+            margin: 0;
+            color: #eaeaea;
             font-size: 1.1rem;
         }
 
-        .stat-mini i {
-            font-size: 1.2rem;
-            width: 30px;
+        .blogs-page .state-box p {
+            margin: 0;
+            font-size: .9rem;
         }
 
-        .filter-bar {
-            flex-direction: column;
-            padding: 16px;
-        }
-
-            .filter-bar .search-box {
-                width: 100%;
-            }
-
-        .data-table thead {
-            display: none;
-        }
-
-        .data-table tbody td {
-            display: block;
-            padding: 8px 14px;
-            border-bottom: none;
-        }
-
-        .data-table tbody tr {
-            display: block;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            padding: 4px 0;
-        }
-
-            .data-table tbody tr:last-child {
-                border-bottom: none;
-            }
-
-        .data-table td:before {
-            content: attr(data-label);
-            display: inline-block;
-            width: 80px;
-            font-size: 0.7rem;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .data-table .post-excerpt {
-            max-width: none;
-        }
-
-        .modal-box {
-            padding: 20px 16px;
-            max-height: 95vh;
-        }
-
-            .modal-box .form-group .editor-toolbar {
-                flex-wrap: wrap;
-            }
-
-            .modal-box .modal-actions {
-                flex-direction: column;
-            }
-
-                .modal-box .modal-actions .btn-modal-primary,
-                .modal-box .modal-actions .btn-modal-secondary {
-                    width: 100%;
-                }
+    .blogs-page .spinner {
+        width: 42px;
+        height: 42px;
+        border: 3px solid #2a2a34;
+        border-top-color: #4dc9dd;
+        border-radius: 50%;
+        animation: blogs-spin 0.8s linear infinite;
     }
 
-    @@media (max-width: 480px) {
-        .stats-row {
-            grid-template-columns: 1fr;
-        }
-
-        .page-header h1 {
-            font-size: 1.2rem;
-        }
-
-        .filter-bar .filter-group {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .modal-box {
-            padding: 16px 12px;
+    @@keyframes blogs-spin {
+        to {
+            transform: rotate(360deg);
         }
     }
 
-    /* ============================================================
-           RIPPLE & FADE UP
-        ============================================================ */
-    .ripple {
+    /* ---------- Grid ---------- */
+    .blogs-page .tutorials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 1.1rem;
+    }
+
+    /* ---------- Card ---------- */
+    .blogs-page .tutorial-card {
+        background: #1c1c24;
+        border: 1px solid #2a2a34;
+        border-radius: 14px;
+        padding: 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: .85rem;
+        transition: .2s;
         position: relative;
         overflow: hidden;
     }
 
-    .ripple-effect {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.15);
-        transform: scale(0);
-        animation: rippleAnim 0.6s linear;
-        pointer-events: none;
-    }
-
-    @@keyframes rippleAnim {
-        to {
-            transform: scale(4);
-            opacity: 0;
-        }
-    }
-
-    .fade-up {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: opacity 0.7s ease, transform 0.7s ease;
-    }
-
-        .fade-up.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .blogs-page .tutorial-card:hover {
+            border-color: rgba(77, 201, 221, .4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
         }
 
-    .stagger-child {
-        transition-delay: 0s;
+        .blogs-page .tutorial-card.is-deleted {
+            opacity: .65;
+            border-right: 3px solid #e74c3c;
+        }
+
+    .blogs-page .tutorial-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: .8rem;
     }
 
-        .stagger-child:nth-child(1) {
-            transition-delay: 0.05s;
-        }
-
-        .stagger-child:nth-child(2) {
-            transition-delay: 0.1s;
-        }
-
-        .stagger-child:nth-child(3) {
-            transition-delay: 0.15s;
-        }
-
-        .stagger-child:nth-child(4) {
-            transition-delay: 0.2s;
-        }
-
-    /* ============================================================
-           SCROLLBAR
-        ============================================================ */
-    .modal-box::-webkit-scrollbar {
-        width: 4px;
+    .blogs-page .tutorial-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
     }
 
-    .modal-box::-webkit-scrollbar-track {
-        background: transparent;
+        .blogs-page .tutorial-icon.cat-language {
+            background: rgba(77, 201, 221, .15);
+            color: #4dc9dd;
+        }
+
+        .blogs-page .tutorial-icon.cat-framework {
+            background: rgba(155, 89, 182, .15);
+            color: #9b59b6;
+        }
+
+        .blogs-page .tutorial-icon.cat-tool {
+            background: rgba(241, 196, 15, .15);
+            color: #f1c40f;
+        }
+
+        .blogs-page .tutorial-icon.cat-concept {
+            background: rgba(82, 183, 136, .15);
+            color: #52b788;
+        }
+
+    .blogs-page .tutorial-card h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #eaeaea;
+        margin: 0 0 .25rem 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .modal-box::-webkit-scrollbar-thumb {
-        background: rgba(232, 168, 56, 0.2);
+    .blogs-page .tutorial-card .topic {
+        font-size: .78rem;
+        color: #8a8a95;
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    /* ---------- Tags ---------- */
+    .blogs-page .tags-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .4rem;
+    }
+
+    .blogs-page .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: .72rem;
+        padding: .28rem .6rem;
+        border-radius: 20px;
+        font-weight: 500;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .blogs-page .tag-subject {
+        background: rgba(77, 201, 221, .12);
+        color: #4dc9dd;
+        border-color: rgba(77, 201, 221, .25);
+    }
+
+    .blogs-page .tag-approved {
+        background: rgba(82, 183, 136, .12);
+        color: #52b788;
+        border-color: rgba(82, 183, 136, .25);
+    }
+
+    .blogs-page .tag-pending {
+        background: rgba(241, 196, 15, .12);
+        color: #f1c40f;
+        border-color: rgba(241, 196, 15, .25);
+    }
+
+    .blogs-page .tag-active {
+        background: rgba(77, 201, 221, .12);
+        color: #4dc9dd;
+        border-color: rgba(77, 201, 221, .25);
+    }
+
+    .blogs-page .tag-inactive {
+        background: rgba(138, 138, 149, .12);
+        color: #8a8a95;
+        border-color: rgba(138, 138, 149, .25);
+    }
+
+    .blogs-page .tag-deleted {
+        background: rgba(231, 76, 60, .12);
+        color: #e74c3c;
+        border-color: rgba(231, 76, 60, .3);
+    }
+
+    .blogs-page .tag-level-beginner {
+        background: rgba(82, 183, 136, .12);
+        color: #52b788;
+        border-color: rgba(82, 183, 136, .25);
+    }
+
+    .blogs-page .tag-level-intermediate {
+        background: rgba(241, 196, 15, .12);
+        color: #f1c40f;
+        border-color: rgba(241, 196, 15, .25);
+    }
+
+    .blogs-page .tag-level-advanced {
+        background: rgba(231, 76, 60, .12);
+        color: #e74c3c;
+        border-color: rgba(231, 76, 60, .25);
+    }
+
+    .blogs-page .tag-level-all {
+        background: rgba(77, 201, 221, .12);
+        color: #4dc9dd;
+        border-color: rgba(77, 201, 221, .25);
+    }
+
+    /* ---------- Stats ---------- */
+    .blogs-page .tutorial-stats {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        padding: .6rem .75rem;
+        background: #14141c;
         border-radius: 10px;
     }
 
-        .modal-box::-webkit-scrollbar-thumb:hover {
-            background: rgba(232, 168, 56, 0.3);
+        .blogs-page .tutorial-stats .stat {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .75rem;
+            color: #8a8a95;
         }
+
+            .blogs-page .tutorial-stats .stat i {
+                color: #4dc9dd;
+            }
+
+    /* ---------- Footer ---------- */
+    .blogs-page .tutorial-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        padding-top: .75rem;
+        border-top: 1px solid #2a2a34;
+        margin-top: auto;
+    }
+
+    .blogs-page .tutorial-date {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        font-size: .75rem;
+        color: #8a8a95;
+    }
+
+    .blogs-page .tutorial-actions {
+        display: flex;
+        gap: .3rem;
+    }
+
+    .blogs-page .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #14141c;
+        border: 1px solid #2a2a34;
+        color: #8a8a95;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: .8rem;
+        transition: .2s;
+    }
+
+        .blogs-page .btn-icon:hover {
+            background: #2a2a34;
+            color: #eaeaea;
+            border-color: #4dc9dd;
+        }
+
+        .blogs-page .btn-icon.edit:hover {
+            color: #4dc9dd;
+            border-color: #4dc9dd;
+        }
+
+        .blogs-page .btn-icon.approve.is-on {
+            color: #52b788;
+            background: rgba(82, 183, 136, .12);
+            border-color: rgba(82, 183, 136, .35);
+        }
+
+        .blogs-page .btn-icon.approve:hover {
+            color: #52b788;
+            border-color: #52b788;
+        }
+
+        .blogs-page .btn-icon.toggle.is-on {
+            color: #4dc9dd;
+            background: rgba(77, 201, 221, .12);
+            border-color: rgba(77, 201, 221, .35);
+        }
+
+        .blogs-page .btn-icon.toggle:hover {
+            color: #4dc9dd;
+            border-color: #4dc9dd;
+        }
+
+        .blogs-page .btn-icon.restore:hover {
+            color: #f1c40f;
+            border-color: #f1c40f;
+        }
+
+        .blogs-page .btn-icon.delete:hover {
+            color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+    /* ---------- Pagination ---------- */
+    .blogs-page .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: .4rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+        .blogs-page .pagination button {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 .8rem;
+            background: #1c1c24;
+            border: 1px solid #2a2a34;
+            color: #eaeaea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: .85rem;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .3rem;
+            transition: .2s;
+        }
+
+            .blogs-page .pagination button:hover:not(:disabled) {
+                border-color: #4dc9dd;
+                color: #4dc9dd;
+            }
+
+            .blogs-page .pagination button.active {
+                background: linear-gradient(135deg, #4dc9dd, #3aa8bd);
+                color: #fff;
+                border-color: transparent;
+            }
+
+            .blogs-page .pagination button:disabled {
+                opacity: .4;
+                cursor: not-allowed;
+            }
+
+    /* ---------- Modal ---------- */
+    .blogs-page .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+        animation: blogs-fade-in .2s;
+    }
+
+    @@keyframes blogs-fade-in {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .blogs-page .modal-box {
+        background: #1c1c24;
+        border: 1px solid #2a2a34;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 720px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: blogs-slide-up .25s;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+    }
+
+    @@keyframes blogs-slide-up {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .blogs-page .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.1rem 1.4rem;
+        border-bottom: 1px solid #2a2a34;
+    }
+
+        .blogs-page .modal-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #eaeaea;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+    .blogs-page .modal-close {
+        background: transparent;
+        border: none;
+        color: #8a8a95;
+        font-size: 1.1rem;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: .2s;
+    }
+
+        .blogs-page .modal-close:hover {
+            background: #2a2a34;
+            color: #e74c3c;
+        }
+
+    .blogs-page .modal-body {
+        padding: 1.4rem;
+    }
+
+    .blogs-page .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: .6rem;
+        padding: 1rem 1.4rem;
+        border-top: 1px solid #2a2a34;
+    }
+
+    /* ---------- Form ---------- */
+    .blogs-page .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .blogs-page .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+    }
+
+        .blogs-page .form-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .blogs-page .form-field label {
+            font-size: .82rem;
+            color: #b8b8c0;
+            display: flex;
+            align-items: center;
+            gap: .35rem;
+            font-weight: 500;
+        }
+
+            .blogs-page .form-field label i {
+                color: #4dc9dd;
+                font-size: .8rem;
+            }
+
+        .blogs-page .form-field .required {
+            color: #e74c3c;
+        }
+
+        .blogs-page .form-field input[type="text"],
+        .blogs-page .form-field input[type="number"],
+        .blogs-page .form-field select,
+        .blogs-page .form-field textarea {
+            background: #14141c;
+            border: 1px solid #2a2a34;
+            color: #eaeaea;
+            padding: .65rem .9rem;
+            border-radius: 10px;
+            font-size: .88rem;
+            outline: none;
+            font-family: inherit;
+            transition: .2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+            .blogs-page .form-field input:focus,
+            .blogs-page .form-field select:focus,
+            .blogs-page .form-field textarea:focus {
+                border-color: #4dc9dd;
+                box-shadow: 0 0 0 3px rgba(77, 201, 221, .15);
+            }
+
+        .blogs-page .form-field textarea {
+            min-height: 140px;
+            resize: vertical;
+            line-height: 1.7;
+        }
+
+    .blogs-page .checkbox-row {
+        display: flex;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+    }
+
+    .blogs-page .checkbox-item {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        cursor: pointer;
+        font-size: .85rem;
+        color: #eaeaea;
+    }
+
+        .blogs-page .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #4dc9dd;
+            cursor: pointer;
+        }
+
+    .blogs-page .validation-msg {
+        background: rgba(231, 76, 60, .1);
+        border: 1px solid rgba(231, 76, 60, .3);
+        color: #e74c3c;
+        padding: .7rem 1rem;
+        border-radius: 10px;
+        font-size: .85rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    /* ---------- Buttons ---------- */
+    .blogs-page .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        padding: .65rem 1.2rem;
+        border-radius: 10px;
+        font-size: .88rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: .2s;
+        font-family: inherit;
+    }
+
+        .blogs-page .btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+    .blogs-page .btn-primary {
+        background: linear-gradient(135deg, #4dc9dd, #3aa8bd);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(77, 201, 221, .25);
+    }
+
+        .blogs-page .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(77, 201, 221, .35);
+        }
+
+    .blogs-page .btn-secondary {
+        background: #2a2a34;
+        color: #eaeaea;
+        border-color: #353540;
+    }
+
+        .blogs-page .btn-secondary:hover:not(:disabled) {
+            background: #353540;
+        }
+
+    .blogs-page .btn-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(231, 76, 60, .25);
+    }
+
+        .blogs-page .btn-danger:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(231, 76, 60, .35);
+        }
+
+    /* ---------- Delete Modal ---------- */
+    .blogs-page .delete-modal {
+        max-width: 420px;
+    }
+
+        .blogs-page .delete-modal .modal-body {
+            text-align: center;
+            padding: 2rem 1.5rem;
+        }
+
+    .blogs-page .delete-icon-wrap {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 1rem;
+        background: rgba(231, 76, 60, .12);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e74c3c;
+        font-size: 1.8rem;
+    }
+
+    .blogs-page .delete-modal h3 {
+        margin: 0 0 .5rem;
+        color: #eaeaea;
+        font-size: 1.15rem;
+    }
+
+    .blogs-page .delete-modal p {
+        color: #8a8a95;
+        font-size: .9rem;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .blogs-page .delete-modal strong {
+        color: #eaeaea;
+    }
+
+    /* ---------- Toast ---------- */
+    .blogs-page .toast {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: .85rem 1.4rem;
+        border-radius: 12px;
+        font-size: .9rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        z-index: 2000;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+        animation: blogs-toast-in .3s;
+    }
+
+    @@keyframes blogs-toast-in {
+        from {
+            transform: translate(-50%, 20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
+
+    .blogs-page .toast-success {
+        background: rgba(82, 183, 136, .95);
+        color: #fff;
+    }
+
+    .blogs-page .toast-error {
+        background: rgba(231, 76, 60, .95);
+        color: #fff;
+    }
+
+    /* ---------- Responsive ---------- */
+    @@media (max-width: 768px) {
+        .blogs-page .tutorials-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .blogs-page .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .blogs-page .filters-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .blogs-page .filter-select,
+        .blogs-page .btn-search {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
 <!-- ============================================================
-     PAGE CONTENT
+     PAGE WRAPPER
 ============================================================ -->
-<main class="dashboard">
-    <div class="container">
+<div class="blogs-page">
 
-        <!-- Page Header -->
-        <div class="page-header fade-up visible">
-            <div>
-                <h1>
-                    <i class="fas fa-blog"></i>
-                    مدیریت وبلاگ
-                </h1>
-                <div class="subtitle">ایجاد، ویرایش و مدیریت مطالب وبلاگ (پشتیبانی از فارسی و انگلیسی)</div>
-            </div>
-            <div class="actions">
-                <button class="btn-primary ripple" @onclick="OpenAddModal">
-                    <i class="fas fa-plus"></i> مطلب جدید
+    <!-- ============================================================
+         HEADER
+    ============================================================ -->
+    <div class="tutorials-header">
+        <h1>
+            <i class="fas fa-newspaper"></i>
+            مدیریت مقالات
+            @if (totalCount > 0)
+            {
+                <span class="badge-count">@totalCount.ToString("N0") مورد</span>
+            }
+        </h1>
+        <button class="btn-add" @onclick="ReloadFromApi">
+            <i class="fas fa-sync-alt"></i>
+            همگام‌سازی با API
+        </button>
+    </div>
+
+    <!-- ============================================================
+         FILTERS
+    ============================================================ -->
+    <div class="filters-bar">
+        <input type="text"
+               class="filter-input"
+               placeholder="جستجو در عنوان..."
+               @bind="searchTerm"
+               @bind:event="oninput"
+               @onkeydown="OnSearchKeyDown" />
+
+        <select class="filter-select" @bind="filterSeoStatus">
+            <option value="">همه وضعیت‌های سئو</option>
+            <option value="pending">در انتظار</option>
+            <option value="approved">تأیید شده</option>
+            <option value="rejected">رد شده</option>
+            <option value="null">بدون وضعیت</option>
+        </select>
+
+        <select class="filter-select" @bind="filterStatus">
+            <option value="">همه وضعیت‌ها</option>
+            <option value="approved">تأیید شده</option>
+            <option value="pending">در انتظار تأیید</option>
+            <option value="active">فعال</option>
+            <option value="inactive">غیرفعال</option>
+            <option value="deleted">حذف‌شده</option>
+            <option value="useful">مفید</option>
+        </select>
+
+        <button class="btn-search" @onclick="ApplyFilters">
+            <i class="fas fa-search"></i>
+            اعمال فیلتر
+        </button>
+
+        <button class="btn-search" @onclick="ResetFilters" title="پاک کردن فیلترها">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- ============================================================
+         CONTENT
+    ============================================================ -->
+    @if (isLoading)
+    {
+        <div class="state-box">
+            <div class="spinner"></div>
+            <h3>در حال بارگذاری...</h3>
+        </div>
+    }
+    else if (blogs == null || blogs.Count == 0)
+    {
+        <div class="state-box">
+            <i class="fas fa-inbox"></i>
+            <h3>هیچ مقاله‌ای یافت نشد</h3>
+            <p>هنوز مقاله‌ای اضافه نشده یا فیلترها نتیجه‌ای نداشتند.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tutorials-grid">
+            @foreach (var b in blogs)
+            {
+                <div class="tutorial-card @(b.IsDelete ? "is-deleted" : "")">
+                    <div class="tutorial-card-header">
+                        <div class="tutorial-icon @GetSeoClass(b.SeoStatus)">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <h3 title="@b.Title">@b.Title</h3>
+                            <div class="topic">
+                                <i class="fas fa-hashtag"></i>
+                                @(string.IsNullOrWhiteSpace(b.Topic) ? "بدون موضوع" : b.Topic)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tags-row">
+                        @if (!string.IsNullOrWhiteSpace(b.Mode))
+                        {
+                            <span class="tag tag-subject">
+                                <i class="fas fa-cog"></i> @b.Mode
+                            </span>
+                        }
+                        <span class="tag @GetScoreClass(b.Score)">
+                            <i class="fas fa-star"></i> امتیاز: @b.Score
+                        </span>
+                        @if (b.IsUseful)
+                        {
+                            <span class="tag tag-approved">
+                                <i class="fas fa-thumbs-up"></i> مفید
+                            </span>
+                        }
+                        <span class="tag @GetSeoTagClass(b.SeoStatus)">
+                            <i class="fas fa-search"></i> سئو: @GetSeoText(b.SeoStatus)
+                        </span>
+                        <span class="tag @(b.IsApproved ? "tag-approved" : "tag-pending")">
+                            <i class="fas @(b.IsApproved ? "fa-check-circle" : "fa-clock")"></i>
+                            @(b.IsApproved ? "تأیید شده" : "در انتظار")
+                        </span>
+                        <span class="tag @(b.IsActive ? "tag-active" : "tag-inactive")">
+                            <i class="fas @(b.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                            @(b.IsActive ? "فعال" : "غیرفعال")
+                        </span>
+                        @if (b.IsDelete)
+                        {
+                            <span class="tag tag-deleted">
+                                <i class="fas fa-trash"></i> حذف‌شده
+                            </span>
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(b.ScoreReason))
+                    {
+                        <div class="tutorial-stats">
+                            <div class="stat" style="width:100%;">
+                                <i class="fas fa-info-circle"></i>
+                                <span title="@b.ScoreReason">@Truncate(b.ScoreReason, 80)</span>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="tutorial-stats">
+                        <div class="stat">
+                            <i class="fas fa-fingerprint"></i>
+                            <span>API: @b.BlogApiId</span>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-footer">
+                        <div class="tutorial-date">
+                            <i class="far fa-calendar-alt"></i>
+                            @ToPersianDate(b.CreatedAt == default ? b.CreationDate : b.CreatedAt)
+                        </div>
+                        <div class="tutorial-actions">
+                            <button class="btn-icon" title="مشاهده"
+                                    @onclick="() => ViewBlog(b.BlogApiId)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon edit" title="ویرایش"
+                                    @onclick="() => OpenEditModal(b)">
+                                <i class="fas fa-pen"></i>
+                            </button>
+
+                            <button class="btn-icon approve @(b.IsApproved ? "is-on" : "")"
+                                    title="@(b.IsApproved ? "لغو تأیید" : "تأیید مقاله")"
+                                    @onclick="() => ToggleApproved(b)">
+                                <i class="fas @(b.IsApproved ? "fa-check-circle" : "fa-circle-notch")"></i>
+                            </button>
+
+                            <button class="btn-icon toggle @(b.IsActive ? "is-on" : "")"
+                                    title="@(b.IsActive ? "غیرفعال کردن" : "فعال کردن")"
+                                    @onclick="() => ToggleActive(b)">
+                                <i class="fas @(b.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                            </button>
+
+                            @if (b.IsDelete)
+                            {
+                                <button class="btn-icon restore" title="بازگردانی"
+                                        @onclick="() => RestoreBlog(b)">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-icon delete" title="حذف"
+                                        @onclick="() => OpenDeleteModal(b)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (totalPages > 1)
+        {
+            <div class="pagination">
+                <button @onclick="() => GoToPage(currentPage - 1)" disabled="@(currentPage <= 1)">
+                    <i class="fas fa-chevron-right"></i>
+                    قبلی
+                </button>
+
+                @foreach (var p in GetPageNumbers())
+                {
+                    var pageNum = p;
+                    <button class="@(pageNum == currentPage ? "active" : "")"
+                            @onclick="() => GoToPage(pageNum)">
+                        @pageNum
+                    </button>
+                }
+
+                <button @onclick="() => GoToPage(currentPage + 1)" disabled="@(currentPage >= totalPages)">
+                    بعدی
+                    <i class="fas fa-chevron-left"></i>
                 </button>
             </div>
-        </div>
+        }
+    }
 
-        <!-- Stats -->
-        <div class="stats-row fade-up visible">
-            <div class="stat-mini">
-                <i class="fas fa-file-alt"></i>
-                <div class="info">
-                    <div class="number">@posts.Count</div>
-                    <div class="label">کل مطالب</div>
+    <!-- ============================================================
+         EDIT MODAL
+    ============================================================ -->
+    @if (showFormModal)
+    {
+        <div class="modal-overlay" @onclick="CloseFormModal">
+            <div class="modal-box" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h2>
+                        <i class="fas fa-pen"></i>
+                        ویرایش مقاله
+                    </h2>
+                    <button class="modal-close" @onclick="CloseFormModal">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-            </div>
-            <div class="stat-mini">
-                <i class="fas fa-check-circle" style="color:#52b788;"></i>
-                <div class="info">
-                    <div class="number">@publishedCount</div>
-                    <div class="label">منتشر شده</div>
-                </div>
-            </div>
-            <div class="stat-mini">
-                <i class="fas fa-pen" style="color:#e8a838;"></i>
-                <div class="info">
-                    <div class="number">@draftCount</div>
-                    <div class="label">پیش‌نویس</div>
-                </div>
-            </div>
-            <div class="stat-mini">
-                <i class="fas fa-globe" style="color:#8264c8;"></i>
-                <div class="info">
-                    <div class="number">@langCount</div>
-                    <div class="label">زبان‌ها</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Filter Bar -->
-        <div class="filter-bar fade-up visible">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="جستجوی مطلب..." @bind="searchTerm" @bind:event="oninput" />
-            </div>
-            <div class="filter-group">
-                <button class="filter-btn @(filterStatus == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>همه</button>
-                <button class="filter-btn @(filterStatus == "published" ? "active" : "")" @onclick='() => SetFilter("published")'>منتشر شده</button>
-                <button class="filter-btn @(filterStatus == "draft" ? "active" : "")" @onclick='() => SetFilter("draft")'>پیش‌نویس</button>
-            </div>
-            <div class="filter-group" style="margin-right:auto;">
-                <button class="filter-btn @(filterLang == "all" ? "active" : "")" @onclick='() => SetLang("all")'>همه زبان‌ها</button>
-                <button class="filter-btn @(filterLang == "fa" ? "active" : "")" @onclick='() => SetLang("fa")'>فارسی</button>
-                <button class="filter-btn @(filterLang == "en" ? "active" : "")" @onclick='() => SetLang("en")'>انگلیسی</button>
-            </div>
-        </div>
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-field full">
+                            <label><i class="fas fa-heading"></i> عنوان <span class="required">*</span></label>
+                            <input type="text" @bind="formModel.Title" maxlength="500" placeholder="عنوان مقاله..." />
+                        </div>
 
-        <!-- Posts Table -->
-        <div class="table-wrapper fade-up visible">
-            @if (filteredPosts.Any())
-            {
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th style="min-width:160px;">عنوان</th>
-                            <th style="min-width:120px;">زبان</th>
-                            <th style="min-width:120px;">وضعیت</th>
-                            <th style="min-width:180px;">خلاصه</th>
-                            <th style="min-width:120px;">تاریخ</th>
-                            <th style="width:120px; text-align:center;">عملیات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var post in filteredPosts)
+                        <div class="form-field">
+                            <label><i class="fas fa-hashtag"></i> موضوع</label>
+                            <input type="text" @bind="formModel.Topic" maxlength="300" placeholder="موضوع مقاله" />
+                        </div>
+
+                        <div class="form-field">
+                            <label><i class="fas fa-cog"></i> حالت (Mode)</label>
+                            <input type="text" @bind="formModel.Mode" maxlength="50" placeholder="مثلاً: auto" />
+                        </div>
+
+                        <div class="form-field">
+                            <label><i class="fas fa-star"></i> امتیاز</label>
+                            <input type="number" @bind="formModel.Score" min="0" max="100" />
+                        </div>
+
+                        <div class="form-field">
+                            <label><i class="fas fa-search"></i> وضعیت سئو</label>
+                            <select @bind="formModel.SeoStatus">
+                                <option value="">بدون وضعیت</option>
+                                <option value="pending">در انتظار</option>
+                                <option value="approved">تأیید شده</option>
+                                <option value="rejected">رد شده</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field full">
+                            <label><i class="fas fa-info-circle"></i> دلیل امتیاز</label>
+                            <textarea @bind="formModel.ScoreReason" maxlength="1000"
+                                      placeholder="توضیح امتیاز..." style="min-height:80px;"></textarea>
+                        </div>
+
+                        <div class="form-field full">
+                            <label><i class="fas fa-file-alt"></i> محتوا</label>
+                            <textarea @bind="formModel.Content" placeholder="محتوای مقاله..."></textarea>
+                        </div>
+
+                        <div class="form-field full">
+                            <div class="checkbox-row">
+                                <label class="checkbox-item">
+                                    <input type="checkbox" @bind="formModel.IsUseful" />
+                                    <i class="fas fa-thumbs-up" style="color:#4dc9dd"></i>
+                                    مفید
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" @bind="formModel.IsApproved" />
+                                    <i class="fas fa-check-circle" style="color:#52b788"></i>
+                                    تأیید شده
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" @bind="formModel.IsActive" />
+                                    <i class="fas fa-toggle-on" style="color:#4dc9dd"></i>
+                                    فعال
+                                </label>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(formError))
                         {
-                            <tr>
-                                <td data-label="عنوان">
-                                    <div class="post-title">@post.Title</div>
-                                </td>
-                                <td data-label="زبان">
-                                    <span class="lang-badge @post.Lang">@(post.Lang == "fa" ? "فارسی" : "English")</span>
-                                </td>
-                                <td data-label="وضعیت">
-                                    <span class="status-badge @(post.IsPublished ? "published" : "draft")">
-                                        @(post.IsPublished ? "منتشر شده" : "پیش‌نویس")
-                                    </span>
-                                </td>
-                                <td data-label="خلاصه">
-                                    <div class="post-excerpt">@post.Excerpt</div>
-                                </td>
-                                <td data-label="تاریخ">@post.Date</td>
-                                <td data-label="عملیات">
-                                    <div class="actions-cell">
-                                        <button class="btn-icon-sm view" title="مشاهده" @onclick='() => ViewPost(post.Id)'>
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn-icon-sm edit" title="ویرایش" @onclick='() => OpenEditModal(post.Id)'>
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn-icon-sm delete" title="حذف" @onclick='() => DeletePost(post.Id)'>
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <div class="form-field full">
+                                <div class="validation-msg">
+                                    <i class="fas fa-exclamation-circle"></i> @formError
+                                </div>
+                            </div>
                         }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <div style="text-align:center; padding:40px 20px; color:#64748b;">
-                    <i class="fas fa-blog" style="font-size:2.5rem; display:block; margin-bottom:8px; opacity:0.3;"></i>
-                    <p>هیچ مطلبی با این فیلترها یافت نشد.</p>
+                    </div>
                 </div>
-            }
-        </div>
 
-    </div>
-</main>
-
-<!-- ============================================================
-     MODAL (Add/Edit Post)
-============================================================ -->
-<div class="modal-overlay @(isModalOpen ? "active" : "")" @onclick="CloseModal">
-    <div class="modal-box" @onclick:stopPropagation="true">
-        <div class="modal-title">
-            <i class="fas @(isEditing ? "fa-edit" : "fa-plus-circle")"></i>
-            @(isEditing ? "ویرایش مطلب" : "مطلب جدید")
-        </div>
-        <div class="modal-subtitle">
-            @(isEditing ? "اطلاعات مطلب را ویرایش کنید." : "مطلب جدید را با محتوای کامل ایجاد کنید.")
-        </div>
-
-        <div class="form-group">
-            <label>عنوان <span style="color:#dc3545;">*</span></label>
-            <input type="text" placeholder="عنوان مطلب..." @bind="modalPost.Title" />
-        </div>
-
-        <div class="form-group">
-            <label>زبان <span style="color:#dc3545;">*</span></label>
-            <select @bind="modalPost.Lang">
-                <option value="fa">فارسی</option>
-                <option value="en">English</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>وضعیت</label>
-            <div class="toggle-wrapper">
-                <span class="toggle-label">پیش‌نویس</span>
-                <div class="toggle-switch @(modalPost.IsPublished ? "active" : "")" @onclick="ToggleModalStatus">
-                    <div class="toggle-knob"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseFormModal" disabled="@isSaving">
+                        انصراف
+                    </button>
+                    <button class="btn btn-primary" @onclick="SaveBlog" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>در حال ذخیره...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-save"></i>
+                            <span>ذخیره</span>
+                        }
+                    </button>
                 </div>
-                <span class="toggle-label">منتشر شده</span>
             </div>
         </div>
+    }
 
-        <div class="form-group">
-            <label>خلاصه</label>
-            <textarea placeholder="خلاصه‌ای از مطلب..." @bind="modalPost.Excerpt" rows="2"></textarea>
-        </div>
-
-        <div class="form-group">
-            <label>محتوای کامل</label>
-            <div class="editor-toolbar">
-                <button @onclick='() => InsertText("**", "**")'><i class="fas fa-bold"></i> پررنگ</button>
-                <button @onclick='() => InsertText("_", "_")'><i class="fas fa-italic"></i> مورب</button>
-                <button @onclick='() => InsertText("```", "```")'><i class="fas fa-code"></i> کد</button>
-                <button @onclick='() => InsertText("> ", "")'><i class="fas fa-quote-right"></i> نقل قول</button>
-                <button @onclick='() => InsertText("# ", "")'><i class="fas fa-heading"></i> عنوان</button>
-                <button @onclick='() => InsertText("### ", "")'><i class="fas fa-heading"></i> عنوان کوچک</button>
-                <button @onclick='() => InsertText("* ", "")'><i class="fas fa-list-ul"></i> لیست</button>
-                <button @onclick='() => InsertText("1. ", "")'><i class="fas fa-list-ol"></i> لیست شماره‌دار</button>
-                <button @onclick='() => InsertText("[متن](", ")")'><i class="fas fa-link"></i> لینک</button>
+    <!-- ============================================================
+         DELETE MODAL
+    ============================================================ -->
+    @if (showDeleteModal && selectedForDelete != null)
+    {
+        <div class="modal-overlay" @onclick="CloseDeleteModal">
+            <div class="modal-box delete-modal" @onclick:stopPropagation="true">
+                <div class="modal-body">
+                    <div class="delete-icon-wrap">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <h3>حذف مقاله</h3>
+                    <p>
+                        آیا از حذف مقاله
+                        <strong>«@selectedForDelete.Title»</strong>
+                        اطمینان دارید؟ این عمل قابل بازگشت است (Soft Delete).
+                    </p>
+                </div>
+                <div class="modal-footer" style="justify-content:center;">
+                    <button class="btn btn-secondary" @onclick="CloseDeleteModal" disabled="@isDeleting">
+                        انصراف
+                    </button>
+                    <button class="btn btn-danger" @onclick="ConfirmDelete" disabled="@isDeleting">
+                        @if (isDeleting)
+                        {
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>در حال حذف...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-trash"></i>
+                            <span>حذف کن</span>
+                        }
+                    </button>
+                </div>
             </div>
-            <textarea class="code-editor" placeholder="محتوای مطلب را با Markdown یا HTML بنویسید..." @bind="modalPost.Content" rows="10"></textarea>
-            <div style="font-size:0.7rem; color:#64748b; margin-top:4px;">
-                <i class="fas fa-info-circle"></i> پشتیبانی از Markdown و HTML
-            </div>
         </div>
+    }
 
-        <div class="form-group">
-            <label>تصویر شاخص (URL)</label>
-            <input type="text" placeholder="https://example.com/image.jpg" @bind="modalPost.ImageUrl" />
+    <!-- ============================================================
+         TOAST
+    ============================================================ -->
+    @if (!string.IsNullOrEmpty(toastMessage))
+    {
+        <div class="toast @(toastIsError ? "toast-error" : "toast-success")">
+            <i class="fas @(toastIsError ? "fa-exclamation-circle" : "fa-check-circle")"></i>
+            @toastMessage
         </div>
+    }
 
-        <div class="modal-actions">
-            <button class="btn-modal-primary ripple" @onclick="SavePost" disabled="@isSubmitting">
-                @if (isSubmitting)
-                {
-                    <i class="fas fa-spinner fa-spin"></i> <span>در حال ذخیره...</span>
-                }
-                else
-                {
-                    <span><i class="fas fa-save"></i> @(isEditing ? "ذخیره تغییرات" : "ایجاد مطلب")</span>
-                }
-            </button>
-            <button class="btn-modal-secondary ripple" @onclick="CloseModal">
-                <i class="fas fa-times"></i> لغو
-            </button>
-        </div>
-    </div>
 </div>
 
 @code {
     // ============================================================
     // STATE
     // ============================================================
+    private const int PageSize = 12;
 
-    private bool isModalOpen = false;
-    private bool isEditing = false;
-    private bool isSubmitting = false;
-    private Guid editingId;
+    private List<Blog>? blogs;
+    private int currentPage = 1;
+    private int totalCount = 0;
+    private int totalPages = 0;
+    private bool isLoading = true;
 
+    // Filters
     private string searchTerm = "";
-    private string filterStatus = "all";
-    private string filterLang = "all";
+    private string filterSeoStatus = "";
+    private string filterStatus = "";
 
-    private List<PostItem> posts = new();
-    private List<PostItem> filteredPosts = new();
+    // Form Modal
+    private bool showFormModal = false;
+    private bool isSaving = false;
+    private string formError = "";
+    private Guid editingId = Guid.Empty;
+    private BlogFormModel formModel = new();
 
-    private PostItem modalPost = new();
+    // Delete Modal
+    private bool showDeleteModal = false;
+    private bool isDeleting = false;
+    private Blog? selectedForDelete;
 
-    private int publishedCount => posts.Count(p => p.IsPublished);
-    private int draftCount => posts.Count(p => !p.IsPublished);
-    private int langCount => posts.Select(p => p.Lang).Distinct().Count();
+    // Toast
+    private string toastMessage = "";
+    private bool toastIsError = false;
+    private System.Threading.Timer? toastTimer;
 
     // ============================================================
-    // INITIALIZATION
+    // LIFECYCLE
     // ============================================================
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadMockData();
-        ApplyFilters();
-    }
-
-    private void LoadMockData()
-    {
-        posts = new List<PostItem>
-        {
-            new PostItem
-            {
-                Id = Guid.NewGuid(),
-                Title = "آموزش React.js از صفر تا صد",
-                Lang = "fa",
-                IsPublished = true,
-                Excerpt = "در این مقاله به صورت کامل و گام‌به‌گام با React.js آشنا می‌شوید.",
-                Content = "# آموزش React.js\n\nReact یک کتابخانه جاوااسکریپت برای ساخت رابط‌های کاربری است.\n\n```jsx\nfunction App() {\n  return <h1>سلام دنیا!</h1>;\n}\n```",
-                ImageUrl = "https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=400&h=200&fit=crop",
-                Date = "۱۴۰۵/۰۴/۱۵"
-            },
-            new PostItem
-            {
-                Id = Guid.NewGuid(),
-                Title = "How to Use TypeScript with Node.js",
-                Lang = "en",
-                IsPublished = true,
-                Excerpt = "A complete guide to setting up TypeScript with Node.js for production.",
-                Content = "# TypeScript + Node.js\n\nThis guide will help you set up a production-ready Node.js project with TypeScript.\n\n```typescript\nimport express from 'express';\n\nconst app = express();\napp.listen(3000);\n```",
-                ImageUrl = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=200&fit=crop",
-                Date = "۱۴۰۵/۰۴/۱۲"
-            },
-            new PostItem
-            {
-                Id = Guid.NewGuid(),
-                Title = "بهترین روش‌های بهینه‌سازی سئو",
-                Lang = "fa",
-                IsPublished = false,
-                Excerpt = "۲۰ روش کاربردی برای بهبود سئو و افزایش بازدید سایت.",
-                Content = "# بهینه‌سازی سئو\n\nدر این مقاله به بررسی بهترین روش‌های سئو می‌پردازیم.\n\n> سئو یک فرآیند مداوم است.",
-                ImageUrl = "",
-                Date = "۱۴۰۵/۰۴/۱۰"
-            },
-            new PostItem
-            {
-                Id = Guid.NewGuid(),
-                Title = "Advanced Python Programming",
-                Lang = "en",
-                IsPublished = false,
-                Excerpt = "Learn advanced Python concepts including decorators, generators, and more.",
-                Content = "# Advanced Python\n\nThis article covers advanced Python concepts.\n\n```python\ndef decorator(func):\n    def wrapper():\n        print('Before')\n        func()\n        print('After')\n    return wrapper\n```",
-                ImageUrl = "",
-                Date = "۱۴۰۵/۰۴/۰۸"
-            }
-        };
+        await LoadBlogs();
     }
 
     // ============================================================
-    // FILTER & SEARCH
+    // DATA LOADING
     // ============================================================
-
-    private void ApplyFilters()
+    private async Task LoadBlogs()
     {
-        var query = posts.AsEnumerable();
-
-        if (filterStatus != "all")
-        {
-            bool isPublished = filterStatus == "published";
-            query = query.Where(p => p.IsPublished == isPublished);
-        }
-
-        if (filterLang != "all")
-        {
-            query = query.Where(p => p.Lang == filterLang);
-        }
-
-        if (!string.IsNullOrEmpty(searchTerm))
-        {
-            var term = searchTerm.Trim();
-            query = query.Where(p =>
-                p.Title.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                p.Content.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                p.Excerpt.Contains(term, StringComparison.OrdinalIgnoreCase)
-            );
-        }
-
-        filteredPosts = query.ToList();
-    }
-
-    private void SetFilter(string status)
-    {
-        filterStatus = status;
-        ApplyFilters();
-        StateHasChanged();
-    }
-
-    private void SetLang(string lang)
-    {
-        filterLang = lang;
-        ApplyFilters();
-        StateHasChanged();
-    }
-
-    // ============================================================
-    // MODAL OPERATIONS
-    // ============================================================
-
-    private void OpenAddModal()
-    {
-        isEditing = false;
-        editingId = Guid.Empty;
-        modalPost = new PostItem
-        {
-            Lang = "fa",
-            IsPublished = true,
-            Date = DateTime.Now.ToString("yyyy/MM/dd")
-        };
-        isModalOpen = true;
-        StateHasChanged();
-    }
-
-    private void OpenEditModal(Guid id)
-    {
-        var post = posts.FirstOrDefault(p => p.Id == id);
-        if (post == null) return;
-
-        isEditing = true;
-        editingId = id;
-        modalPost = new PostItem
-        {
-            Id = post.Id,
-            Title = post.Title,
-            Lang = post.Lang,
-            IsPublished = post.IsPublished,
-            Excerpt = post.Excerpt,
-            Content = post.Content,
-            ImageUrl = post.ImageUrl,
-            Date = post.Date
-        };
-        isModalOpen = true;
-        StateHasChanged();
-    }
-
-    private void CloseModal()
-    {
-        isModalOpen = false;
-        StateHasChanged();
-    }
-
-    private void ToggleModalStatus()
-    {
-        modalPost.IsPublished = !modalPost.IsPublished;
-        StateHasChanged();
-    }
-
-    // ============================================================
-    // EDITOR TOOLS (اصلاح شده با کوتیشن‌های صحیح)
-    // ============================================================
-
-    private async Task InsertText(string prefix, string suffix)
-    {
-        await JSRuntime.InvokeVoidAsync("eval", $@"
-            const textarea = document.querySelector('.code-editor');
-            if (!textarea) return;
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const text = textarea.value;
-            const selected = text.substring(start, end);
-            const before = text.substring(0, start);
-            const after = text.substring(end);
-            const newText = before + '{prefix}' + selected + '{suffix}' + after;
-            textarea.value = newText;
-            textarea.focus();
-            const newPos = start + '{prefix}'.length + selected.length + '{suffix}'.length;
-            textarea.setSelectionRange(newPos, newPos);
-            textarea.dispatchEvent(new Event('input'));
-        ");
-    }
-
-    // ============================================================
-    // CRUD OPERATIONS
-    // ============================================================
-
-    private async Task SavePost()
-    {
-        if (string.IsNullOrWhiteSpace(modalPost.Title) || string.IsNullOrWhiteSpace(modalPost.Content))
-        {
-            await _alertService.Warning("لطفاً عنوان و محتوای مطلب را وارد کنید.", "تکمیل فیلدها", 4000);
-            return;
-        }
-
-        isSubmitting = true;
+        isLoading = true;
         StateHasChanged();
 
         try
         {
-            if (isEditing)
+            var filter = new BlogFilterParam
             {
-                var existing = posts.FirstOrDefault(p => p.Id == editingId);
-                if (existing != null)
-                {
-                    existing.Title = modalPost.Title.Trim();
-                    existing.Lang = modalPost.Lang;
-                    existing.IsPublished = modalPost.IsPublished;
-                    existing.Excerpt = modalPost.Excerpt?.Trim() ?? "";
-                    existing.Content = modalPost.Content.Trim();
-                    existing.ImageUrl = modalPost.ImageUrl?.Trim() ?? "";
-                    existing.Date = DateTime.Now.ToString("yyyy/MM/dd");
-                }
-                await _alertService.Success("مطلب با موفقیت ویرایش شد.", "ویرایش", 4000);
-            }
-            else
+                PageId = currentPage,
+                Take = PageSize,
+                IsAdmin = true
+            };
+
+            var result = await BlogApiService.GetFilter(filter);
+
+            var allBlogs = result?.Data ?? new List<Blog>();
+
+            // ---- فیلترهای کلاینت‌ساید روی داده‌های این صفحه ----
+            var filtered = allBlogs.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var newPost = new PostItem
-                {
-                    Id = Guid.NewGuid(),
-                    Title = modalPost.Title.Trim(),
-                    Lang = modalPost.Lang,
-                    IsPublished = modalPost.IsPublished,
-                    Excerpt = modalPost.Excerpt?.Trim() ?? "",
-                    Content = modalPost.Content.Trim(),
-                    ImageUrl = modalPost.ImageUrl?.Trim() ?? "",
-                    Date = DateTime.Now.ToString("yyyy/MM/dd")
-                };
-                posts.Add(newPost);
-                await _alertService.Success("مطلب با موفقیت ایجاد شد.", "ایجاد", 4000);
+                filtered = filtered.Where(b =>
+                    !string.IsNullOrWhiteSpace(b.Title) &&
+                    b.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
             }
 
-            CloseModal();
-            ApplyFilters();
-            StateHasChanged();
+            if (!string.IsNullOrWhiteSpace(filterSeoStatus))
+            {
+                if (filterSeoStatus == "null")
+                    filtered = filtered.Where(b => string.IsNullOrWhiteSpace(b.SeoStatus));
+                else
+                    filtered = filtered.Where(b => string.Equals(b.SeoStatus, filterSeoStatus, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filterStatus))
+            {
+                filtered = filterStatus switch
+                {
+                    "approved" => filtered.Where(b => b.IsApproved),
+                    "pending" => filtered.Where(b => !b.IsApproved),
+                    "active" => filtered.Where(b => b.IsActive),
+                    "inactive" => filtered.Where(b => !b.IsActive),
+                    "deleted" => filtered.Where(b => b.IsDelete),
+                    "useful" => filtered.Where(b => b.IsUseful),
+                    _ => filtered
+                };
+            }
+
+            blogs = filtered.ToList();
+            totalCount = result?.EntityCount ?? allBlogs.Count;
+            totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
         }
         catch (Exception ex)
         {
-            await _alertService.Error($"خطا در ذخیره: {ex.Message}", "خطا", 6000);
+            Console.WriteLine($"[Blogs] Load error: {ex.Message}");
+            blogs = new List<Blog>();
+            totalCount = 0;
+            totalPages = 0;
+            ShowToast("خطا در بارگذاری داده‌ها", true);
         }
         finally
         {
-            isSubmitting = false;
+            isLoading = false;
             StateHasChanged();
         }
     }
 
-    private async Task DeletePost(Guid id)
+    private async Task ReloadFromApi()
     {
-        var post = posts.FirstOrDefault(p => p.Id == id);
-        if (post == null) return;
-
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"آیا از حذف مطلب '{post.Title}' اطمینان دارید؟");
-        if (!confirmed) return;
-
-        posts.RemoveAll(p => p.Id == id);
-        await _alertService.Success("مطلب با موفقیت حذف شد.", "حذف", 4000);
-        ApplyFilters();
-        StateHasChanged();
+        currentPage = 1;
+        await LoadBlogs();
+        ShowToast("همگام‌سازی با API انجام شد");
     }
 
-    private void ViewPost(Guid id)
+    private async Task ApplyFilters()
     {
-        NavigationManager.NavigateTo($"/blog/{id}", true);
+        currentPage = 1;
+        await LoadBlogs();
+    }
+
+    private async Task ResetFilters()
+    {
+        searchTerm = "";
+        filterSeoStatus = "";
+        filterStatus = "";
+        currentPage = 1;
+        await LoadBlogs();
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await ApplyFilters();
     }
 
     // ============================================================
-    // JS INTEROP
+    // PAGINATION
     // ============================================================
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task GoToPage(int page)
     {
-        if (firstRender)
+        if (page < 1 || (totalPages > 0 && page > totalPages)) return;
+        currentPage = page;
+        await LoadBlogs();
+        await JSRuntime.InvokeVoidAsync("eval", "window.scrollTo({ top: 0, behavior: 'smooth' })");
+    }
+
+    private IEnumerable<int> GetPageNumbers()
+    {
+        const int maxVisible = 5;
+        var start = Math.Max(1, currentPage - maxVisible / 2);
+        var end = Math.Min(totalPages, start + maxVisible - 1);
+
+        if (end - start + 1 < maxVisible)
+            start = Math.Max(1, end - maxVisible + 1);
+
+        for (int i = start; i <= end; i++)
+            yield return i;
+    }
+
+    // ============================================================
+    // FORM MODAL
+    // ============================================================
+    private void OpenEditModal(Blog b)
+    {
+        editingId = b.Id;
+        formModel = new BlogFormModel
         {
-            await InitializeJsInterop();
+            BlogApiId = b.BlogApiId,
+            Title = b.Title,
+            Topic = b.Topic ?? "",
+            Content = b.Content ?? "",
+            Mode = b.Mode ?? "",
+            Score = b.Score,
+            ScoreReason = b.ScoreReason ?? "",
+            IsUseful = b.IsUseful,
+            SeoStatus = b.SeoStatus ?? "",
+            IsApproved = b.IsApproved,
+            IsActive = b.IsActive
+        };
+        formError = "";
+        showFormModal = true;
+    }
+
+    private void CloseFormModal()
+    {
+        if (isSaving) return;
+        showFormModal = false;
+        formError = "";
+    }
+
+    private async Task SaveBlog()
+    {
+        if (string.IsNullOrWhiteSpace(formModel.Title))
+        {
+            formError = "عنوان مقاله الزامی است.";
+            return;
+        }
+        if (formModel.Title.Length > 500)
+        {
+            formError = "عنوان نباید بیشتر از ۵۰۰ کاراکتر باشد.";
+            return;
+        }
+        if ((formModel.Topic?.Length ?? 0) > 300)
+        {
+            formError = "موضوع نباید بیشتر از ۳۰۰ کاراکتر باشد.";
+            return;
+        }
+        if ((formModel.Mode?.Length ?? 0) > 50)
+        {
+            formError = "حالت (Mode) نباید بیشتر از ۵۰ کاراکتر باشد.";
+            return;
+        }
+        if ((formModel.ScoreReason?.Length ?? 0) > 1000)
+        {
+            formError = "دلیل امتیاز نباید بیشتر از ۱۰۰۰ کاراکتر باشد.";
+            return;
+        }
+        if (formModel.Score < 0)
+        {
+            formError = "امتیاز نمی‌تواند منفی باشد.";
+            return;
+        }
+        if (formModel.IsActive && !formModel.IsApproved)
+        {
+            formError = "نمی‌توان مقاله‌ای را فعال کرد که هنوز تأیید نشده است.";
+            return;
+        }
+
+        formError = "";
+        isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+
+            var entity = await db.Blogs.FirstOrDefaultAsync(x => x.Id == editingId);
+            if (entity == null)
+            {
+                formError = "مقاله موردنظر یافت نشد.";
+                return;
+            }
+
+            entity.Title = formModel.Title.Trim();
+            entity.Topic = formModel.Topic?.Trim() ?? "";
+            entity.Content = formModel.Content ?? "";
+            entity.Mode = formModel.Mode?.Trim() ?? "";
+            entity.Score = formModel.Score;
+            entity.ScoreReason = formModel.ScoreReason?.Trim() ?? "";
+            entity.IsUseful = formModel.IsUseful;
+            entity.SeoStatus = string.IsNullOrWhiteSpace(formModel.SeoStatus) ? null : formModel.SeoStatus;
+            entity.IsApproved = formModel.IsApproved;
+            entity.IsActive = formModel.IsActive;
+
+            await db.SaveChangesAsync();
+            ShowToast("مقاله با موفقیت ویرایش شد");
+
+            showFormModal = false;
+            await LoadBlogs();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Blogs] Save error: {ex.Message}");
+            formError = "خطا در ذخیره‌سازی. لطفاً دوباره تلاش کنید.";
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
         }
     }
 
-    private async Task InitializeJsInterop()
+    // ============================================================
+    // DELETE (Soft Delete)
+    // ============================================================
+    private void OpenDeleteModal(Blog b)
     {
-        await JSRuntime.InvokeVoidAsync("eval", @"
-            // Ripple effect
-            document.querySelectorAll('.ripple').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    const rect = this.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    const ripple = document.createElement('span');
-                    ripple.className = 'ripple-effect';
-                    ripple.style.left = x + 'px';
-                    ripple.style.top = y + 'px';
-                    ripple.style.width = '40px';
-                    ripple.style.height = '40px';
-                    this.appendChild(ripple);
-                    setTimeout(() => ripple.remove(), 600);
-                });
-            });
+        selectedForDelete = b;
+        showDeleteModal = true;
+    }
 
-            // Fade-up observer
-            const fadeEls = document.querySelectorAll('.fade-up');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, { threshold: 0.15 });
+    private void CloseDeleteModal()
+    {
+        if (isDeleting) return;
+        showDeleteModal = false;
+        selectedForDelete = null;
+    }
 
-            fadeEls.forEach(el => observer.observe(el));
+    private async Task ConfirmDelete()
+    {
+        if (selectedForDelete == null) return;
 
-            // Trigger visible for elements already in view
-            setTimeout(() => {
-                fadeEls.forEach(el => {
-                    if (el.getBoundingClientRect().top < window.innerHeight) {
-                        el.classList.add('visible');
-                    }
-                });
-            }, 400);
-        ");
+        isDeleting = true;
+        StateHasChanged();
+
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Blogs.FirstOrDefaultAsync(x => x.Id == selectedForDelete.Id);
+            if (entity != null)
+            {
+                entity.IsDelete = true;
+                entity.IsActive = false;
+                await db.SaveChangesAsync();
+            }
+
+            ShowToast("مقاله با موفقیت حذف شد");
+            showDeleteModal = false;
+            selectedForDelete = null;
+            await LoadBlogs();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Blogs] Delete error: {ex.Message}");
+            ShowToast("خطا در حذف مقاله", true);
+        }
+        finally
+        {
+            isDeleting = false;
+            StateHasChanged();
+        }
     }
 
     // ============================================================
-    // HELPER CLASS
+    // RESTORE
     // ============================================================
-
-    public class PostItem
+    private async Task RestoreBlog(Blog b)
     {
-        public Guid Id { get; set; }
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Blogs.FirstOrDefaultAsync(x => x.Id == b.Id);
+            if (entity == null) return;
+
+            entity.IsDelete = false;
+            await db.SaveChangesAsync();
+
+            ShowToast("مقاله با موفقیت بازگردانی شد");
+            await LoadBlogs();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Blogs] Restore error: {ex.Message}");
+            ShowToast("خطا در بازگردانی مقاله", true);
+        }
+    }
+
+    // ============================================================
+    // TOGGLE APPROVED
+    // ============================================================
+    private async Task ToggleApproved(Blog b)
+    {
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Blogs.FirstOrDefaultAsync(x => x.Id == b.Id);
+            if (entity == null) return;
+
+            entity.IsApproved = !entity.IsApproved;
+
+            if (!entity.IsApproved && entity.IsActive)
+            {
+                entity.IsActive = false;
+            }
+
+            await db.SaveChangesAsync();
+
+            ShowToast(entity.IsApproved ? "مقاله تأیید شد" : "تأیید مقاله لغو شد");
+            await LoadBlogs();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Blogs] ToggleApproved error: {ex.Message}");
+            ShowToast("خطا در تغییر وضعیت تأیید", true);
+        }
+    }
+
+    // ============================================================
+    // TOGGLE ACTIVE
+    // ============================================================
+    private async Task ToggleActive(Blog b)
+    {
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Blogs.FirstOrDefaultAsync(x => x.Id == b.Id);
+            if (entity == null) return;
+
+            if (!entity.IsActive && !entity.IsApproved)
+            {
+                ShowToast("ابتدا باید مقاله را تأیید کنید", true);
+                return;
+            }
+
+            entity.IsActive = !entity.IsActive;
+            await db.SaveChangesAsync();
+
+            ShowToast(entity.IsActive ? "مقاله فعال شد" : "مقاله غیرفعال شد");
+            await LoadBlogs();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Blogs] Toggle error: {ex.Message}");
+            ShowToast("خطا در تغییر وضعیت", true);
+        }
+    }
+
+    // ============================================================
+    // NAVIGATION
+    // ============================================================
+    private void ViewBlog(int blogApiId)
+        => Navigation.NavigateTo($"/Admin/Blogs/Details/{blogApiId}");
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+    private void ShowToast(string message, bool isError = false)
+    {
+        toastMessage = message;
+        toastIsError = isError;
+        StateHasChanged();
+
+        toastTimer?.Dispose();
+        toastTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                toastMessage = "";
+                StateHasChanged();
+            });
+        }, null, 3000, System.Threading.Timeout.Infinite);
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    private static string GetSeoClass(string? seo) => seo?.ToLower() switch
+    {
+        "approved" => "cat-language",
+        "pending" => "cat-tool",
+        "rejected" => "cat-framework",
+        _ => "cat-concept"
+    };
+
+    private static string GetSeoTagClass(string? seo) => seo?.ToLower() switch
+    {
+        "approved" => "tag-approved",
+        "pending" => "tag-pending",
+        "rejected" => "tag-deleted",
+        _ => "tag-inactive"
+    };
+
+    private static string GetSeoText(string? seo) => seo?.ToLower() switch
+    {
+        "approved" => "تأیید شده",
+        "pending" => "در انتظار",
+        "rejected" => "رد شده",
+        _ => "بدون وضعیت"
+    };
+
+    private static string GetScoreClass(int score) => score switch
+    {
+        >= 80 => "tag-approved",
+        >= 50 => "tag-level-intermediate",
+        _ => "tag-pending"
+    };
+
+    private static string Truncate(string? text, int max)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return "";
+        return text.Length <= max ? text : text.Substring(0, max) + "...";
+    }
+
+    private static string ToPersianDate(DateTime dt)
+    {
+        try
+        {
+            var pc = new System.Globalization.PersianCalendar();
+            return $"{pc.GetYear(dt):0000}/{pc.GetMonth(dt):00}/{pc.GetDayOfMonth(dt):00}";
+        }
+        catch
+        {
+            return dt.ToString("yyyy/MM/dd");
+        }
+    }
+
+    // ============================================================
+    // FORM MODEL
+    // ============================================================
+    public class BlogFormModel
+    {
+        public int BlogApiId { get; set; }
         public string Title { get; set; } = "";
-        public string Lang { get; set; } = "fa";
-        public bool IsPublished { get; set; }
-        public string Excerpt { get; set; } = "";
+        public string Topic { get; set; } = "";
         public string Content { get; set; } = "";
-        public string ImageUrl { get; set; } = "";
-        public string Date { get; set; } = "";
+        public string Mode { get; set; } = "";
+        public int Score { get; set; }
+        public string ScoreReason { get; set; } = "";
+        public bool IsUseful { get; set; }
+        public string SeoStatus { get; set; } = "";
+        public bool IsApproved { get; set; }
+        public bool IsActive { get; set; }
     }
 }

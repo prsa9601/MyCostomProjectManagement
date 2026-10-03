@@ -1,0 +1,1286 @@
+﻿@page "/Blogs/{BlogApiId:int}"
+@layout FrontLayout
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject IDbContextFactory<Context> _dbFactory
+@using BackEnd.Data.DB
+@using BackEnd.Data.Entities.Blogs
+@using Microsoft.EntityFrameworkCore
+@using MyCostomProjectManagement.Helpers
+
+<PageTitle>@(blog?.Title ?? "مقاله") | محمد پارسا کریمی</PageTitle>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+
+<script>
+    window.bdBlog = window.bdBlog || {};
+
+    window.bdBlog.processContent = function () {
+        if (typeof hljs === 'undefined') return;
+
+        document.querySelectorAll('#blogContent pre code').forEach(function (block) {
+            if (block.dataset.highlighted === 'yes') return;
+            try {
+                hljs.highlightElement(block);
+                block.dataset.highlighted = 'yes';
+            } catch (e) { }
+        });
+
+        document.querySelectorAll('#blogContent pre').forEach(function (pre) {
+            var code = pre.querySelector('code');
+            if (!code) return;
+
+            if (!pre.querySelector('.blog-lang-badge')) {
+                var cls = code.className || '';
+                var m = cls.match(/language-([\w+-]+)/);
+                var lang = m ? m[1].toUpperCase() : 'CODE';
+                var badge = document.createElement('span');
+                badge.className = 'blog-lang-badge';
+                badge.textContent = lang;
+                badge.style.cssText = 'position:absolute;top:9px;right:14px;font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(59,130,246,0.9);background:rgba(59,130,246,0.1);padding:3px 10px;border-radius:20px;border:1px solid rgba(59,130,246,0.2);font-family:monospace;z-index:2;pointer-events:none;';
+                pre.appendChild(badge);
+            }
+
+            if (!pre.querySelector('.blog-copy-btn')) {
+                var btn = document.createElement('button');
+                btn.className = 'blog-copy-btn';
+                btn.type = 'button';
+                btn.innerHTML = '<i class="fas fa-copy"></i><span>کپی</span>';
+                btn.style.cssText = 'position:absolute;top:7px;left:76px;display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 10px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;font-size:11px;font-family:inherit;z-index:3;transition:all 0.2s;';
+                btn.onmouseenter = function () { btn.style.background = 'rgba(59,130,246,0.2)'; btn.style.color = '#60a5fa'; };
+                btn.onmouseleave = function () { btn.style.background = 'rgba(255,255,255,0.05)'; btn.style.color = '#94a3b8'; };
+                btn.onclick = function (e) {
+                    e.stopPropagation();
+                    var text = code.innerText || '';
+                    navigator.clipboard.writeText(text).then(function () {
+                        btn.innerHTML = '<i class="fas fa-check"></i><span>کپی شد</span>';
+                        btn.style.color = '#34d399';
+                        setTimeout(function () {
+                            btn.innerHTML = '<i class="fas fa-copy"></i><span>کپی</span>';
+                            btn.style.color = '#94a3b8';
+                        }, 1500);
+                    });
+                };
+                pre.appendChild(btn);
+            }
+        });
+    };
+</script>
+
+<style>
+    /* ============================================================
+           BLOG DETAIL — هماهنگ با Home
+        ============================================================ */
+
+    .hero {
+        padding: 160px 0 60px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #b8c4d6;
+        padding: 9px 20px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        margin-bottom: 26px;
+        cursor: pointer;
+        transition: 0.3s;
+        text-decoration: none;
+    }
+
+        .back-btn:hover {
+            border-color: #3b82f6;
+            color: #fff;
+            background: rgba(59, 130, 246, 0.08);
+            transform: translateX(-4px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.1);
+        }
+
+        .back-btn i {
+            transition: transform 0.3s;
+        }
+
+        .back-btn:hover i {
+            transform: translateX(-3px);
+        }
+
+    .hero h1 {
+        font-size: clamp(1.8rem, 5vw, 2.8rem);
+        font-weight: 900;
+        line-height: 1.3;
+        margin-bottom: 22px;
+        background: linear-gradient(to left, #f0f4ff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 30px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .hero-tag {
+        font-size: 0.75rem;
+        padding: 5px 16px;
+        border-radius: 40px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+    }
+
+    .tag-topic {
+        background: rgba(59, 130, 246, 0.1);
+        color: #60a5fa;
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .tag-mode {
+        background: rgba(139, 92, 246, 0.1);
+        color: #a78bfa;
+        border-color: rgba(139, 92, 246, 0.2);
+    }
+
+    .tag-useful {
+        background: rgba(16, 185, 129, 0.12);
+        color: #34d399;
+        border-color: rgba(16, 185, 129, 0.15);
+    }
+
+    .tag-score {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .tag-approved {
+        background: rgba(16, 185, 129, 0.12);
+        color: #34d399;
+        border-color: rgba(16, 185, 129, 0.15);
+    }
+
+    .tag-pending {
+        background: rgba(251, 146, 60, 0.12);
+        color: #fb923c;
+        border-color: rgba(251, 146, 60, 0.15);
+    }
+
+    .tag-rejected {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+        border-color: rgba(239, 68, 68, 0.15);
+    }
+
+    /* ============================================================
+           LAYOUT
+        ============================================================ */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 28px;
+        align-items: start;
+        padding-bottom: 90px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .content-main {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 24px;
+        padding: 36px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* ============================================================
+           BLOG CONTENT
+        ============================================================ */
+    .blog-content {
+        color: #d8e3e5;
+        font-size: 1rem;
+        line-height: 2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+        /* Headings */
+        .blog-content h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 32px 0 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid transparent;
+            background-image: linear-gradient(90deg, #3b82f6, #8b5cf6, transparent);
+            background-repeat: no-repeat;
+            background-size: 100% 2px;
+            background-position: 0 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .blog-content h1:first-child {
+                margin-top: 0;
+            }
+
+            .blog-content h1::before {
+                content: '\f0da';
+                font-family: 'Font Awesome 6 Free';
+                font-weight: 900;
+                color: #3b82f6;
+                font-size: 1.1rem;
+            }
+
+        .blog-content h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #60a5fa;
+            margin: 28px 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-right: 14px;
+            position: relative;
+        }
+
+            .blog-content h2::before {
+                content: '';
+                width: 4px;
+                height: 1.2rem;
+                background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+                border-radius: 4px;
+            }
+
+        .blog-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #a78bfa;
+            margin: 22px 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .blog-content h3::before {
+                content: '\f111';
+                font-family: 'Font Awesome 6 Free';
+                font-weight: 900;
+                color: #a78bfa;
+                font-size: 0.45rem;
+                opacity: 0.7;
+            }
+
+        .blog-content h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #4dc9dd;
+            margin: 18px 0 8px;
+        }
+
+        .blog-content h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #9be3a8;
+            margin: 16px 0 6px;
+        }
+
+        .blog-content h6 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #c084fc;
+            margin: 14px 0 6px;
+        }
+
+        .blog-content p {
+            margin-bottom: 16px;
+        }
+
+        .blog-content strong {
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .blog-content em {
+            color: #a78bfa;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .blog-content del {
+            color: #64748b;
+            text-decoration: line-through;
+        }
+
+        .blog-content a {
+            color: #60a5fa;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(96, 165, 250, 0.4);
+            transition: 0.25s;
+            padding: 0 2px;
+        }
+
+            .blog-content a:hover {
+                color: #8b5cf6;
+                border-bottom-color: #8b5cf6;
+                border-bottom-style: solid;
+                background: rgba(139, 92, 246, 0.06);
+                border-radius: 4px;
+            }
+
+        /* Lists */
+        .blog-content ul {
+            margin: 14px 0 18px;
+            padding-right: 22px;
+            list-style: none;
+        }
+
+            .blog-content ul li {
+                position: relative;
+                padding-right: 24px;
+                margin-bottom: 10px;
+            }
+
+                .blog-content ul li::before {
+                    content: '\f0da';
+                    font-family: 'Font Awesome 6 Free';
+                    font-weight: 900;
+                    position: absolute;
+                    right: 0;
+                    top: 2px;
+                    color: #3b82f6;
+                    font-size: 0.75rem;
+                    transition: 0.25s;
+                }
+
+                .blog-content ul li:hover::before {
+                    color: #8b5cf6;
+                    transform: translateX(-3px);
+                }
+
+        .blog-content ol {
+            margin: 14px 0 18px;
+            padding-right: 34px;
+            counter-reset: item;
+            list-style: none;
+        }
+
+            .blog-content ol li {
+                position: relative;
+                margin-bottom: 10px;
+                counter-increment: item;
+            }
+
+                .blog-content ol li::before {
+                    content: counter(item);
+                    position: absolute;
+                    right: -34px;
+                    top: 1px;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                    color: #fff;
+                    font-size: 0.72rem;
+                    font-weight: 700;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.25);
+                }
+
+        /* Inline code */
+        .blog-content code:not(pre code) {
+            background: rgba(59, 130, 246, 0.1);
+            color: #7dd3fc;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.86em;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            direction: ltr;
+            unicode-bidi: embed;
+            border: 1px solid rgba(59, 130, 246, 0.18);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            font-weight: 500;
+            display: inline-block;
+            transition: 0.2s;
+        }
+
+            .blog-content code:not(pre code):hover {
+                background: rgba(59, 130, 246, 0.18);
+                border-color: rgba(59, 130, 246, 0.3);
+            }
+
+        /* ============================================================
+               CODE BLOCK
+            ============================================================ */
+        .blog-content pre {
+            position: relative;
+            background: linear-gradient(180deg, #1e2227 0%, #1a1d22 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 46px 20px 20px 20px;
+            margin: 22px 0;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            transition: 0.3s;
+            /* ----- Custom Scrollbar ----- */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(59, 130, 246, 0.5) rgba(255, 255, 255, 0.03);
+            scroll-behavior: smooth;
+        }
+
+            .blog-content pre:hover {
+                border-color: rgba(59, 130, 246, 0.25);
+                box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(59, 130, 246, 0.1);
+            }
+
+            .blog-content pre::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 36px;
+                background: rgba(255, 255, 255, 0.02);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                border-radius: 14px 14px 0 0;
+                z-index: 1;
+            }
+
+            .blog-content pre::after {
+                content: '';
+                position: absolute;
+                top: 13px;
+                left: 16px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #ff5f56;
+                box-shadow: 18px 0 0 #ffbd2e, 36px 0 0 #27c93f;
+                z-index: 2;
+            }
+
+            .blog-content pre code {
+                background: transparent !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                font-size: 0.9rem;
+                line-height: 1.75;
+                font-family: 'Fira Code', 'Consolas', monospace;
+                display: block;
+                color: #abb2bf;
+                direction: ltr;
+                tab-size: 4;
+            }
+
+                .blog-content pre code.hljs {
+                    background: transparent !important;
+                    color: inherit;
+                }
+
+            /* ---------- Code Block Scrollbar — Webkit ---------- */
+            .blog-content pre::-webkit-scrollbar {
+                height: 10px;
+                width: 10px;
+            }
+
+            .blog-content pre::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 0 0 14px 14px;
+                margin: 0 6px;
+            }
+
+            .blog-content pre::-webkit-scrollbar-thumb {
+                background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+                border-radius: 10px;
+                border: 2px solid rgba(15, 20, 30, 0.9);
+                transition: background 0.25s ease;
+            }
+
+                .blog-content pre::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(90deg, #60a5fa, #a78bfa);
+                    box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+                }
+
+                .blog-content pre::-webkit-scrollbar-thumb:active {
+                    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+                }
+
+            .blog-content pre::-webkit-scrollbar-corner {
+                background: transparent;
+            }
+
+            .blog-content pre::-webkit-scrollbar-button {
+                display: none;
+                height: 0;
+                width: 0;
+            }
+
+        /* ============================================================
+               BLOCKQUOTE
+            ============================================================ */
+        .blog-content blockquote {
+            position: relative;
+            border-right: 3px solid #3b82f6;
+            border-radius: 10px;
+            padding: 16px 20px 16px 22px;
+            margin: 22px 0;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.02) 60%, transparent 100%);
+            color: rgba(232, 240, 241, 0.92);
+            font-style: normal;
+            font-size: 0.95rem;
+            line-height: 1.9;
+        }
+
+            .blog-content blockquote::before {
+                content: '\f10d';
+                font-family: 'Font Awesome 6 Free';
+                font-weight: 900;
+                position: absolute;
+                top: 12px;
+                right: 14px;
+                color: rgba(59, 130, 246, 0.25);
+                font-size: 1.1rem;
+            }
+
+            .blog-content blockquote p:last-child {
+                margin-bottom: 0;
+            }
+
+        /* ============================================================
+               TABLE
+            ============================================================ */
+        .blog-content table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 24px 0;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+            direction: rtl;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+            .blog-content table thead {
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(139, 92, 246, 0.12));
+            }
+
+            .blog-content table th {
+                padding: 14px 18px;
+                text-align: right;
+                color: #93c5fd;
+                font-weight: 700;
+                font-size: 0.85rem;
+                letter-spacing: 0.3px;
+                border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+                white-space: nowrap;
+            }
+
+            .blog-content table td {
+                padding: 12px 18px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                color: #d8e3e5;
+                font-size: 0.9rem;
+                text-align: right;
+                vertical-align: middle;
+            }
+
+            .blog-content table tbody tr {
+                transition: background 0.2s ease;
+            }
+
+                .blog-content table tbody tr:nth-child(even) {
+                    background: rgba(255, 255, 255, 0.015);
+                }
+
+                .blog-content table tbody tr:hover {
+                    background: rgba(59, 130, 246, 0.06);
+                }
+
+                .blog-content table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+            /* سلول‌های حاوی کد */
+            .blog-content table td code,
+            .blog-content table th code {
+                direction: ltr;
+                unicode-bidi: embed;
+            }
+
+        /* ============================================================
+               HR
+            ============================================================ */
+        .blog-content hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, #8b5cf6, transparent);
+            margin: 32px 0;
+            border-radius: 4px;
+            opacity: 0.6;
+        }
+
+        /* ============================================================
+               IMG
+            ============================================================ */
+        .blog-content img {
+            max-width: 100%;
+            border-radius: 14px;
+            margin: 16px 0;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: 0.3s;
+        }
+
+            .blog-content img:hover {
+                border-color: rgba(59, 130, 246, 0.3);
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            }
+
+    /* ============================================================
+           SIDEBAR
+        ============================================================ */
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: sticky;
+        top: 100px;
+    }
+
+    .sidebar-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 20px;
+        padding: 22px;
+        transition: 0.3s;
+    }
+
+        .sidebar-card:hover {
+            border-color: rgba(59, 130, 246, 0.15);
+        }
+
+        .sidebar-card h4 {
+            font-size: 0.8rem;
+            color: #3b82f6;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .sidebar-stat {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        transition: 0.3s;
+    }
+
+        .sidebar-stat:hover {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            padding-right: 8px;
+            padding-left: 8px;
+            margin: 0 -8px;
+        }
+
+        .sidebar-stat:last-child {
+            border-bottom: none;
+        }
+
+    .sidebar-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        background: rgba(59, 130, 246, 0.12);
+        color: #3b82f6;
+    }
+
+        .sidebar-icon.purple {
+            background: rgba(139, 92, 246, 0.12);
+            color: #a78bfa;
+        }
+
+        .sidebar-icon.green {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+        }
+
+        .sidebar-icon.orange {
+            background: rgba(251, 146, 60, 0.12);
+            color: #fb923c;
+        }
+
+    .sidebar-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+        .sidebar-info .label {
+            font-size: 0.72rem;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-info .value {
+            font-size: 0.9rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+    /* ============================================================
+           STATE
+        ============================================================ */
+    .state-box {
+        text-align: center;
+        padding: 100px 20px;
+        color: #94a3b8;
+    }
+
+        .state-box i {
+            font-size: 3.5rem;
+            color: rgba(59, 130, 246, 0.3);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .state-box h3 {
+            font-size: 1.3rem;
+            color: #eef2f8;
+            margin-bottom: 10px;
+        }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(59, 130, 246, 0.15);
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ============================================================
+           TOAST
+        ============================================================ */
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.1));
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
+        padding: 12px 22px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: toastIn 0.4s ease;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    @@keyframes toastIn {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* ============================================================
+           GLOBAL SCROLLBAR (اختیاری — کل صفحه)
+        ============================================================ */
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(59, 130, 246, 0.4) transparent;
+    }
+
+        html::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        html::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        html::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            border: 2px solid rgba(15, 20, 30, 0.95);
+        }
+
+            html::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(180deg, #60a5fa, #a78bfa);
+                box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+            }
+
+    /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+    @@media (max-width: 900px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+            position: static;
+        }
+
+        .content-main {
+            padding: 24px;
+        }
+    }
+
+    @@media (max-width: 700px) {
+        .blog-content table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+            .blog-content table thead,
+            .blog-content table tbody {
+                display: table;
+                width: 100%;
+                min-width: 480px;
+            }
+    }
+
+    @@media (max-width: 500px) {
+        .hero {
+            padding: 130px 0 40px;
+        }
+
+        .content-main {
+            padding: 20px;
+        }
+
+        .blog-content {
+            font-size: 0.92rem;
+            line-height: 1.9;
+        }
+
+        .toast {
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            justify-content: center;
+        }
+    }
+</style>
+
+@if (isLoading)
+{
+    <section class="hero">
+        <div class="container">
+            <div class="state-box">
+                <div class="spinner"></div>
+                <h3>در حال بارگذاری...</h3>
+            </div>
+        </div>
+    </section>
+}
+else if (blog == null)
+{
+    <section class="hero">
+        <div class="container">
+            <div class="state-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>مقاله پیدا نشد</h3>
+                <p>ممکن است حذف شده باشد، هنوز تأیید نشده باشد یا آدرس اشتباه باشد.</p>
+                <a href="/Blogs" class="back-btn" style="margin-top: 20px;">
+                    <i class="fas fa-arrow-right"></i>
+                    بازگشت به لیست مقالات
+                </a>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    <section class="hero">
+        <div class="container">
+            <a href="/Blogs" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت به لیست مقالات
+            </a>
+
+            <h1>@(blog.Title ?? "بدون عنوان")</h1>
+
+            <div class="hero-meta">
+                @if (!string.IsNullOrWhiteSpace(blog.Topic))
+                {
+                    <span class="hero-tag tag-topic"><i class="fas fa-hashtag"></i> @blog.Topic</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(blog.Mode))
+                {
+                    <span class="hero-tag tag-mode"><i class="fas fa-cog"></i> @blog.Mode</span>
+                }
+                @if (blog.Score > 0)
+                {
+                    <span class="hero-tag tag-score"><i class="fas fa-chart-line"></i> امتیاز: @blog.Score/100</span>
+                }
+                @if (blog.IsUseful)
+                {
+                    <span class="hero-tag tag-useful"><i class="fas fa-star"></i> مفید</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(blog.SeoStatus))
+                {
+                    <span class="hero-tag @GetSeoStatusClass(blog.SeoStatus)">
+                        <i class="fas @GetSeoStatusIcon(blog.SeoStatus)"></i>
+                        @GetSeoStatusText(blog.SeoStatus)
+                    </span>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="container">
+        <div class="content-grid">
+            <article class="content-main">
+                <div class="blog-content" id="blogContent">
+                    @((MarkupString)(renderedContent ?? ""))
+                </div>
+            </article>
+
+            <aside class="sidebar">
+                <div class="sidebar-card">
+                    <h4><i class="fas fa-info-circle"></i> اطلاعات</h4>
+
+                    <div class="sidebar-stat">
+                        <div class="sidebar-icon">
+                            <i class="far fa-calendar-alt"></i>
+                        </div>
+                        <div class="sidebar-info">
+                            <div class="label">تاریخ انتشار</div>
+                            <div class="value">@ToPersianDate(blog.CreatedAt == default ? blog.CreationDate : blog.CreatedAt)</div>
+                        </div>
+                    </div>
+
+                    @if (blog.Score > 0)
+                    {
+                        <div class="sidebar-stat">
+                            <div class="sidebar-icon purple">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="sidebar-info">
+                                <div class="label">امتیاز کلی</div>
+                                <div class="value">@blog.Score از ۱۰۰</div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (blog.IsUseful)
+                    {
+                        <div class="sidebar-stat">
+                            <div class="sidebar-icon green">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="sidebar-info">
+                                <div class="label">وضعیت</div>
+                                <div class="value">مقاله مفید</div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(blog.Mode))
+                    {
+                        <div class="sidebar-stat">
+                            <div class="sidebar-icon">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="sidebar-info">
+                                <div class="label">حالت</div>
+                                <div class="value">@blog.Mode</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(blog.ScoreReason))
+                {
+                    <div class="sidebar-card">
+                        <h4><i class="fas fa-comment-dots"></i> تحلیل امتیاز</h4>
+                        <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.8; margin: 0;">
+                            @blog.ScoreReason
+                        </p>
+                    </div>
+                }
+
+                <div class="sidebar-card">
+                    <h4><i class="fas fa-share-alt"></i> اشتراک‌گذاری</h4>
+
+                    <div class="sidebar-stat" style="cursor:pointer;" @onclick="CopyLink">
+                        <div class="sidebar-icon"><i class="fas fa-link"></i></div>
+                        <div class="sidebar-info"><div class="value">کپی لینک</div></div>
+                        <i class="fas fa-chevron-left" style="color:rgba(232,240,241,0.3);"></i>
+                    </div>
+
+                    <div class="sidebar-stat" style="cursor:pointer;" @onclick="CopyContent">
+                        <div class="sidebar-icon purple"><i class="fas fa-copy"></i></div>
+                        <div class="sidebar-info"><div class="value">کپی محتوا</div></div>
+                        <i class="fas fa-chevron-left" style="color:rgba(232,240,241,0.3);"></i>
+                    </div>
+
+                    <div class="sidebar-stat" style="cursor:pointer;" @onclick="PrintPage">
+                        <div class="sidebar-icon orange"><i class="fas fa-print"></i></div>
+                        <div class="sidebar-info"><div class="value">چاپ</div></div>
+                        <i class="fas fa-chevron-left" style="color:rgba(232,240,241,0.3);"></i>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    @if (showToast)
+    {
+        <div class="toast">
+            <i class="fas fa-check-circle"></i>
+            @toastMessage
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public int BlogApiId { get; set; }
+
+    private Blog? blog;
+    private bool isLoading = true;
+    private string renderedContent = "";
+    private bool needsHighlight = false;
+    private bool showToast = false;
+    private string toastMessage = "";
+    private System.Timers.Timer? toastTimer;
+    private bool _disposed = false;
+
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
+    protected override async Task OnParametersSetAsync()
+    {
+        if (BlogApiId <= 0)
+        {
+            blog = null;
+            isLoading = false;
+            return;
+        }
+
+        await LoadBlog();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (needsHighlight && !_disposed)
+        {
+            needsHighlight = false;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("bdBlog.processContent");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[BlogDetail] Highlight error: {ex.Message}");
+            }
+        }
+    }
+
+    // ============================================================
+    // DATA
+    // ============================================================
+    private async Task LoadBlog()
+    {
+        isLoading = true;
+        if (!_disposed) StateHasChanged();
+
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+
+            // فقط مقالات تأیید شده، فعال و حذف‌نشده
+            blog = await db.Blogs.AsNoTracking()
+                .Where(x => x.BlogApiId == BlogApiId
+                            && !x.IsDelete
+                            && x.IsActive
+                            && x.IsApproved)
+                .FirstOrDefaultAsync();
+
+            if (blog != null && !string.IsNullOrWhiteSpace(blog.Content))
+            {
+                renderedContent = MarkdownRenderer.Render(blog.Content) ?? "";
+                needsHighlight = true;
+            }
+            else
+            {
+                renderedContent = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[BlogDetail] Load error: {ex.Message}");
+            blog = null;
+            renderedContent = "";
+        }
+        finally
+        {
+            isLoading = false;
+            if (!_disposed) StateHasChanged();
+        }
+    }
+
+    // ============================================================
+    // ACTIONS
+    // ============================================================
+    private async Task CopyLink()
+    {
+        try
+        {
+            var safeUrl = Navigation.Uri.Replace("'", "\\'");
+            await JSRuntime.InvokeVoidAsync("eval", $"navigator.clipboard.writeText('{safeUrl}')");
+            ShowToast("لینک کپی شد!");
+        }
+        catch { ShowToast("خطا در کپی"); }
+    }
+
+    private async Task CopyContent()
+    {
+        if (blog == null) return;
+        try
+        {
+            var safe = (blog.Content ?? "")
+                .Replace("\\", "\\\\")
+                .Replace("`", "\\`")
+                .Replace("$", "\\$");
+            await JSRuntime.InvokeVoidAsync("eval", $"navigator.clipboard.writeText(`{safe}`)");
+            ShowToast("محتوا کپی شد!");
+        }
+        catch { ShowToast("خطا در کپی"); }
+    }
+
+    private async Task PrintPage()
+    {
+        try { await JSRuntime.InvokeVoidAsync("eval", "window.print()"); } catch { }
+    }
+
+    private void ShowToast(string message)
+    {
+        toastMessage = message;
+        showToast = true;
+        if (!_disposed) StateHasChanged();
+
+        toastTimer?.Stop();
+        toastTimer = new System.Timers.Timer(2500);
+        toastTimer.Elapsed += (s, e) =>
+        {
+            toastTimer?.Stop();
+            InvokeAsync(() =>
+            {
+                if (_disposed) return;
+                showToast = false;
+                StateHasChanged();
+            });
+        };
+        toastTimer.Start();
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        toastTimer?.Stop();
+        toastTimer?.Dispose();
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    private static string GetSeoStatusClass(string? status) => status?.ToLower() switch
+    {
+        "approved" => "tag-approved",
+        "pending" => "tag-pending",
+        "rejected" => "tag-rejected",
+        _ => "tag-mode"
+    };
+
+    private static string GetSeoStatusIcon(string? status) => status?.ToLower() switch
+    {
+        "approved" => "fa-check-circle",
+        "pending" => "fa-clock",
+        "rejected" => "fa-times-circle",
+        _ => "fa-circle"
+    };
+
+    private static string GetSeoStatusText(string? status) => status?.ToLower() switch
+    {
+        "approved" => "تأیید شده",
+        "pending" => "در انتظار",
+        "rejected" => "رد شده",
+        _ => status ?? ""
+    };
+
+    private static string ToPersianDate(DateTime dt)
+    {
+        try
+        {
+            var pc = new System.Globalization.PersianCalendar();
+            return $"{pc.GetYear(dt):0000}/{pc.GetMonth(dt):00}/{pc.GetDayOfMonth(dt):00}";
+        }
+        catch { return dt.ToString("yyyy/MM/dd"); }
+    }
+}
