@@ -3,825 +3,15 @@
 @rendermode InteractiveServer
 @inject ITutorialApiService TutorialService
 @inject NavigationManager Navigation
+@inject IDbContextFactory<Context> _dbFactory
 @inject IJSRuntime JSRuntime
+@using BackEnd.Data.DB
+@using BackEnd.Data.Entities.Tutorial
 @using BackEnd.Data.Infrastructure.Tutorial
 @using BackEnd.Data.Infrastructure.Tutorial.DTOs
+@using Microsoft.EntityFrameworkCore
 
 <PageTitle>مدیریت آموزش‌ها | پنل ادمین</PageTitle>
-
-<style>
-    /* ============================================================
-           TUTORIALS ADMIN PAGE - Full CRUD
-        ============================================================ */
-
-    .tutorials-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-        .tutorials-header h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-            .tutorials-header h1 i {
-                color: #e8a838;
-            }
-
-        .tutorials-header .badge-count {
-            font-size: 0.7rem;
-            background: linear-gradient(135deg, #e8a838, #d4952e);
-            color: #fff;
-            padding: 4px 14px;
-            border-radius: 40px;
-            font-weight: 600;
-        }
-
-    .btn-add {
-        background: linear-gradient(135deg, #52b788, #3a9a6e);
-        color: #fff;
-        border: none;
-        padding: 11px 22px;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.35s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 4px 20px rgba(82, 183, 136, 0.2);
-    }
-
-        .btn-add:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 32px rgba(82, 183, 136, 0.3);
-        }
-
-    /* ===== FILTERS BAR ===== */
-    .filters-bar {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1fr auto;
-        gap: 12px;
-        padding: 18px;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 18px;
-        margin-bottom: 22px;
-        backdrop-filter: blur(8px);
-        align-items: center;
-    }
-
-    .filter-input,
-    .filter-select {
-        width: 100%;
-        padding: 10px 14px;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
-        color: #e8f0f1;
-        font-family: inherit;
-        font-size: 0.85rem;
-        transition: all 0.3s ease;
-        outline: none;
-    }
-
-        .filter-input:focus,
-        .filter-select:focus {
-            border-color: rgba(232, 168, 56, 0.4);
-            background: rgba(255, 255, 255, 0.06);
-            box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.08);
-        }
-
-        .filter-input::placeholder {
-            color: rgba(232, 240, 241, 0.3);
-        }
-
-        .filter-select option {
-            background: #13505b;
-            color: #e8f0f1;
-        }
-
-    .btn-search {
-        background: linear-gradient(135deg, #1a7a8a, #13505b);
-        color: #fff;
-        border: 1px solid rgba(77, 201, 221, 0.2);
-        padding: 10px 20px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-family: inherit;
-        font-size: 0.85rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-    }
-
-        .btn-search:hover {
-            background: linear-gradient(135deg, #2196a8, #1a7a8a);
-            transform: translateY(-2px);
-        }
-
-    /* ===== GRID ===== */
-    .tutorials-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-        gap: 18px;
-        margin-bottom: 24px;
-    }
-
-    .tutorial-card {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 20px;
-        padding: 22px;
-        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
-        backdrop-filter: blur(8px);
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        overflow: hidden;
-    }
-
-        .tutorial-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(180deg, #e8a838, #52b788);
-            opacity: 0.5;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .tutorial-card:hover {
-            transform: translateY(-6px);
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(232, 168, 56, 0.12);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-        }
-
-    .tutorial-card-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 14px;
-    }
-
-    .tutorial-icon {
-        width: 46px;
-        height: 46px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        flex-shrink: 0;
-        background: rgba(232, 168, 56, 0.08);
-        color: #e8a838;
-        transition: all 0.35s ease;
-    }
-
-    .tutorial-card:hover .tutorial-icon {
-        transform: scale(1.08) rotate(-5deg);
-    }
-
-    .tutorial-icon.cat-language {
-        background: rgba(82, 183, 136, 0.08);
-        color: #52b788;
-    }
-
-    .tutorial-icon.cat-framework {
-        background: rgba(26, 122, 138, 0.12);
-        color: #4dc9dd;
-    }
-
-    .tutorial-icon.cat-tool {
-        background: rgba(232, 168, 56, 0.08);
-        color: #e8a838;
-    }
-
-    .tutorial-icon.cat-concept {
-        background: rgba(130, 100, 200, 0.1);
-        color: #a88ce8;
-    }
-
-    .tutorial-card h3 {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #ffffff;
-        line-height: 1.5;
-        margin-bottom: 4px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .tutorial-card .topic {
-        font-size: 0.78rem;
-        color: rgba(232, 240, 241, 0.5);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .tags-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin: 14px 0;
-    }
-
-    .tag {
-        font-size: 0.7rem;
-        padding: 3px 12px;
-        border-radius: 30px;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        border: 1px solid transparent;
-    }
-
-    .tag-subject {
-        background: rgba(26, 122, 138, 0.08);
-        color: #4dc9dd;
-        border-color: rgba(77, 201, 221, 0.12);
-    }
-
-    .tag-level-beginner {
-        background: rgba(82, 183, 136, 0.08);
-        color: #52b788;
-        border-color: rgba(82, 183, 136, 0.12);
-    }
-
-    .tag-level-intermediate {
-        background: rgba(232, 168, 56, 0.08);
-        color: #e8a838;
-        border-color: rgba(232, 168, 56, 0.12);
-    }
-
-    .tag-level-advanced {
-        background: rgba(220, 53, 69, 0.08);
-        color: #e77c88;
-        border-color: rgba(220, 53, 69, 0.12);
-    }
-
-    .tag-level-all {
-        background: rgba(130, 100, 200, 0.08);
-        color: #a88ce8;
-        border-color: rgba(130, 100, 200, 0.12);
-    }
-
-    .tag-approved {
-        background: rgba(82, 183, 136, 0.08);
-        color: #52b788;
-        border-color: rgba(82, 183, 136, 0.12);
-    }
-
-    .tag-pending {
-        background: rgba(232, 168, 56, 0.08);
-        color: #e8a838;
-        border-color: rgba(232, 168, 56, 0.12);
-    }
-
-    .tag-active {
-        background: rgba(77, 201, 221, 0.08);
-        color: #4dc9dd;
-        border-color: rgba(77, 201, 221, 0.12);
-    }
-
-    .tag-inactive {
-        background: rgba(150, 150, 150, 0.08);
-        color: rgba(232, 240, 241, 0.5);
-        border-color: rgba(150, 150, 150, 0.12);
-    }
-
-    .tutorial-stats {
-        display: flex;
-        gap: 16px;
-        padding: 12px 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.04);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        margin-bottom: 14px;
-    }
-
-        .tutorial-stats .stat {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.78rem;
-            color: rgba(232, 240, 241, 0.6);
-        }
-
-            .tutorial-stats .stat i {
-                color: #e8a838;
-                font-size: 0.85rem;
-            }
-
-    .tutorial-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: auto;
-        gap: 10px;
-    }
-
-    .tutorial-date {
-        font-size: 0.72rem;
-        color: rgba(232, 240, 241, 0.4);
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .tutorial-actions {
-        display: flex;
-        gap: 6px;
-    }
-
-    .btn-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        background: rgba(255, 255, 255, 0.03);
-        color: rgba(232, 240, 241, 0.7);
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
-        transition: all 0.3s ease;
-    }
-
-        .btn-icon:hover {
-            background: rgba(232, 168, 56, 0.08);
-            color: #e8a838;
-            border-color: rgba(232, 168, 56, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .btn-icon.edit:hover {
-            background: rgba(82, 183, 136, 0.08);
-            color: #52b788;
-            border-color: rgba(82, 183, 136, 0.2);
-        }
-
-        .btn-icon.delete:hover {
-            background: rgba(220, 53, 69, 0.08);
-            color: #e77c88;
-            border-color: rgba(220, 53, 69, 0.2);
-        }
-
-        .btn-icon.toggle:hover {
-            background: rgba(77, 201, 221, 0.08);
-            color: #4dc9dd;
-            border-color: rgba(77, 201, 221, 0.2);
-        }
-
-    /* ===== STATES ===== */
-    .state-box {
-        text-align: center;
-        padding: 60px 20px;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px dashed rgba(255, 255, 255, 0.08);
-        border-radius: 20px;
-        color: rgba(232, 240, 241, 0.5);
-    }
-
-        .state-box i {
-            font-size: 3rem;
-            color: rgba(232, 168, 56, 0.3);
-            margin-bottom: 14px;
-            display: block;
-        }
-
-        .state-box h3 {
-            font-size: 1.1rem;
-            color: #e8f0f1;
-            margin-bottom: 6px;
-        }
-
-    .spinner {
-        width: 44px;
-        height: 44px;
-        border: 3px solid rgba(232, 168, 56, 0.15);
-        border-top-color: #e8a838;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        margin: 0 auto 16px;
-    }
-
-    @@keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* ===== PAGINATION ===== */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 10px;
-    }
-
-        .pagination button {
-            min-width: 38px;
-            height: 38px;
-            padding: 0 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            background: rgba(255, 255, 255, 0.03);
-            color: #e8f0f1;
-            font-family: inherit;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-            .pagination button:hover:not(:disabled):not(.active) {
-                background: rgba(232, 168, 56, 0.08);
-                border-color: rgba(232, 168, 56, 0.2);
-                color: #e8a838;
-            }
-
-            .pagination button.active {
-                background: linear-gradient(135deg, #e8a838, #d4952e);
-                border-color: transparent;
-                color: #fff;
-                font-weight: 600;
-            }
-
-            .pagination button:disabled {
-                opacity: 0.35;
-                cursor: not-allowed;
-            }
-
-    /* ===== MODAL ===== */
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(6px);
-        z-index: 2000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        animation: fadeIn 0.25s ease;
-    }
-
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-
-    @@keyframes slideUp {
-        from {
-            transform: translateY(30px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    .modal-box {
-        background: linear-gradient(180deg, #13505b 0%, #0f3f48 100%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 22px;
-        width: 100%;
-        max-width: 720px;
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-        animation: slideUp 0.3s ease;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        overflow: hidden;
-    }
-
-    .modal-header {
-        padding: 20px 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-        .modal-header h2 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-            .modal-header h2 i {
-                color: #e8a838;
-            }
-
-    .modal-close {
-        background: none;
-        border: none;
-        color: rgba(232, 240, 241, 0.5);
-        font-size: 1.3rem;
-        cursor: pointer;
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: 0.2s;
-    }
-
-        .modal-close:hover {
-            background: rgba(220, 53, 69, 0.1);
-            color: #e77c88;
-        }
-
-    .modal-body {
-        padding: 24px;
-        overflow-y: auto;
-        flex: 1;
-    }
-
-    .modal-footer {
-        padding: 16px 24px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
-        background: rgba(0, 0, 0, 0.1);
-    }
-
-    /* ===== FORM ===== */
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-    }
-
-    .form-field {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-        .form-field.full {
-            grid-column: 1 / -1;
-        }
-
-        .form-field label {
-            font-size: 0.82rem;
-            color: rgba(232, 240, 241, 0.8);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-            .form-field label i {
-                color: #e8a838;
-                font-size: 0.8rem;
-            }
-
-            .form-field label .required {
-                color: #e77c88;
-            }
-
-        .form-field input,
-        .form-field select,
-        .form-field textarea {
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            color: #e8f0f1;
-            font-family: inherit;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-            outline: none;
-            width: 100%;
-        }
-
-            .form-field input:focus,
-            .form-field select:focus,
-            .form-field textarea:focus {
-                border-color: rgba(232, 168, 56, 0.4);
-                background: rgba(255, 255, 255, 0.06);
-                box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.08);
-            }
-
-        .form-field textarea {
-            resize: vertical;
-            min-height: 180px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            line-height: 1.6;
-        }
-
-        .form-field select option {
-            background: #13505b;
-        }
-
-    .checkbox-row {
-        display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
-        padding: 12px 0;
-    }
-
-    .checkbox-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        font-size: 0.85rem;
-        color: rgba(232, 240, 241, 0.85);
-        user-select: none;
-    }
-
-        .checkbox-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #e8a838;
-            cursor: pointer;
-        }
-
-    .btn {
-        padding: 10px 22px;
-        border-radius: 10px;
-        border: none;
-        font-family: inherit;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-    }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #52b788, #3a9a6e);
-        color: #fff;
-        box-shadow: 0 4px 16px rgba(82, 183, 136, 0.2);
-    }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(82, 183, 136, 0.3);
-        }
-
-    .btn-secondary {
-        background: rgba(255, 255, 255, 0.05);
-        color: #e8f0f1;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-    .btn-danger {
-        background: linear-gradient(135deg, #e74c5c, #c0392b);
-        color: #fff;
-        box-shadow: 0 4px 16px rgba(220, 53, 69, 0.2);
-    }
-
-        .btn-danger:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(220, 53, 69, 0.3);
-        }
-
-    .validation-msg {
-        font-size: 0.72rem;
-        color: #e77c88;
-        margin-top: 4px;
-    }
-
-    /* ===== DELETE MODAL ===== */
-    .delete-modal {
-        max-width: 440px;
-        text-align: center;
-    }
-
-        .delete-modal .modal-body {
-            padding: 32px 24px;
-        }
-
-    .delete-icon-wrap {
-        width: 72px;
-        height: 72px;
-        margin: 0 auto 16px;
-        border-radius: 50%;
-        background: rgba(220, 53, 69, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-        color: #e77c88;
-    }
-
-    .delete-modal h3 {
-        color: #fff;
-        font-size: 1.1rem;
-        margin-bottom: 8px;
-    }
-
-    .delete-modal p {
-        color: rgba(232, 240, 241, 0.6);
-        font-size: 0.85rem;
-        line-height: 1.7;
-    }
-
-        .delete-modal p strong {
-            color: #e8a838;
-        }
-
-    /* ===== TOAST ===== */
-    .toast {
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 14px 24px;
-        border-radius: 12px;
-        font-size: 0.88rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        z-index: 3000;
-        animation: slideUp 0.3s ease;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .toast-success {
-        background: linear-gradient(135deg, #52b788, #3a9a6e);
-        color: #fff;
-    }
-
-    .toast-error {
-        background: linear-gradient(135deg, #e74c5c, #c0392b);
-        color: #fff;
-    }
-
-    /* ===== RESPONSIVE ===== */
-    @@media (max-width: 900px) {
-        .filters-bar {
-            grid-template-columns: 1fr 1fr;
-        }
-
-            .filters-bar .btn-search {
-                grid-column: 1 / -1;
-            }
-    }
-
-    @@media (max-width: 600px) {
-        .tutorials-header h1 {
-            font-size: 1.4rem;
-        }
-
-        .tutorials-grid,
-        .form-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .filters-bar {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
 
 <!-- ============================================================
      HEADER
@@ -843,7 +33,7 @@
 
 <!-- ============================================================
      FILTERS
-@* ============================================================ -->
+============================================================ -->
 <div class="filters-bar">
     <input type="text"
            class="filter-input"
@@ -869,19 +59,24 @@
     </select>
 
     <select class="filter-select" @bind="filterStatus">
-        <option value="">همه وضعیت‌ها</option>
-        <option value="approved">تأیید شده</option>
-        <option value="pending">در انتظار</option>
-        <option value="active">فعال</option>
-        <option value="inactive">غیرفعال</option>
+        <option value=@TutorialStatus.None>همه وضعیت‌ها</option>
+        <option value=@TutorialStatus.Approved>تأیید شده</option>
+        <option value=@TutorialStatus.Pending>در انتظار تأیید</option>
+        <option value=@TutorialStatus.Active>فعال</option>
+        <option value=@TutorialStatus.Inactive>غیرفعال</option>
+        <option value=@TutorialStatus.Deleted>حذف‌شده</option>
     </select>
 
     <button class="btn-search" @onclick="ApplyFilters">
         <i class="fas fa-search"></i>
         اعمال فیلتر
     </button>
+
+    <button class="btn-search" @onclick="ResetFilters" title="پاک کردن فیلترها">
+        <i class="fas fa-times"></i>
+    </button>
 </div>
- *@
+
 <!-- ============================================================
      CONTENT
 ============================================================ -->
@@ -905,7 +100,7 @@ else
     <div class="tutorials-grid">
         @foreach (var t in tutorials)
         {
-            <div class="tutorial-card">
+            <div class="tutorial-card @(t.IsDelete ? "is-deleted" : "")">
                 <div class="tutorial-card-header">
                     <div class="tutorial-icon @GetCategoryClass(t.Category)">
                         <i class="@GetCategoryIcon(t.Category)"></i>
@@ -929,6 +124,9 @@ else
                     <span class="tag @GetLevelClass(t.Level)">
                         <i class="fas fa-signal"></i> @GetLevelText(t.Level)
                     </span>
+                    <span class="tag @GetCategoryClass(t.Category)">
+                        <i class="@GetCategoryIcon(t.Category)"></i> @GetCategoryText(t.Category)
+                    </span>
                     <span class="tag @(t.IsApproved ? "tag-approved" : "tag-pending")">
                         <i class="fas @(t.IsApproved ? "fa-check-circle" : "fa-clock")"></i>
                         @(t.IsApproved ? "تأیید شده" : "در انتظار")
@@ -937,6 +135,12 @@ else
                         <i class="fas @(t.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
                         @(t.IsActive ? "فعال" : "غیرفعال")
                     </span>
+                    @if (t.IsDelete)
+                    {
+                        <span class="tag tag-deleted">
+                            <i class="fas fa-trash"></i> حذف‌شده
+                        </span>
+                    }
                 </div>
 
                 <div class="tutorial-stats">
@@ -947,6 +151,10 @@ else
                     <div class="stat">
                         <i class="fas fa-code"></i>
                         <span>@t.CodeBlockCount بلوک کد</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-fingerprint"></i>
+                        <span>API: @t.TutorialApiId</span>
                     </div>
                 </div>
 
@@ -964,14 +172,34 @@ else
                                 @onclick="() => OpenEditModal(t)">
                             <i class="fas fa-pen"></i>
                         </button>
-                        <button class="btn-icon toggle" title="تغییر وضعیت"
+
+                        @* ← جدید: دکمه تأیید/لغو تأیید *@
+                        <button class="btn-icon approve @(t.IsApproved ? "is-on" : "")"
+                                title="@(t.IsApproved ? "لغو تأیید" : "تأیید آموزش")"
+                                @onclick="() => ToggleApproved(t)">
+                            <i class="fas @(t.IsApproved ? "fa-check-circle" : "fa-circle-notch")"></i>
+                        </button>
+
+                        <button class="btn-icon toggle @(t.IsActive ? "is-on" : "")"
+                                title="@(t.IsActive ? "غیرفعال کردن" : "فعال کردن")"
                                 @onclick="() => ToggleActive(t)">
                             <i class="fas @(t.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
                         </button>
-                        <button class="btn-icon delete" title="حذف"
-                                @onclick="() => OpenDeleteModal(t)">
-                            <i class="fas fa-trash"></i>
-                        </button>
+
+                        @if (t.IsDelete)
+                        {
+                            <button class="btn-icon restore" title="بازگردانی"
+                                    @onclick="() => RestoreTutorial(t)">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn-icon delete" title="حذف"
+                                    @onclick="() => OpenDeleteModal(t)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        }
                     </div>
                 </div>
             </div>
@@ -1033,7 +261,7 @@ else
                     </div>
 
                     <div class="form-field">
-                        <label><i class="fas fa-code"></i> موضوع اصلی</label>
+                        <label><i class="fas fa-code"></i> موضوع اصلی (Subject)</label>
                         <input type="text" @bind="formModel.Subject" maxlength="100" placeholder="مثلاً: C#" />
                     </div>
 
@@ -1055,6 +283,11 @@ else
                             <option value="framework">فریمورک</option>
                             <option value="tool">ابزار</option>
                         </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label><i class="fas fa-fingerprint"></i> TutorialApiId</label>
+                        <input type="number" @bind="formModel.TutorialApiId" min="0" />
                     </div>
 
                     <div class="form-field full">
@@ -1175,7 +408,7 @@ else
     // ============================================================
     private const int PageSize = 12;
 
-    private List<BackEnd.Data.Entities.Tutorial.Tutorial>? tutorials;
+    private List<Tutorial>? tutorials;
     private int currentPage = 1;
     private int totalCount = 0;
     private int totalPages = 0;
@@ -1185,20 +418,20 @@ else
     private string searchTerm = "";
     private string filterLevel = "";
     private string filterCategory = "";
-    private string filterStatus = "";
+    private TutorialStatus filterStatus { get; set; } = TutorialStatus.None;
 
     // Form Modal
     private bool showFormModal = false;
     private bool isEditMode = false;
     private bool isSaving = false;
     private string formError = "";
-    private int editingId = 0;
+    private Guid editingId = Guid.Empty;
     private TutorialFormModel formModel = new();
 
     // Delete Modal
     private bool showDeleteModal = false;
     private bool isDeleting = false;
-    private BackEnd.Data.Entities.Tutorial.Tutorial? selectedForDelete;
+    private Tutorial? selectedForDelete;
 
     // Toast
     private string toastMessage = "";
@@ -1228,24 +461,22 @@ else
                 PageId = currentPage,
                 Take = PageSize,
                 IsAdmin = true,
-                // SearchTerm = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm,
-                // Level = string.IsNullOrWhiteSpace(filterLevel) ? null : filterLevel,
-                // Category = string.IsNullOrWhiteSpace(filterCategory) ? null : filterCategory
+                SearchTerm = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm,
+                Level = string.IsNullOrWhiteSpace(filterLevel) ? null : filterLevel,
+                Category = string.IsNullOrWhiteSpace(filterCategory) ? null : filterCategory,
+                Status = filterStatus
             };
-
-            // اگر سرویس فیلتر وضعیت را پشتیبانی می‌کند این خط را فعال کن
-            // filter.Status = string.IsNullOrWhiteSpace(filterStatus) ? null : filterStatus;
 
             var result = await TutorialService.GetFilter(filter);
 
-            tutorials = result?.Data ?? new List<BackEnd.Data.Entities.Tutorial.Tutorial>();
+            tutorials = result?.Data ?? new List<Tutorial>();
             totalCount = result?.EntityCount ?? tutorials.Count;
             totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[Tutorials] Load error: {ex.Message}");
-            tutorials = new List<BackEnd.Data.Entities.Tutorial.Tutorial>();
+            tutorials = new List<Tutorial>();
             totalCount = 0;
             totalPages = 0;
             ShowToast("خطا در بارگذاری داده‌ها", true);
@@ -1259,6 +490,16 @@ else
 
     private async Task ApplyFilters()
     {
+        currentPage = 1;
+        await LoadTutorials();
+    }
+
+    private async Task ResetFilters()
+    {
+        searchTerm = "";
+        filterLevel = "";
+        filterCategory = "";
+        filterStatus = TutorialStatus.None;
         currentPage = 1;
         await LoadTutorials();
     }
@@ -1299,29 +540,33 @@ else
     private void OpenCreateModal()
     {
         isEditMode = false;
-        editingId = 0;
+        editingId = Guid.Empty;
         formModel = new TutorialFormModel
         {
             Level = "all",
             Category = "concept",
             IsApproved = false,
-            IsActive = false
+            IsActive = false,
+            TutorialApiId = 0,
+            SectionCount = 0,
+            CodeBlockCount = 0
         };
         formError = "";
         showFormModal = true;
     }
 
-    private void OpenEditModal(BackEnd.Data.Entities.Tutorial.Tutorial t)
+    private void OpenEditModal(Tutorial t)
     {
         isEditMode = true;
-        editingId = t.TutorialApiId;
+        editingId = t.Id;
         formModel = new TutorialFormModel
         {
+            TutorialApiId = t.TutorialApiId,
             Title = t.Title,
             Topic = t.Topic ?? "",
             Subject = t.Subject ?? "",
-            Level = t.Level ?? "all",
-            Category = t.Category ?? "concept",
+            Level = string.IsNullOrWhiteSpace(t.Level) ? "all" : t.Level,
+            Category = string.IsNullOrWhiteSpace(t.Category) ? "concept" : t.Category,
             Content = t.Content ?? "",
             SectionCount = t.SectionCount,
             CodeBlockCount = t.CodeBlockCount,
@@ -1341,10 +586,44 @@ else
 
     private async Task SaveTutorial()
     {
-        // اعتبارسنجی
+        // ============================
+        // Validation
+        // ============================
         if (string.IsNullOrWhiteSpace(formModel.Title))
         {
             formError = "عنوان آموزش الزامی است.";
+            return;
+        }
+        if (formModel.Title.Length > 500)
+        {
+            formError = "عنوان نباید بیشتر از ۵۰۰ کاراکتر باشد.";
+            return;
+        }
+        if ((formModel.Topic?.Length ?? 0) > 200)
+        {
+            formError = "موضوع نباید بیشتر از ۲۰۰ کاراکتر باشد.";
+            return;
+        }
+        if ((formModel.Subject?.Length ?? 0) > 100)
+        {
+            formError = "موضوع اصلی نباید بیشتر از ۱۰۰ کاراکتر باشد.";
+            return;
+        }
+        if ((formModel.Level?.Length ?? 0) > 20)
+        {
+            formError = "سطح نامعتبر است.";
+            return;
+        }
+        if ((formModel.Category?.Length ?? 0) > 30)
+        {
+            formError = "دسته‌بندی نامعتبر است.";
+            return;
+        }
+
+        // قاعده: آموزش فعال باید تأیید شده باشد
+        if (formModel.IsActive && !formModel.IsApproved)
+        {
+            formError = "نمی‌توان آموزشی را فعال کرد که هنوز تأیید نشده است.";
             return;
         }
 
@@ -1354,21 +633,57 @@ else
 
         try
         {
+            using var db = await _dbFactory.CreateDbContextAsync();
+
             if (isEditMode)
             {
-                // TODO: متد Update را با نام واقعی سرویس خود جایگزین کن
-                // await TutorialService.Update(editingId, formModel);
-                Console.WriteLine($"[Tutorials] Update id={editingId}");
+                var entity = await db.Tutorials.FirstOrDefaultAsync(x => x.Id == editingId);
+                if (entity == null)
+                {
+                    formError = "آموزش موردنظر یافت نشد.";
+                    return;
+                }
+
+                entity.TutorialApiId = formModel.TutorialApiId;
+                entity.Title = formModel.Title.Trim();
+                entity.Topic = formModel.Topic?.Trim() ?? "";
+                entity.Subject = formModel.Subject?.Trim() ?? "";
+                entity.Level = string.IsNullOrWhiteSpace(formModel.Level) ? "all" : formModel.Level;
+                entity.Category = string.IsNullOrWhiteSpace(formModel.Category) ? "concept" : formModel.Category;
+                entity.Content = formModel.Content ?? "";
+                entity.SectionCount = formModel.SectionCount;
+                entity.CodeBlockCount = formModel.CodeBlockCount;
+                entity.IsApproved = formModel.IsApproved;
+                entity.IsActive = formModel.IsActive;
+
+                await db.SaveChangesAsync();
+                ShowToast("آموزش با موفقیت ویرایش شد");
             }
             else
             {
-                // TODO: متد Create را با نام واقعی سرویس خود جایگزین کن
-                // await TutorialService.Create(formModel);
-                Console.WriteLine("[Tutorials] Create");
+                var entity = new Tutorial
+                {
+                    TutorialApiId = formModel.TutorialApiId,
+                    Title = formModel.Title.Trim(),
+                    Topic = formModel.Topic?.Trim() ?? "",
+                    Subject = formModel.Subject?.Trim() ?? "",
+                    Level = string.IsNullOrWhiteSpace(formModel.Level) ? "all" : formModel.Level,
+                    Category = string.IsNullOrWhiteSpace(formModel.Category) ? "concept" : formModel.Category,
+                    Content = formModel.Content ?? "",
+                    SectionCount = formModel.SectionCount,
+                    CodeBlockCount = formModel.CodeBlockCount,
+                    IsApproved = formModel.IsApproved,
+                    IsActive = formModel.IsActive,
+                    IsDelete = false,
+                    CreatedAt = DateTime.Now
+                };
+
+                db.Tutorials.Add(entity);
+                await db.SaveChangesAsync();
+                ShowToast("آموزش با موفقیت ایجاد شد");
             }
 
             showFormModal = false;
-            ShowToast(isEditMode ? "آموزش با موفقیت ویرایش شد" : "آموزش با موفقیت ایجاد شد");
             await LoadTutorials();
         }
         catch (Exception ex)
@@ -1384,9 +699,9 @@ else
     }
 
     // ============================================================
-    // DELETE
+    // DELETE (Soft Delete)
     // ============================================================
-    private void OpenDeleteModal(BackEnd.Data.Entities.Tutorial.Tutorial t)
+    private void OpenDeleteModal(Tutorial t)
     {
         selectedForDelete = t;
         showDeleteModal = true;
@@ -1408,9 +723,14 @@ else
 
         try
         {
-            // TODO: متد Delete را با نام واقعی سرویس خود جایگزین کن
-            // await TutorialService.Delete(selectedForDelete.Id);
-            Console.WriteLine($"[Tutorials] Delete id={selectedForDelete.Id}");
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Tutorials.FirstOrDefaultAsync(x => x.Id == selectedForDelete.Id);
+            if (entity != null)
+            {
+                entity.IsDelete = true;
+                entity.IsActive = false;
+                await db.SaveChangesAsync();
+            }
 
             ShowToast("آموزش با موفقیت حذف شد");
             showDeleteModal = false;
@@ -1430,17 +750,84 @@ else
     }
 
     // ============================================================
-    // TOGGLE ACTIVE
+    // RESTORE
     // ============================================================
-    private async Task ToggleActive(BackEnd.Data.Entities.Tutorial.Tutorial t)
+    private async Task RestoreTutorial(Tutorial t)
     {
         try
         {
-            // TODO: متد ToggleActive را با نام واقعی سرویس خود جایگزین کن
-            // await TutorialService.ToggleActive(t.Id);
-            Console.WriteLine($"[Tutorials] ToggleActive id={t.Id}");
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Tutorials.FirstOrDefaultAsync(x => x.Id == t.Id);
+            if (entity == null) return;
 
-            ShowToast(t.IsActive ? "آموزش غیرفعال شد" : "آموزش فعال شد");
+            entity.IsDelete = false;
+            await db.SaveChangesAsync();
+
+            ShowToast("آموزش با موفقیت بازگردانی شد");
+            await LoadTutorials();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Tutorials] Restore error: {ex.Message}");
+            ShowToast("خطا در بازگردانی آموزش", true);
+        }
+    }
+
+    // ============================================================
+    // TOGGLE APPROVED  ← جدید
+    // ============================================================
+    private async Task ToggleApproved(Tutorial t)
+    {
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Tutorials.FirstOrDefaultAsync(x => x.Id == t.Id);
+            if (entity == null) return;
+
+            entity.IsApproved = !entity.IsApproved;
+
+            // اگر از حالت تأیید خارج شد، خودکار غیرفعال شود
+            if (!entity.IsApproved && entity.IsActive)
+            {
+                entity.IsActive = false;
+            }
+
+            await db.SaveChangesAsync();
+
+            ShowToast(entity.IsApproved
+                ? "آموزش تأیید شد"
+                : "تأیید آموزش لغو شد");
+            await LoadTutorials();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Tutorials] ToggleApproved error: {ex.Message}");
+            ShowToast("خطا در تغییر وضعیت تأیید", true);
+        }
+    }
+
+    // ============================================================
+    // TOGGLE ACTIVE
+    // ============================================================
+    private async Task ToggleActive(Tutorial t)
+    {
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            var entity = await db.Tutorials.FirstOrDefaultAsync(x => x.Id == t.Id);
+            if (entity == null) return;
+
+            // قاعده: برای فعال کردن باید تأیید شده باشد
+            if (!entity.IsActive && !entity.IsApproved)
+            {
+                ShowToast("ابتدا باید آموزش را تأیید کنید", true);
+                return;
+            }
+
+            entity.IsActive = !entity.IsActive;
+            await db.SaveChangesAsync();
+
+            ShowToast(entity.IsActive ? "آموزش فعال شد" : "آموزش غیرفعال شد");
             await LoadTutorials();
         }
         catch (Exception ex)
@@ -1453,8 +840,8 @@ else
     // ============================================================
     // NAVIGATION
     // ============================================================
-    private void ViewTutorial(int id)
-        => Navigation.NavigateTo($"/Admin/Tutorials/Details/{id}");
+    private void ViewTutorial(int tutorialApiId)
+        => Navigation.NavigateTo($"/Admin/Tutorials/Details/{tutorialApiId}");
 
     // ============================================================
     // TOAST
@@ -1497,6 +884,15 @@ else
         _ => ""
     };
 
+    private static string GetCategoryText(string? category) => category?.ToLower() switch
+    {
+        "language" => "زبان",
+        "framework" => "فریمورک",
+        "tool" => "ابزار",
+        "concept" => "مفهوم",
+        _ => "نامشخص"
+    };
+
     private static string GetLevelClass(string? level) => level?.ToLower() switch
     {
         "beginner" => "tag-level-beginner",
@@ -1532,6 +928,7 @@ else
     // ============================================================
     public class TutorialFormModel
     {
+        public int TutorialApiId { get; set; }
         public string Title { get; set; } = "";
         public string Topic { get; set; } = "";
         public string Subject { get; set; } = "";

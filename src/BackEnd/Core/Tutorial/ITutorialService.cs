@@ -54,7 +54,21 @@ namespace BackEnd.Core.Tutorial
                 var result = db.Tutorials.OrderByDescending(i => i.CreationDate).AsQueryable();
                 if (!filterParam.IsAdmin)
                 {
-                    result = result.Where(i => i.IsDelete == false && i.IsActive == true);
+                    result = result.Where(i => i.IsDelete == false && i.IsActive == true
+                    && i.IsApproved == true);
+                }
+
+                if (filterParam.Status != null && filterParam.Status != TutorialStatus.None)
+                {
+                    result = filterParam.Status switch
+                    {
+                        TutorialStatus.None => result,
+                        TutorialStatus.Active => result.Where(i => i.IsActive == true),
+                        TutorialStatus.Approved => result.Where(i => i.IsApproved == true),
+                        TutorialStatus.Deleted => result.Where(i => i.IsDelete == true),
+                        TutorialStatus.Inactive => result.Where(i => i.IsActive == false),
+                        TutorialStatus.Pending => result.Where(i => i.IsApproved == false)
+                    };
                 }
 
                 var skip = (filterParam.PageId - 1) * filterParam.Take;

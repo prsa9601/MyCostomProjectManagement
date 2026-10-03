@@ -8,5 +8,15 @@ namespace BackEnd.Data.Infrastructure.Tutorial.DTOs
         public string SearchTerm { get; set; }
         public string Level { get; set; }
         public string Category { get; set; }
+        public TutorialStatus? Status { get; set; }
+    }
+    public enum TutorialStatus
+    {
+        Deleted,
+        Approved,
+        Pending,
+        Active,
+        Inactive, 
+        None
     }
 }
