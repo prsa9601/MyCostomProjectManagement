@@ -5,6 +5,7 @@ using BackEnd.Data.DB;
 using BackEnd.Data.DB.Initializer;
 using BackEnd.Data.Entities.Role;
 using BackEnd.Data.Infrastructure.Blog;
+using BackEnd.Data.Infrastructure.ChatBot;
 using BackEnd.Data.Infrastructure.Tutorial;
 using BackEnd.Infrastructure.Auth.Jwt;
 using BackEnd.Infrastructure.Auth.Middlewares;
@@ -159,6 +160,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStat
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IBlogApiService, BlogApiService>();
 builder.Services.AddScoped<CircuitHandler, CustomCircuitHandler>();
+builder.Services.AddScoped<IChatBotService, ChatBotService>();
 
 builder.Services.AddHttpContextAccessor();
 

@@ -1,0 +1,2282 @@
+﻿@page "/Chat"
+@layout FrontLayout
+@rendermode InteractiveServer
+@using BackEnd.Data.Infrastructure.ChatBot
+@using MyCostomProjectManagement.Helpers
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Text
+@inject IChatBotService _chatBot
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>گفتگو با دستیار پارسا | مشاوره فنی</PageTitle>
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+
+<style>
+    /* ============================================================
+           RESET & BASE
+        ============================================================ */
+    .chat-page * {
+        box-sizing: border-box;
+    }
+
+    .chat-page {
+        padding-top: 90px;
+        padding-bottom: 30px;
+        min-height: 100vh;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ============================================================
+           HEADER
+        ============================================================ */
+    .chat-header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .chat-header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(59, 130, 246, 0.12);
+        padding: 6px 18px;
+        border-radius: 40px;
+        font-size: 0.8rem;
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.15);
+        margin-bottom: 14px;
+        backdrop-filter: blur(4px);
+    }
+
+    .chat-header h1 {
+        font-size: clamp(1.5rem, 4vw, 2.2rem);
+        font-weight: 800;
+        margin-bottom: 8px;
+        background: linear-gradient(to left, #f0f4ff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .chat-header p {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        max-width: 620px;
+        margin: 0 auto;
+    }
+
+    /* ============================================================
+           CHAT CONTAINER
+        ============================================================ */
+    .chat-shell {
+        max-width: 980px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 24px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        position: relative;
+    }
+
+        .chat-shell::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: 26px;
+            background: conic-gradient(from 0deg, #3b82f6, #8b5cf6, #3b82f6);
+            background-size: 300% 300%;
+            animation: chatBorderRotate 10s linear infinite;
+            opacity: 0.15;
+        }
+
+    @@keyframes chatBorderRotate {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        100% {
+            background-position: 300% 50%;
+        }
+    }
+
+    /* ============================================================
+           CHAT MESSAGES AREA
+        ============================================================ */
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 26px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-height: 480px;
+        max-height: 62vh;
+        scroll-behavior: smooth;
+        overscroll-behavior: contain;
+    }
+
+    /* ============================================================
+           MESSAGE BUBBLE
+        ============================================================ */
+    .msg-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        animation: chatMsgIn 0.35s ease;
+        max-width: 100%;
+    }
+
+    @@keyframes chatMsgIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .msg-row.user {
+        flex-direction: row-reverse;
+    }
+
+    .msg-avatar {
+        flex: 0 0 auto;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+    }
+
+    .msg-row.bot .msg-avatar {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    }
+
+    .msg-row.user .msg-avatar {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .msg-bubble {
+        padding: 14px 18px;
+        border-radius: 18px;
+        max-width: min(720px, 78%);
+        font-size: 0.95rem;
+        line-height: 1.85;
+        color: #e8edf5;
+        word-wrap: break-word;
+        word-break: break-word;
+        position: relative;
+        overflow-wrap: anywhere;
+    }
+
+    .msg-row.bot .msg-bubble {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-top-right-radius: 6px;
+    }
+
+    .msg-row.user .msg-bubble {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(139, 92, 246, 0.18));
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        border-top-left-radius: 6px;
+        color: #eaf2ff;
+    }
+
+    /* Attachments inside bubble */
+    .msg-attachments {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+        .msg-attachments img {
+            max-width: 220px;
+            max-height: 220px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: block;
+            cursor: zoom-in;
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+
+            .msg-attachments img:hover {
+                transform: scale(1.02);
+                box-shadow: 0 8px 30px rgba(59, 130, 246, 0.35);
+            }
+
+        .msg-attachments .file-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 20px;
+            font-size: 0.78rem;
+            color: #93c5fd;
+        }
+
+            .msg-attachments .file-chip.audio {
+                background: rgba(139, 92, 246, 0.12);
+                border-color: rgba(139, 92, 246, 0.2);
+                color: #c4b5fd;
+            }
+
+            .msg-attachments .file-chip.video {
+                background: rgba(236, 72, 153, 0.12);
+                border-color: rgba(236, 72, 153, 0.2);
+                color: #f9a8d4;
+            }
+
+    /* Streaming cursor */
+    .streaming-cursor {
+        display: inline-block;
+        width: 8px;
+        height: 1em;
+        background: #3b82f6;
+        margin-inline-start: 3px;
+        vertical-align: text-bottom;
+        animation: cursorBlink 0.85s step-end infinite;
+        box-shadow: 0 0 10px #3b82f6;
+        border-radius: 1px;
+    }
+
+    @@keyframes cursorBlink {
+        0%, 100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+    }
+
+    /* ============================================================
+           MARKDOWN INSIDE BUBBLE
+        ============================================================ */
+    .msg-bubble .md-content > *:first-child {
+        margin-top: 0;
+    }
+
+    .msg-bubble .md-content > *:last-child {
+        margin-bottom: 0;
+    }
+
+    .msg-bubble .md-content p {
+        margin: 0 0 .75em;
+    }
+
+    .msg-bubble .md-content h1,
+    .msg-bubble .md-content h2,
+    .msg-bubble .md-content h3,
+    .msg-bubble .md-content h4,
+    .msg-bubble .md-content h5,
+    .msg-bubble .md-content h6 {
+        margin: 1.1em 0 .5em;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    .msg-bubble .md-content h1 {
+        font-size: 1.25rem;
+        color: #fff;
+    }
+
+    .msg-bubble .md-content h2 {
+        font-size: 1.15rem;
+        color: #93c5fd;
+    }
+
+    .msg-bubble .md-content h3 {
+        font-size: 1.05rem;
+        color: #a78bfa;
+    }
+
+    .msg-bubble .md-content ul,
+    .msg-bubble .md-content ol {
+        padding-inline-start: 1.5em;
+        margin: 0 0 .75em;
+    }
+
+    .msg-bubble .md-content li {
+        margin-bottom: .35em;
+    }
+
+    .msg-bubble .md-content ul li::marker {
+        color: #3b82f6;
+    }
+
+    .msg-bubble .md-content ol li::marker {
+        color: #8b5cf6;
+        font-weight: 600;
+    }
+
+    .msg-bubble .md-content a {
+        color: #60a5fa;
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(96, 165, 250, 0.5);
+        transition: .2s;
+    }
+
+        .msg-bubble .md-content a:hover {
+            color: #93c5fd;
+            border-bottom-style: solid;
+        }
+
+    .msg-bubble .md-content strong {
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .msg-bubble .md-content em {
+        color: #c4b5fd;
+        font-style: italic;
+    }
+
+    .msg-bubble .md-content blockquote {
+        border-inline-start: 3px solid #3b82f6;
+        background: rgba(59, 130, 246, 0.06);
+        padding: .6rem .9rem;
+        border-radius: 0 10px 10px 0;
+        margin: 0 0 1em;
+        color: #cbd5e1;
+        font-style: italic;
+    }
+
+        .msg-bubble .md-content blockquote > *:last-child {
+            margin-bottom: 0;
+        }
+
+    /* Inline code */
+    .msg-bubble .md-content code {
+        direction: ltr;
+        unicode-bidi: embed;
+        background: rgba(139, 92, 246, 0.12);
+        color: #c4b5fd;
+        padding: .15em .5em;
+        border-radius: 6px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: .88em;
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        text-align: left;
+        font-weight: 500;
+    }
+
+    /* Code block */
+    .msg-bubble .md-content pre {
+        position: relative;
+        direction: ltr !important;
+        text-align: left !important;
+        unicode-bidi: embed;
+        background: #0d0d13;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        padding: 2.6rem 1rem .9rem 1rem;
+        margin: 0 0 1em;
+        overflow-x: auto;
+        line-height: 1.65;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: .84rem;
+    }
+
+        .msg-bubble .md-content pre code {
+            background: transparent !important;
+            color: #e0e0e8;
+            padding: 0 !important;
+            border: none !important;
+            font-size: inherit;
+            display: block;
+            white-space: pre;
+            font-family: inherit;
+            border-radius: 0;
+            tab-size: 4;
+            text-align: left !important;
+        }
+
+            .msg-bubble .md-content pre code.hljs {
+                background: transparent !important;
+                padding: 0 !important;
+            }
+
+    /* Copy button */
+    .msg-bubble .md-content .chat-copy-btn {
+        position: absolute;
+        top: .5rem;
+        right: .5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .3rem .65rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #cbd5e1;
+        border-radius: 6px;
+        font-size: .7rem;
+        cursor: pointer;
+        transition: all .2s;
+        z-index: 3;
+        font-family: inherit;
+    }
+
+        .msg-bubble .md-content .chat-copy-btn:hover {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .msg-bubble .md-content .chat-copy-btn.copied {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+    /* Language badge */
+    .msg-bubble .md-content .chat-lang-badge {
+        position: absolute;
+        top: .5rem;
+        left: .5rem;
+        padding: .22rem .55rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #94a3b8;
+        border-radius: 6px;
+        font-size: .62rem;
+        font-family: 'Consolas', monospace;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        z-index: 3;
+        font-weight: 700;
+    }
+
+    /* ============================================================
+           TYPING INDICATOR
+        ============================================================ */
+    .typing-indicator {
+        display: inline-flex;
+        gap: 5px;
+        padding: 4px 0;
+        align-items: center;
+    }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            animation: typingBounce 1.2s infinite;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+        }
+
+            .typing-indicator span:nth-child(2) {
+                animation-delay: .15s;
+                background: #8b5cf6;
+            }
+
+            .typing-indicator span:nth-child(3) {
+                animation-delay: .3s;
+                background: #a78bfa;
+            }
+
+    @@keyframes typingBounce {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: .5;
+        }
+
+        30% {
+            transform: translateY(-6px);
+            opacity: 1;
+        }
+    }
+
+    /* ============================================================
+           WELCOME / EMPTY STATE
+        ============================================================ */
+    .chat-welcome {
+        text-align: center;
+        padding: 30px 20px;
+        color: #94a3b8;
+    }
+
+        .chat-welcome i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 14px;
+        }
+
+        .chat-welcome h3 {
+            color: #e8edf5;
+            font-size: 1.15rem;
+            margin-bottom: 8px;
+        }
+
+        .chat-welcome p {
+            font-size: 0.9rem;
+            max-width: 460px;
+            margin: 0 auto 20px;
+            line-height: 1.8;
+        }
+
+    .chat-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        max-width: 620px;
+        margin: 0 auto;
+    }
+
+    .chat-suggestion {
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+        padding: 8px 16px;
+        border-radius: 40px;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: .25s;
+        font-family: inherit;
+    }
+
+        .chat-suggestion:hover {
+            background: rgba(59, 130, 246, 0.16);
+            border-color: rgba(59, 130, 246, 0.5);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+    /* ============================================================
+           ATTACHMENT PREVIEW (before send)
+        ============================================================ */
+    .chat-attachments-preview {
+        padding: 12px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.15);
+    }
+
+    .attach-preview-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px 6px 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 10px;
+        font-size: 0.78rem;
+        color: #cbd5e1;
+    }
+
+        .attach-preview-item img {
+            width: 32px;
+            height: 32px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: zoom-in;
+            transition: transform .25s ease;
+        }
+
+            .attach-preview-item img:hover {
+                transform: scale(1.08);
+            }
+
+        .attach-preview-item .attach-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(139, 92, 246, 0.12);
+            color: #c4b5fd;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .attach-preview-item .remove-btn {
+            background: rgba(239, 68, 68, 0.12);
+            border: none;
+            color: #f87171;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: .2s;
+            font-family: inherit;
+        }
+
+            .attach-preview-item .remove-btn:hover {
+                background: rgba(239, 68, 68, 0.25);
+                color: #fff;
+            }
+
+    /* ============================================================
+           INPUT AREA
+        ============================================================ */
+    .chat-input-area {
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 16px 20px;
+        background: rgba(0, 0, 0, 0.12);
+    }
+
+    .chat-input-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+    }
+
+    .chat-textarea {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 16px;
+        color: #eef2f8;
+        font-size: 0.95rem;
+        padding-block: 12px;
+        padding-inline: 16px;
+        resize: none;
+        font-family: inherit;
+        min-height: 50px;
+        max-height: 180px;
+        line-height: 1.7;
+        transition: border-color .25s ease, background .25s ease, box-shadow .25s ease;
+        outline: none;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(59, 130, 246, 0.35) transparent;
+    }
+
+        .chat-textarea:focus {
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+        }
+
+        .chat-textarea::placeholder {
+            color: #64748b;
+        }
+
+        .chat-textarea:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .chat-tools {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .chat-tool-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: .25s;
+        position: relative;
+        font-family: inherit;
+    }
+
+        .chat-tool-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.35);
+            color: #93c5fd;
+            transform: translateY(-1px);
+        }
+
+        .chat-tool-btn.loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+    .hidden-input {
+        display: none;
+    }
+
+    .chat-send-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border: none;
+        color: #fff;
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: .25s;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+        font-family: inherit;
+        flex-shrink: 0;
+    }
+
+        .chat-send-btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.35);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .chat-send-btn.stop {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.25);
+        }
+
+            .chat-send-btn.stop:hover {
+                box-shadow: 0 12px 35px rgba(239, 68, 68, 0.4);
+            }
+
+    .chat-hint {
+        font-size: 0.72rem;
+        color: #64748b;
+        margin-top: 8px;
+        text-align: center;
+    }
+
+    /* ============================================================
+           SCROLL-DOWN BUTTON
+        ============================================================ */
+    .chat-scroll-down-btn {
+        position: absolute;
+        bottom: 130px;
+        left: 50%;
+        transform: translateX(-50%) translateY(15px);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        z-index: 20;
+        font-family: inherit;
+    }
+
+        .chat-scroll-down-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .chat-scroll-down-btn:hover {
+            transform: translateX(-50%) translateY(-3px) scale(1.08);
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.65);
+        }
+
+        .chat-scroll-down-btn:active {
+            transform: translateX(-50%) translateY(0) scale(0.95);
+        }
+
+        .chat-scroll-down-btn i {
+            animation: scrollBtnBounce 1.8s infinite;
+        }
+
+    @@keyframes scrollBtnBounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(3px);
+        }
+    }
+
+    /* ============================================================
+           IMAGE LIGHTBOX / ZOOM MODAL
+        ============================================================ */
+    .chat-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 24px;
+        animation: lightboxFadeIn 0.25s ease;
+        cursor: zoom-out;
+    }
+
+    @@keyframes lightboxFadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .chat-lightbox-img-wrap {
+        position: relative;
+        max-width: 100%;
+        max-height: 100%;
+        animation: lightboxZoomIn 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    @@keyframes lightboxZoomIn {
+        from {
+            transform: scale(0.85);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .chat-lightbox img {
+        display: block;
+        max-width: 90vw;
+        max-height: 85vh;
+        border-radius: 12px;
+        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.06);
+        object-fit: contain;
+        background: #0d0d13;
+        user-select: none;
+    }
+
+    .chat-lightbox-close {
+        position: absolute;
+        top: -50px;
+        right: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #fff;
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: .25s;
+        font-family: inherit;
+        z-index: 2;
+    }
+
+        .chat-lightbox-close:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: rotate(90deg) scale(1.05);
+        }
+
+    .chat-lightbox-caption {
+        position: absolute;
+        bottom: -42px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #cbd5e1;
+        font-size: 0.82rem;
+        padding: 6px 16px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        white-space: nowrap;
+        backdrop-filter: blur(6px);
+    }
+
+    @@media (max-width: 768px) {
+        .chat-lightbox {
+            padding: 12px;
+        }
+
+            .chat-lightbox img {
+                max-width: 95vw;
+                max-height: 78vh;
+            }
+
+        .chat-lightbox-close {
+            top: 8px;
+            right: 8px;
+            width: 36px;
+            height: 36px;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .chat-lightbox-caption {
+            bottom: 8px;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* ============================================================
+           CUSTOM SCROLLBARS
+        ============================================================ */
+    .chat-textarea::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .chat-textarea::-webkit-scrollbar-track {
+        background: transparent;
+        margin-block: 6px;
+        border-radius: 10px;
+    }
+
+    .chat-textarea::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, rgba(59, 130, 246, 0.45), rgba(139, 92, 246, 0.45));
+        border-radius: 10px;
+        transition: background 0.25s ease, box-shadow 0.25s ease;
+        min-height: 30px;
+    }
+
+        .chat-textarea::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.85), rgba(139, 92, 246, 0.85));
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+    .chat-textarea::-webkit-scrollbar-button {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
+    .chat-textarea::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    .chat-messages {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
+    }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+            margin-block: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.35), rgba(139, 92, 246, 0.35));
+            border-radius: 10px;
+            transition: background 0.25s ease, box-shadow 0.25s ease;
+            min-height: 40px;
+        }
+
+            .chat-messages::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(180deg, rgba(59, 130, 246, 0.75), rgba(139, 92, 246, 0.75));
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            }
+
+        .chat-messages::-webkit-scrollbar-button {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        .chat-messages::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+    .msg-bubble .md-content pre {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(59, 130, 246, 0.4) transparent;
+    }
+
+        .msg-bubble .md-content pre::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .msg-bubble .md-content pre::-webkit-scrollbar-track {
+            background: transparent;
+            margin-inline: 8px;
+        }
+
+        .msg-bubble .md-content pre::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.4), rgba(139, 92, 246, 0.4));
+            border-radius: 10px;
+            transition: background 0.25s ease;
+        }
+
+            .msg-bubble .md-content pre::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+                box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+            }
+
+        .msg-bubble .md-content pre::-webkit-scrollbar-button {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+    @@supports (scrollbar-gutter: stable) {
+        .chat-textarea {
+            scrollbar-gutter: stable both-edges;
+        }
+    }
+
+    /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+    @@media (max-width: 768px) {
+        .chat-page {
+            padding-top: 80px;
+            padding-bottom: 20px;
+        }
+
+        .chat-messages {
+            padding: 18px 14px;
+            min-height: 400px;
+            max-height: 58vh;
+            gap: 16px;
+        }
+
+        .msg-bubble {
+            max-width: 85%;
+            padding: 12px 14px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .msg-avatar {
+            width: 34px;
+            height: 34px;
+            font-size: 0.9rem;
+        }
+
+        .chat-input-area {
+            padding: 12px 14px;
+        }
+
+        .chat-textarea {
+            font-size: 0.9rem;
+            padding-block: 10px;
+            padding-inline: 14px;
+            min-height: 46px;
+        }
+
+        .chat-tool-btn {
+            width: 38px;
+            height: 38px;
+            font-size: 0.9rem;
+        }
+
+        .chat-send-btn {
+            width: 46px;
+            height: 46px;
+        }
+
+        .chat-welcome i {
+            font-size: 2.4rem;
+        }
+
+        .chat-welcome h3 {
+            font-size: 1rem;
+        }
+
+        .msg-bubble .md-content pre {
+            padding: 2.4rem .8rem .8rem .8rem;
+            font-size: .78rem;
+        }
+
+        .msg-bubble .md-content .chat-copy-btn,
+        .msg-bubble .md-content .chat-lang-badge {
+            font-size: .64rem;
+            padding: .25rem .5rem;
+        }
+
+        .chat-scroll-down-btn {
+            width: 40px;
+            height: 40px;
+            bottom: 115px;
+            font-size: 0.9rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .msg-bubble {
+            max-width: 90%;
+            font-size: 0.86rem;
+        }
+
+        .msg-avatar {
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+        }
+
+        .chat-tools {
+            gap: 4px;
+        }
+
+        .chat-suggestions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .chat-suggestion {
+            text-align: center;
+        }
+
+        .chat-messages {
+            max-height: 55vh;
+        }
+
+        .chat-scroll-down-btn {
+            bottom: 105px;
+            width: 38px;
+            height: 38px;
+        }
+    }
+</style>
+
+<div class="chat-page">
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="chat-header">
+            <div class="chat-header-badge">
+                <i class="fas fa-robot"></i>
+                دستیار هوش مصنوعی پارسا
+            </div>
+            <h1>گفتگو با <span style="color:#3b82f6;">دستیار محمد پارسا کریمی</span></h1>
+            <p>
+                درباره پروژه، مهارت‌ها، نمونه‌کارها یا هر سوال فنی دیگه‌ای بپرسید.
+                من به نمایندگی از محمد پارسا اینجام تا کمکتون کنم.
+            </p>
+        </div>
+
+        <!-- CHAT SHELL -->
+        <div class="chat-shell" id="chatShell">
+
+            <!-- MESSAGES -->
+            <div class="chat-messages" id="chatMessages">
+
+                @if (!_messages.Any())
+                {
+                    <div class="chat-welcome">
+                        <i class="fas fa-comments"></i>
+                        <h3>سلام! 👋</h3>
+                        <p>
+                            من دستیار هوش مصنوعی محمد پارسا کریمی هستم.
+                            می‌تونید هر سوالی درباره تجربه‌ها، پروژه‌ها یا مهارت‌هاش بپرسید.
+                        </p>
+                        <div class="chat-suggestions">
+                            @foreach (var sug in Suggestions)
+                            {
+                                <button class="chat-suggestion"
+                                        @onclick="() => SendSuggestion(sug)"
+                                        disabled="@_isStreaming">
+                                    @sug
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var msg in _messages)
+                    {
+                        var isUser = msg.IsUser;
+                        var isStreamingThis = !isUser && _isStreaming && msg.Id == _streamingMessageId;
+
+                        <div class="msg-row @(isUser ? "user" : "bot")" @key="msg.Id">
+
+                            <div class="msg-avatar">
+                                @if (isUser)
+                                {
+                                    <i class="fas fa-user"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-robot"></i>
+                                }
+                            </div>
+
+                            <div class="msg-bubble">
+
+                                <!-- Attachments -->
+                                @if (isUser && (msg.Images.Any() || msg.Audios.Any() || msg.Videos.Any() || msg.Files.Any()))
+                                {
+                                    <div class="msg-attachments">
+                                        @foreach (var img in msg.Images)
+                                        {
+                                            <img src="@img"
+                                                 alt="تصویر ارسالی"
+                                                 @onclick="() => OpenLightbox(img, null)" />
+                                        }
+                                        @foreach (var audio in msg.Audios)
+                                        {
+                                            <span class="file-chip audio">
+                                                <i class="fas fa-microphone"></i>
+                                                پیام صوتی
+                                            </span>
+                                        }
+                                        @foreach (var vid in msg.Videos)
+                                        {
+                                            <span class="file-chip video">
+                                                <i class="fas fa-video"></i>
+                                                @vid
+                                            </span>
+                                        }
+                                        @foreach (var file in msg.Files)
+                                        {
+                                            <span class="file-chip">
+                                                <i class="fas fa-paperclip"></i>
+                                                @file
+                                            </span>
+                                        }
+                                    </div>
+                                }
+
+                                <!-- Content -->
+                                @if (isUser)
+                                {
+                                    <div style="white-space:pre-wrap;">@msg.Content</div>
+                                }
+                                else if (!string.IsNullOrEmpty(msg.Content))
+                                {
+                                    <div class="md-content">
+                                        @((MarkupString)RenderMarkdown(msg.Content))
+                                        @if (isStreamingThis)
+                                        {
+                                            <span class="streaming-cursor"></span>
+                                        }
+                                    </div>
+                                }
+                                else if (isStreamingThis)
+                                {
+                                    <div class="typing-indicator">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                }
+
+                            </div>
+
+                        </div>
+                    }
+                }
+
+            </div>
+
+            <!-- SCROLL DOWN BUTTON -->
+            <button type="button"
+                    id="chatScrollDownBtn"
+                    class="chat-scroll-down-btn"
+                    @onclick="ScrollToBottom"
+                    title="رفتن به آخرین پیام">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+
+            <!-- ATTACHMENTS PREVIEW -->
+            @if (_pendingImages.Any() || _pendingAudios.Any() || _pendingFiles.Any() || _isProcessingAttachment)
+            {
+                <div class="chat-attachments-preview">
+                    @if (_isProcessingAttachment)
+                    {
+                        <div class="attach-preview-item">
+                            <span class="attach-icon">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                            <span>در حال پردازش...</span>
+                        </div>
+                    }
+
+                    @foreach (var (img, idx) in _pendingImages.Select((v, i) => (v, i)))
+                    {
+                        <div class="attach-preview-item" @key="img.DataUrl.GetHashCode()">
+                            <img src="@img.DataUrl"
+                                 alt="پیش‌نمایش"
+                                 @onclick='() => OpenLightbox(img.DataUrl, $" پیش‌نمایش تصویر {idx + 1}")' />
+                            <span>تصویر @(idx + 1)</span>
+                            <button class="remove-btn"
+                                    @onclick="() => RemoveImage(idx)"
+                                    @onclick:stopPropagation="true"
+                                    title="حذف">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    }
+                    @foreach (var (aud, idx) in _pendingAudios.Select((v, i) => (v, i)))
+                    {
+                        <div class="attach-preview-item" @key="aud.DataUrl.GetHashCode()">
+                            <span class="attach-icon">
+                                <i class="fas fa-microphone"></i>
+                            </span>
+                            <span>صدا @(idx + 1)</span>
+                            <button class="remove-btn"
+                                    @onclick="() => RemoveAudio(idx)"
+                                    title="حذف">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    }
+                    @foreach (var (f, idx) in _pendingFiles.Select((v, i) => (v, i)))
+                    {
+                        <div class="attach-preview-item" @key="f.Name + idx">
+                            <span class="attach-icon">
+                                <i class="fas fa-file"></i>
+                            </span>
+                            <span>@f.Name</span>
+                            <button class="remove-btn"
+                                    @onclick="() => RemoveFile(idx)"
+                                    title="حذف">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- INPUT AREA -->
+            <div class="chat-input-area">
+                <div class="chat-input-row">
+
+                    <div class="chat-tools">
+
+                        <!-- Image -->
+                        <InputFile OnChange="OnImageSelected"
+                                   accept="image/*"
+                                   multiple
+                                   class="hidden-input"
+                                   id="chatImgInput" />
+                        <label for="chatImgInput"
+                               class="chat-tool-btn @(_isProcessingAttachment ? "loading" : "")"
+                               title="ارسال تصویر">
+                            <i class="fas fa-image"></i>
+                        </label>
+
+                        <!-- Audio -->
+                        <InputFile OnChange="OnAudioSelected"
+                                   accept="audio/*"
+                                   class="hidden-input"
+                                   id="chatAudInput" />
+                        <label for="chatAudInput"
+                               class="chat-tool-btn @(_isProcessingAttachment ? "loading" : "")"
+                               title="ارسال صدا">
+                            <i class="fas fa-microphone"></i>
+                        </label>
+
+                        <!-- File -->
+                        <InputFile OnChange="OnFileSelected"
+                                   class="hidden-input"
+                                   id="chatFileInput" />
+                        <label for="chatFileInput"
+                               class="chat-tool-btn"
+                               title="ارسال فایل">
+                            <i class="fas fa-paperclip"></i>
+                        </label>
+
+                    </div>
+
+                    <textarea class="chat-textarea"
+                              id="chatTextarea"
+                              placeholder="سوالت رو بنویس..."
+                              rows="1"
+                              @bind="_userInput"
+                              @bind:event="oninput"
+                              @onkeydown="OnTextareaKeyDown"
+                              disabled="@_isStreaming"></textarea>
+
+                    @if (_isStreaming)
+                    {
+                        <button class="chat-send-btn stop"
+                                @onclick="StopStreaming"
+                                title="توقف">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="chat-send-btn"
+                                @onclick="SendMessage"
+                                disabled="@(!CanSend())"
+                                title="ارسال">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    }
+
+                </div>
+
+                <div class="chat-hint">
+                    <i class="fas fa-info-circle"></i>
+                    Enter برای ارسال · Shift + Enter برای خط جدید
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<!-- ============================================================
+     IMAGE LIGHTBOX
+============================================================ -->
+@if (_lightboxOpen && !string.IsNullOrEmpty(_lightboxImageSrc))
+{
+    <div class="chat-lightbox"
+         @onclick="CloseLightbox"
+         @onkeydown="OnLightboxKeyDown"
+         tabindex="0">
+
+        <div class="chat-lightbox-img-wrap" @onclick:stopPropagation="true">
+
+            <button type="button"
+                    class="chat-lightbox-close"
+                    @onclick="CloseLightbox"
+                    title="بستن (Esc)">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <img src="@_lightboxImageSrc"
+                 alt="@(_lightboxCaption ?? "نمایش تصویر")"
+                 @onclick="CloseLightbox" />
+
+            @if (!string.IsNullOrEmpty(_lightboxCaption))
+            {
+                <div class="chat-lightbox-caption">@_lightboxCaption</div>
+            }
+
+        </div>
+
+    </div>
+}
+
+
+@code {
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    private List<UiChatMessage> _messages = new();
+    private string _userInput = "";
+    private bool _isStreaming = false;
+    private Guid? _streamingMessageId = null;
+    private CancellationTokenSource? _cts;
+
+    private readonly List<PendingAttachment> _pendingImages = new();
+    private readonly List<PendingAttachment> _pendingAudios = new();
+    private readonly List<PendingFile> _pendingFiles = new();
+
+    private bool _jsReady = false;
+    private bool _needsCodeEnhance = false;
+    private bool _isProcessingAttachment = false;
+
+    // Lightbox
+    private bool _lightboxOpen = false;
+    private string? _lightboxImageSrc;
+    private string? _lightboxCaption;
+
+    private readonly object _sendLock = new();
+
+    // حداکثر حجم‌های مجاز
+    private const long MaxImageSize = 15 * 1024 * 1024;
+    private const long MaxAudioSize = 10 * 1024 * 1024;
+    private const int MaxImageDim = 1024;
+    private const double ImageQuality = 0.82;
+
+    private static readonly string[] Suggestions = new[]
+    {
+        "چند سال سابقه داره؟",
+        "با چه تکنولوژی‌هایی کار می‌کنه؟",
+        "یه نمونه‌کار خوب معرفی کن",
+        "تجربه‌ش در میکروسرویس چیه؟"
+    };
+
+    // ============================================================
+    // MODELS
+    // ============================================================
+
+    private class UiChatMessage
+    {
+        public Guid Id { get; } = Guid.NewGuid();
+        public string Content { get; set; } = "";
+        public bool IsUser { get; set; }
+        public List<string> Images { get; set; } = new();
+        public List<string> Audios { get; set; } = new();
+        public List<string> Videos { get; set; } = new();
+        public List<string> Files { get; set; } = new();
+
+        public ChatMessageDto ToDto() => new()
+        {
+            Content = Content,
+            IsUser = IsUser,
+            Images = new List<string>(Images),
+            Audios = new List<string>(Audios),
+            Videos = new List<string>(Videos),
+            Files = new List<string>(Files)
+        };
+    }
+
+    private class PendingAttachment
+    {
+        public string DataUrl { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string ContentType { get; set; } = "";
+    }
+
+    private class PendingFile
+    {
+        public string Name { get; set; } = "";
+        public string ContentType { get; set; } = "";
+    }
+
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_jsReady)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("eval", ChatInteropJs);
+                _jsReady = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Chat] JS init error: {ex.Message}");
+                return;
+            }
+        }
+
+        if (_needsCodeEnhance)
+        {
+            _needsCodeEnhance = false;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("__chatEnhanceCodeBlocks");
+            }
+            catch { /* ignore */ }
+        }
+
+        // فوکوس روی lightbox برای پشتیبانی از Esc
+        if (_lightboxOpen && firstRender == false)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("eval",
+                    "setTimeout(() => { var el = document.querySelector('.chat-lightbox'); if (el) el.focus(); }, 50);");
+            }
+            catch { /* ignore */ }
+        }
+    }
+
+    // ============================================================
+    // LIGHTBOX
+    // ============================================================
+    private void OpenLightbox(string src, string? caption)
+    {
+        if (string.IsNullOrEmpty(src)) return;
+        _lightboxImageSrc = src;
+        _lightboxCaption = caption;
+        _lightboxOpen = true;
+    }
+
+    private void CloseLightbox()
+    {
+        _lightboxOpen = false;
+        _lightboxImageSrc = null;
+        _lightboxCaption = null;
+    }
+
+    private async Task OnLightboxKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            CloseLightbox();
+        }
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    private bool CanSend()
+    {
+        if (_isStreaming) return false;
+        if (_isProcessingAttachment) return false;
+        if (!string.IsNullOrWhiteSpace(_userInput)) return true;
+        if (_pendingImages.Any() || _pendingAudios.Any() || _pendingFiles.Any()) return true;
+        return false;
+    }
+
+    private void RemoveImage(int idx)
+    {
+        if (idx >= 0 && idx < _pendingImages.Count)
+            _pendingImages.RemoveAt(idx);
+    }
+
+    private void RemoveAudio(int idx)
+    {
+        if (idx >= 0 && idx < _pendingAudios.Count)
+            _pendingAudios.RemoveAt(idx);
+    }
+
+    private void RemoveFile(int idx)
+    {
+        if (idx >= 0 && idx < _pendingFiles.Count)
+            _pendingFiles.RemoveAt(idx);
+    }
+
+    private async Task ScrollToBottom()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("__chatScrollToBottomForce");
+        }
+        catch { /* ignore */ }
+    }
+
+    // ============================================================
+    // FILE UPLOADS
+    // ============================================================
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        _isProcessingAttachment = true;
+        StateHasChanged();
+
+        try
+        {
+            foreach (var file in e.GetMultipleFiles(5))
+            {
+                if (file.Size > MaxImageSize) continue;
+
+                try
+                {
+                    using var ms = new MemoryStream();
+                    await file.OpenReadStream(MaxImageSize).CopyToAsync(ms);
+                    var bytes = ms.ToArray();
+                    var base64 = Convert.ToBase64String(bytes);
+                    var originalDataUrl = $"data:{file.ContentType};base64,{base64}";
+
+                    var resized = await JSRuntime.InvokeAsync<string>(
+                        "eval",
+                        $"window.__chatResizeImageFromDataUrl('{EscapeJs(originalDataUrl)}')");
+
+                    var finalUrl = string.IsNullOrEmpty(resized) ? originalDataUrl : resized;
+
+                    _pendingImages.Add(new PendingAttachment
+                    {
+                        DataUrl = finalUrl,
+                        Name = file.Name,
+                        ContentType = "image/jpeg"
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Chat] Image processing error: {ex.Message}");
+                }
+            }
+        }
+        finally
+        {
+            _isProcessingAttachment = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnAudioSelected(InputFileChangeEventArgs e)
+    {
+        _isProcessingAttachment = true;
+        StateHasChanged();
+
+        try
+        {
+            var file = e.File;
+            if (file.Size > MaxAudioSize) return;
+
+            try
+            {
+                using var ms = new MemoryStream();
+                await file.OpenReadStream(MaxAudioSize).CopyToAsync(ms);
+                var base64 = Convert.ToBase64String(ms.ToArray());
+
+                _pendingAudios.Add(new PendingAttachment
+                {
+                    DataUrl = $"data:{file.ContentType};base64,{base64}",
+                    Name = file.Name,
+                    ContentType = file.ContentType
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Chat] Audio processing error: {ex.Message}");
+            }
+        }
+        finally
+        {
+            _isProcessingAttachment = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(5))
+        {
+            _pendingFiles.Add(new PendingFile
+            {
+                Name = file.Name,
+                ContentType = file.ContentType
+            });
+        }
+        await Task.CompletedTask;
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // SEND + STREAMING
+    // ============================================================
+    private async Task SendSuggestion(string text)
+    {
+        if (_isStreaming) return;
+        _userInput = text;
+        await SendMessage();
+    }
+
+    private async Task OnTextareaKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            if (CanSend() && !_isStreaming)
+            {
+                await SendMessage();
+            }
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (_isStreaming) return;
+        if (_isProcessingAttachment) return;
+
+        var text = (_userInput ?? "").Trim();
+        var hasAttachment = _pendingImages.Any() || _pendingAudios.Any() || _pendingFiles.Any();
+        if (string.IsNullOrEmpty(text) && !hasAttachment) return;
+
+        lock (_sendLock)
+        {
+            if (_isStreaming) return;
+            _isStreaming = true;
+        }
+
+        var userImages = _pendingImages.Select(i => i.DataUrl).ToList();
+        var userAudios = _pendingAudios.Select(a => a.DataUrl).ToList();
+        var userFiles = _pendingFiles.Select(f => f.Name).ToList();
+
+        _userInput = "";
+        _pendingImages.Clear();
+        _pendingAudios.Clear();
+        _pendingFiles.Clear();
+
+        bool isFirstUserMessage = !_messages.Any(m => m.IsUser);
+
+        if (isFirstUserMessage)
+        {
+            _messages.Add(new UiChatMessage
+            {
+                IsUser = false,
+                Content = "سلام! 👋 من **دستیار هوش مصنوعی محمد پارسا کریمی** هستم. "
+                        + "به نمایندگی از ایشون درباره‌ی تجربه‌ها، پروژه‌ها و مهارت‌هاش با شما صحبت می‌کنم. "
+                        + "بفرمایید چطور می‌تونم کمکتون کنم؟"
+            });
+        }
+
+        var userMsg = new UiChatMessage
+        {
+            Content = text,
+            IsUser = true,
+            Images = userImages,
+            Audios = userAudios,
+            Files = userFiles
+        };
+        _messages.Add(userMsg);
+
+        var botMsg = new UiChatMessage
+        {
+            Content = "",
+            IsUser = false
+        };
+        _messages.Add(botMsg);
+        _streamingMessageId = botMsg.Id;
+
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        StateHasChanged();
+
+        try
+        {
+            var toSend = _messages
+                .Take(_messages.Count - 1)
+                .Select(m => m.ToDto())
+                .ToList();
+
+            var lastUserIdx = toSend.FindLastIndex(m => m.IsUser);
+            for (int i = 0; i < toSend.Count; i++)
+            {
+                if (i != lastUserIdx && toSend[i].IsUser)
+                {
+                    toSend[i].Images.Clear();
+                    toSend[i].Audios.Clear();
+                    toSend[i].Files.Clear();
+                }
+            }
+
+            var sb = new StringBuilder();
+
+            await foreach (var chunk in _chatBot.AskStreamingAsync(toSend, token)
+                                              .WithCancellation(token))
+            {
+                if (token.IsCancellationRequested) break;
+                if (string.IsNullOrEmpty(chunk)) continue;
+
+                sb.Append(chunk);
+                botMsg.Content = sb.ToString();
+
+                if (sb.Length % 3 == 0 || chunk.Contains('\n'))
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+
+            if (string.IsNullOrEmpty(botMsg.Content))
+            {
+                botMsg.Content = token.IsCancellationRequested
+                    ? "_(پاسخ متوقف شد)_"
+                    : "متأسفم، پاسخی دریافت نشد. لطفاً دوباره تلاش کنید.";
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            if (string.IsNullOrEmpty(botMsg.Content))
+                botMsg.Content = "_(پاسخ متوقف شد)_";
+            else
+                botMsg.Content += "\n\n_(پاسخ متوقف شد)_";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Chat] Stream error: {ex}");
+            if (string.IsNullOrEmpty(botMsg.Content))
+                botMsg.Content = "❌ متأسفانه خطایی رخ داد. لطفاً دوباره تلاش کنید.";
+            else
+                botMsg.Content += "\n\n❌ _(خطا در ادامه‌ی استریم)_";
+        }
+        finally
+        {
+            _streamingMessageId = null;
+            _isStreaming = false;
+
+            try { _cts?.Dispose(); } catch { }
+            _cts = null;
+
+            _needsCodeEnhance = true;
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void StopStreaming()
+    {
+        try
+        {
+            _cts?.Cancel();
+        }
+        catch (ObjectDisposedException) { }
+    }
+
+    // ============================================================
+    // MARKDOWN RENDER
+    // ============================================================
+    private static string RenderMarkdown(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return "";
+        try
+        {
+            return MarkdownRenderer.Render(content);
+        }
+        catch
+        {
+            return $"<pre>{System.Net.WebUtility.HtmlEncode(content)}</pre>";
+        }
+    }
+
+    // ============================================================
+    // JS ESCAPE HELPER
+    // ============================================================
+    private static string EscapeJs(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return "";
+        return s
+            .Replace("\\", "\\\\")
+            .Replace("'", "\\'")
+            .Replace("\r", "\\r")
+            .Replace("\n", "\\n")
+            .Replace("</", "<\\/");
+    }
+
+    // ============================================================
+    // JS INTEROP
+    // ============================================================
+    private const string ChatInteropJs = """
+        (function () {
+
+            // ---- بارگذاری highlight.js فقط یک بار ----
+            if (!window.__chatHljsLoaded) {
+                window.__chatHljsLoaded = true;
+                var s1 = document.createElement('script');
+                s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+                s1.onload = function () {
+                    var langs = ['csharp','javascript','typescript','python','sql','xml','json','bash','css'];
+                    langs.forEach(function (l) {
+                        var s = document.createElement('script');
+                        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/' + l + '.min.js';
+                        document.head.appendChild(s);
+                    });
+                };
+                document.head.appendChild(s1);
+            }
+
+            // ============================================================
+            // Resize Image
+            // ============================================================
+            window.__chatResizeImageFromDataUrl = function (dataUrl) {
+                return new Promise(function (resolve) {
+                    if (!dataUrl) { resolve(dataUrl); return; }
+
+                    var img = new Image();
+                    img.onload = function () {
+                        try {
+                            var MAX = 1024;
+                            var w = img.width, h = img.height;
+
+                            if (w > MAX || h > MAX) {
+                                if (w > h) {
+                                    h = Math.round(h * MAX / w);
+                                    w = MAX;
+                                } else {
+                                    w = Math.round(w * MAX / h);
+                                    h = MAX;
+                                }
+                            }
+
+                            var canvas = document.createElement('canvas');
+                            canvas.width = w;
+                            canvas.height = h;
+                            var ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+
+                            var out = canvas.toDataURL('image/jpeg', 0.82);
+                            resolve(out);
+                        } catch (e) {
+                            resolve(dataUrl);
+                        }
+                    };
+                    img.onerror = function () { resolve(dataUrl); };
+                    img.src = dataUrl;
+                });
+            };
+
+            // ============================================================
+            // مدیریت اسکرول هوشمند
+            // ============================================================
+            const SCROLL_THRESHOLD = 120;
+
+            window.__chatState = {
+                isPinnedToBottom: true,
+                isProgrammaticScroll: false
+            };
+
+            window.__chatIsNearBottom = function () {
+                var el = document.getElementById('chatMessages');
+                if (!el) return true;
+                var distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+                return distance <= SCROLL_THRESHOLD;
+            };
+
+            window.__chatScrollToBottomNow = function (smooth) {
+                var el = document.getElementById('chatMessages');
+                if (!el) return;
+                window.__chatState.isProgrammaticScroll = true;
+                try {
+                    el.scrollTo({
+                        top: el.scrollHeight,
+                        behavior: smooth ? 'smooth' : 'auto'
+                    });
+                } catch (e) {
+                    el.scrollTop = el.scrollHeight;
+                }
+                setTimeout(function () {
+                    window.__chatState.isProgrammaticScroll = false;
+                }, 300);
+            };
+
+            window.__chatAutoScroll = function () {
+                if (window.__chatState.isPinnedToBottom) {
+                    window.__chatScrollToBottomNow(false);
+                }
+            };
+
+            window.__chatScrollToBottomForce = function () {
+                window.__chatState.isPinnedToBottom = true;
+                window.__chatScrollToBottomNow(true);
+                window.__chatUpdateScrollBtn();
+            };
+
+            window.__chatUpdateScrollBtn = function () {
+                var btn = document.getElementById('chatScrollDownBtn');
+                if (!btn) return;
+                if (window.__chatState.isPinnedToBottom) {
+                    btn.classList.remove('visible');
+                } else {
+                    btn.classList.add('visible');
+                }
+            };
+
+            window.__chatBindScroll = function () {
+                var el = document.getElementById('chatMessages');
+                if (!el || el.__scrollBound) return;
+                el.__scrollBound = true;
+
+                el.addEventListener('scroll', function () {
+                    if (window.__chatState.isProgrammaticScroll) return;
+                    var isNearBottom = window.__chatIsNearBottom();
+                    window.__chatState.isPinnedToBottom = isNearBottom;
+                    window.__chatUpdateScrollBtn();
+                }, { passive: true });
+            };
+
+            // ============================================================
+            // MutationObserver
+            // ============================================================
+            if (!window.__chatDomObserver) {
+                window.__chatDomObserver = true;
+
+                var obs = new MutationObserver(function () {
+                    window.__chatBindScroll();
+                    window.__chatBindTextarea();
+                    window.__chatBindLightbox();
+
+                    if (window.__chatState.isPinnedToBottom) {
+                        requestAnimationFrame(function () {
+                            window.__chatAutoScroll();
+                        });
+                    }
+                });
+
+                obs.observe(document.body, { childList: true, subtree: true });
+            }
+
+            // ============================================================
+            // textarea
+            // ============================================================
+            window.__chatBindTextarea = function () {
+                var ta = document.getElementById('chatTextarea');
+                if (!ta || ta.__chatBound) return;
+                ta.__chatBound = true;
+
+                ta.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                    }
+                });
+
+                var autoResize = function () {
+                    ta.style.height = 'auto';
+                    var maxH = 180;
+                    var newH = Math.min(ta.scrollHeight + 2, maxH);
+                    ta.style.height = newH + 'px';
+                    ta.style.overflowY = ta.scrollHeight > maxH ? 'auto' : 'hidden';
+                };
+
+                ta.addEventListener('input', autoResize);
+                autoResize();
+            };
+
+            // ============================================================
+            // Lightbox: Esc key + wheel zoom
+            // ============================================================
+            window.__chatBindLightbox = function () {
+                // Esc key global
+                if (!window.__chatEscBound) {
+                    window.__chatEscBound = true;
+                    document.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape') {
+                            var lb = document.querySelector('.chat-lightbox');
+                            if (lb) {
+                                // Blazor هندل می‌کنه — اینجا فقط به عنوان fallback
+                                var closeBtn = lb.querySelector('.chat-lightbox-close');
+                                if (closeBtn) closeBtn.click();
+                            }
+                        }
+                    });
+                }
+
+                // wheel zoom (اختیاری)
+                var lb = document.querySelector('.chat-lightbox');
+                if (!lb || lb.__wheelBound) return;
+                lb.__wheelBound = true;
+
+                var scale = 1;
+                var imgEl = lb.querySelector('img');
+
+                lb.addEventListener('wheel', function (e) {
+                    if (!imgEl) return;
+                    e.preventDefault();
+                    scale += e.deltaY > 0 ? -0.1 : 0.1;
+                    scale = Math.max(0.5, Math.min(3, scale));
+                    imgEl.style.transform = 'scale(' + scale + ')';
+                    imgEl.style.transition = 'transform 0.15s ease';
+                }, { passive: false });
+            };
+
+            // صدا زدن اولیه
+            setTimeout(function () {
+                window.__chatBindScroll();
+                window.__chatBindTextarea();
+                window.__chatBindLightbox();
+            }, 100);
+
+            // ============================================================
+            // تزئین کد بلاک‌ها
+            // ============================================================
+            window.__chatEnhanceCodeBlocks = function () {
+                var pres = document.querySelectorAll('.msg-bubble .md-content pre');
+                pres.forEach(function (pre) {
+                    if (pre.getAttribute('data-enhanced') === '1') return;
+                    pre.setAttribute('data-enhanced', '1');
+
+                    var code = pre.querySelector('code');
+                    var lang = '';
+                    if (code && code.className) {
+                        var m = code.className.match(/language-([A-Za-z0-9_+-]+)/);
+                        if (m) lang = m[1].toLowerCase();
+                    }
+
+                    if (lang) {
+                        var badge = document.createElement('span');
+                        badge.className = 'chat-lang-badge';
+                        badge.textContent = lang === 'csharp' ? 'C#' : lang;
+                        pre.appendChild(badge);
+                    }
+
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'chat-copy-btn';
+                    btn.setAttribute('aria-label', 'کپی کد');
+                    btn.innerHTML = '<i class="fas fa-copy"></i><span>کپی</span>';
+
+                    btn.addEventListener('click', function () {
+                        var codeEl = pre.querySelector('code');
+                        var text = codeEl ? codeEl.textContent : pre.textContent;
+
+                        var finish = function (ok) {
+                            if (ok) {
+                                btn.classList.add('copied');
+                                btn.innerHTML = '<i class="fas fa-check"></i><span>کپی شد!</span>';
+                            } else {
+                                btn.innerHTML = '<i class="fas fa-times"></i><span>خطا</span>';
+                            }
+                            setTimeout(function () {
+                                btn.classList.remove('copied');
+                                btn.innerHTML = '<i class="fas fa-copy"></i><span>کپی</span>';
+                            }, 2000);
+                        };
+
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(text)
+                                .then(function () { finish(true); })
+                                .catch(function () { finish(false); });
+                        } else {
+                            try {
+                                var ta2 = document.createElement('textarea');
+                                ta2.value = text;
+                                ta2.style.position = 'fixed';
+                                ta2.style.top = '-9999px';
+                                document.body.appendChild(ta2);
+                                ta2.focus(); ta2.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(ta2);
+                                finish(true);
+                            } catch (e) { finish(false); }
+                        }
+                    });
+
+                    pre.appendChild(btn);
+                });
+
+                var applyHl = function () {
+                    if (typeof hljs === 'undefined') return;
+                    document.querySelectorAll('.msg-bubble .md-content pre code').forEach(function (el) {
+                        if (el.getAttribute('data-highlighted') === '1') return;
+                        try {
+                            hljs.highlightElement(el);
+                            el.setAttribute('data-highlighted', '1');
+                        } catch (e) {}
+                    });
+                };
+
+                if (typeof hljs !== 'undefined') {
+                    applyHl();
+                } else {
+                    var tries = 0;
+                    var iv = setInterval(function () {
+                        tries++;
+                        if (typeof hljs !== 'undefined' || tries > 40) {
+                            clearInterval(iv);
+                            applyHl();
+                        }
+                    }, 100);
+                }
+            };
+        })();
+        """;
+}

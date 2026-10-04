@@ -956,8 +956,7 @@
 
 
             <!-- NAVIGATION -->
-
-            <ul class="front-nav-links @(isMenuOpen ? "open" : "")"
+   <ul class="front-nav-links @(isMenuOpen ? "open" : "")"
                 id="frontNavLinks">
 
                 <li>
@@ -1022,7 +1021,7 @@
 
                     </a>
                 </li>
-         
+
                 <li>
                     <a href="/Blogs"
                        @onclick="CloseMenu">
@@ -1041,7 +1040,20 @@
                     </a>
                 </li>
 
+                <li>
+                    <a href="/Chat"
+                       @onclick="CloseMenu">
+
+                        <i class="fas fa-robot"></i>
+                        گفتگو با AI من
+
+                    </a>
+                </li>
+
+
             </ul>
+
+
 
 
             <!-- ACTIONS -->

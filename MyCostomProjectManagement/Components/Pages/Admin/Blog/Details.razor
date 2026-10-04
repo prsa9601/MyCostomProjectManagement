@@ -37,8 +37,8 @@
     }
 
     /* ============================================================
-           TOP BAR
-        ============================================================ */
+               TOP BAR
+            ============================================================ */
     .bd-topbar {
         display: flex;
         align-items: center;
@@ -168,8 +168,8 @@
         }
 
     /* ============================================================
-           STATE BOXES
-        ============================================================ */
+               STATE BOXES
+            ============================================================ */
     .bd-state {
         display: flex;
         flex-direction: column;
@@ -221,14 +221,18 @@
     }
 
     /* ============================================================
-           GRID & CARDS
-        ============================================================ */
+               GRID & CARDS
+            ============================================================ */
     .bd-grid {
         display: grid;
         grid-template-columns: 1fr 340px;
         gap: 1.25rem;
         align-items: flex-start;
     }
+
+        .bd-grid > * {
+            min-width: 0;
+        }
 
     .bd-card {
         background: #1c1c24;
@@ -274,8 +278,8 @@
     }
 
     /* ============================================================
-           HERO
-        ============================================================ */
+               HERO
+            ============================================================ */
     .bd-hero {
         background: linear-gradient(135deg, #1c1c24 0%, #14141c 50%, #181824 100%);
         border: 1px solid #2a2a34;
@@ -342,8 +346,8 @@
         }
 
     /* ============================================================
-           TAGS
-        ============================================================ */
+               TAGS
+            ============================================================ */
     .bd-tags {
         display: flex;
         flex-wrap: wrap;
@@ -411,8 +415,8 @@
     }
 
     /* ============================================================
-           INFO LIST
-        ============================================================ */
+               INFO LIST
+            ============================================================ */
     .bd-info-list {
         list-style: none;
         padding: 0;
@@ -455,6 +459,7 @@
         font-weight: 500;
         text-align: left;
         word-break: break-word;
+        min-width: 0;
     }
 
         .bd-info-value.mono {
@@ -464,8 +469,8 @@
         }
 
     /* ============================================================
-           MARKDOWN
-        ============================================================ */
+               MARKDOWN
+            ============================================================ */
     .bd-markdown {
         color: #d0d0d8;
         font-size: .95rem;
@@ -550,6 +555,7 @@
             border-bottom: 1px dashed rgba(77, 201, 221, .5);
             transition: .2s;
             padding-inline-end: 2px;
+            overflow-wrap: anywhere;
         }
 
             .bd-markdown a:hover {
@@ -586,8 +592,8 @@
         }
 
         /* ============================================================
-           INLINE CODE
-        ============================================================ */
+               INLINE CODE
+            ============================================================ */
         .bd-markdown code {
             direction: ltr;
             unicode-bidi: embed;
@@ -603,8 +609,8 @@
         }
 
         /* ============================================================
-           CODE BLOCK
-        ============================================================ */
+               CODE BLOCK
+            ============================================================ */
         .bd-markdown pre {
             position: relative;
             direction: ltr !important;
@@ -668,8 +674,8 @@
                 }
 
         /* ============================================================
-           COPY BUTTON & LANGUAGE BADGE
-        ============================================================ */
+               COPY BUTTON & LANGUAGE BADGE
+            ============================================================ */
         .bd-markdown .bd-copy-btn {
             position: absolute;
             top: .5rem;
@@ -794,8 +800,8 @@
             }
 
         /* ============================================================
-           BLOCKQUOTE
-        ============================================================ */
+               BLOCKQUOTE
+            ============================================================ */
         .bd-markdown blockquote {
             border-inline-start: 4px solid;
             border-image: linear-gradient(180deg, #4dc9dd, #52b788) 1;
@@ -824,8 +830,8 @@
             }
 
         /* ============================================================
-           HORIZONTAL RULE
-        ============================================================ */
+               HORIZONTAL RULE
+            ============================================================ */
         .bd-markdown hr {
             border: none;
             height: 1px;
@@ -835,8 +841,8 @@
         }
 
         /* ============================================================
-           TABLES
-        ============================================================ */
+               TABLES
+            ============================================================ */
         .bd-markdown table {
             width: 100%;
             border-collapse: collapse;
@@ -879,8 +885,8 @@
         }
 
         /* ============================================================
-           IMAGES, STRONG, EM
-        ============================================================ */
+               IMAGES, STRONG, EM
+            ============================================================ */
         .bd-markdown img {
             max-width: 100%;
             border-radius: 10px;
@@ -924,8 +930,8 @@
         }
 
     /* ============================================================
-           SCORE
-        ============================================================ */
+               SCORE
+            ============================================================ */
     .bd-content-empty {
         color: #8a8a95;
         font-style: italic;
@@ -1020,8 +1026,8 @@
     }
 
     /* ============================================================
-           MODAL
-        ============================================================ */
+               MODAL
+            ============================================================ */
     .bd-modal-overlay {
         position: fixed;
         inset: 0;
@@ -1097,8 +1103,8 @@
     }
 
     /* ============================================================
-           TOAST
-        ============================================================ */
+               TOAST
+            ============================================================ */
     .bd-toast {
         position: fixed;
         bottom: 2rem;
@@ -1141,42 +1147,315 @@
     }
 
     /* ============================================================
-           RESPONSIVE
-        ============================================================ */
-    @@media (max-width: 992px) {
+               RESPONSIVE
+            ============================================================ */
+
+    /* دسکتاپ کوچک / تبلت افقی */
+    @@media (max-width: 1200px) {
         .bd-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 290px;
         }
     }
 
-    @@media (max-width: 640px) {
-        .bd-hero-title {
-            font-size: 1.2rem;
+    /* تبلت افقی بزرگ */
+    @@media (max-width: 1024px) {
+        .bd-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
 
+        .bd-hero {
+            padding: 1.25rem;
+        }
+
+        .bd-hero-title {
+            font-size: 1.35rem;
+        }
+    }
+
+    /* تبلت عمودی / موبایل بزرگ */
+    @@media (max-width: 768px) {
+        /* ---------- Top Bar ---------- */
         .bd-topbar {
             flex-direction: column;
             align-items: stretch;
-        }
-
-        .bd-actions {
-            justify-content: center;
+            gap: .65rem;
+            margin-bottom: 1rem;
         }
 
         .bd-back {
             justify-content: center;
+            width: 100%;
         }
 
-        .bd-markdown h1 {
-            font-size: 1.4rem;
+        .bd-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: .5rem;
+            justify-content: stretch;
         }
 
-        .bd-markdown h2 {
+            .bd-actions .bd-btn {
+                justify-content: center;
+                padding: .6rem .8rem;
+            }
+        /* ---------- Hero ---------- */
+        .bd-hero {
+            padding: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+            .bd-hero::before {
+                width: 3px;
+            }
+
+        .bd-hero-title {
+            font-size: 1.2rem;
+            line-height: 1.55;
+        }
+
+        .bd-hero-meta {
+            gap: .55rem .9rem;
+            font-size: .78rem;
+            margin-bottom: .85rem;
+        }
+        /* ---------- Cards ---------- */
+        .bd-card-header {
+            padding: .85rem 1rem;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .bd-card-title {
+            font-size: .9rem;
+        }
+
+        .bd-card-body {
+            padding: 1rem;
+        }
+        /* ---------- Tags ---------- */
+        .bd-tags {
+            gap: .35rem;
+        }
+
+        .bd-tag {
+            font-size: .7rem;
+            padding: .28rem .6rem;
+        }
+        /* ---------- Score ---------- */
+        .bd-score-box {
+            padding: .85rem 1rem;
+            gap: .85rem;
+        }
+
+        .bd-score-circle {
+            width: 56px;
+            height: 56px;
             font-size: 1.2rem;
         }
 
-        .bd-markdown h3 {
+        .bd-reason {
+            font-size: .84rem;
+            padding: .75rem .85rem;
+        }
+        /* ---------- Markdown ---------- */
+        .bd-markdown {
+            font-size: .92rem;
+            line-height: 1.85;
+        }
+
+            .bd-markdown h1 {
+                font-size: 1.4rem;
+            }
+
+            .bd-markdown h2 {
+                font-size: 1.2rem;
+            }
+
+            .bd-markdown h3 {
+                font-size: 1.05rem;
+            }
+
+            .bd-markdown h4 {
+                font-size: .98rem;
+            }
+
+            .bd-markdown h5 {
+                font-size: .92rem;
+            }
+
+            .bd-markdown h6 {
+                font-size: .86rem;
+            }
+
+            .bd-markdown pre {
+                padding: 2.6rem .85rem .85rem .85rem;
+                font-size: .8rem;
+                border-radius: 8px;
+                margin-bottom: 1.1em;
+            }
+
+                .bd-markdown pre code {
+                    font-size: .78rem;
+                    tab-size: 2;
+                }
+
+            .bd-markdown .bd-copy-btn,
+            .bd-markdown .bd-lang-badge {
+                font-size: .68rem;
+                padding: .25rem .55rem;
+            }
+
+            .bd-markdown blockquote {
+                padding: .7rem .9rem;
+            }
+            /* جدول‌ها با اسکرول افقی */
+            .bd-markdown table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                white-space: nowrap;
+            }
+
+            .bd-markdown th,
+            .bd-markdown td {
+                padding: .55rem .7rem;
+                font-size: .82rem;
+            }
+        /* ---------- Modal ---------- */
+        .bd-modal {
+            padding: 1.5rem 1.15rem 1.15rem;
+            border-radius: 14px;
+        }
+
+        .bd-modal-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+    }
+
+    /* موبایل متوسط */
+    @@media (max-width: 640px) {
+
+        .bd-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .bd-hero-title {
+            font-size: 1.1rem;
+        }
+
+        .bd-hero-meta span {
+            font-size: .74rem;
+        }
+
+        .bd-card-header {
+            padding: .75rem .9rem;
+        }
+
+        .bd-card-body {
+            padding: .9rem;
+        }
+        /* اطلاعات به صورت عمودی */
+        .bd-info-item {
+            flex-direction: column;
+            align-items: stretch;
+            gap: .3rem;
+            padding: .65rem 0;
+        }
+
+        .bd-info-label {
+            font-size: .8rem;
+        }
+
+        .bd-info-value {
+            text-align: right;
+            font-size: .85rem;
+        }
+
+            .bd-info-value.mono {
+                direction: ltr;
+                text-align: left;
+                padding-inline-start: 1.5rem;
+            }
+
+        .bd-score-info {
+            min-width: 0;
+        }
+        /* Modal عمودی */
+        .bd-modal-actions {
+            flex-direction: column-reverse;
+        }
+
+            .bd-modal-actions .bd-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        /* Toast تمام‌عرض */
+        .bd-toast {
+            left: 1rem;
+            right: 1rem;
+            bottom: 1rem;
+            transform: none;
+            max-width: none;
+            width: auto;
+            justify-content: center;
+            font-size: .85rem;
+            padding: .75rem 1rem;
+            animation: bd-toast-in-mobile .3s;
+        }
+
+        @@keyframes bd-toast-in-mobile {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    }
+
+    /* موبایل کوچک */
+    @@media (max-width: 420px) {
+
+        .bd-hero {
+            padding: 1rem;
+        }
+
+        .bd-hero-title {
+            font-size: 1rem;
+        }
+
+        .bd-score-circle {
+            width: 50px;
+            height: 50px;
             font-size: 1.05rem;
+        }
+
+        .bd-score-value {
+            font-size: .9rem;
+        }
+
+        .bd-markdown pre {
+            padding: 2.4rem .7rem .7rem .7rem;
+            font-size: .75rem;
+        }
+
+            .bd-markdown pre code {
+                font-size: .72rem;
+            }
+        /* فقط آیکون کپی */
+        .bd-markdown .bd-copy-btn span {
+            display: none;
+        }
+
+        .bd-markdown .bd-copy-btn {
+            padding: .3rem .45rem;
         }
     }
 </style>
