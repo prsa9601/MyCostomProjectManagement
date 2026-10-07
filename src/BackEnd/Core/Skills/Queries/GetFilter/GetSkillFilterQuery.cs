@@ -33,6 +33,10 @@ namespace BackEnd.Core.Skills.Queries.GetFilter
             var skills = context.TechnicalSkills.AsTracking()
                 .OrderBy(i => i.CreationDate).AsQueryable();
 
+            if (@params.IsActive != null && @params.IsActive == true)
+            {
+                skills = skills.Where(i => i.IsActive == true);
+            }
 
             var skip = (@params.PageId - 1) * @params.Take;
             var model = new SkillFilterResult()

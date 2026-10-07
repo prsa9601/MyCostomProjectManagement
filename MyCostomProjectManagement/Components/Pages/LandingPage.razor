@@ -7,6 +7,9 @@
 @using BackEnd.Shared.Extentions.Enum
 @using BackEnd.Core.Project.Commands.ProjectRequestV1.Create
 @using BackEnd.Data.Entities.ProjectRequestV1
+@using BackEnd.Data.Infrastructure.Blog
+@using BackEnd.Data.Infrastructure.Blog.DTOs
+@using BackEnd.Data.Entities.Blogs
 @using MyCostomProjectManagement.Facade.ContactUs
 @using MyCostomProjectManagement.Facade.FAQ
 @using MyCostomProjectManagement.Facade.Portfolio
@@ -30,6 +33,7 @@
 @inject GetUserPermission _getUserPermission
 @inject UserAuthentication _userAuthentication
 @inject IProjectRequestV1Facade _prV1Facade
+@inject IBlogApiService _blogApiService
 
 <HeadContent>
     <title>برنامه نویس دات نت و سی‌شارپ | محمد پارسا کریمی | استخدام و فریلنسر ASP.NET Core</title>
@@ -93,8 +97,8 @@
         gap: 8px;
         margin-top: 14px;
         padding: 8px 18px;
-        background: rgba(59, 130, 246, 0.10);
-        border: 1px solid rgba(59, 130, 246, 0.20);
+        background: rgba(59,130,246,0.10);
+        border: 1px solid rgba(59,130,246,0.20);
         border-radius: 40px;
         color: #3b82f6;
         font-size: 0.85rem;
@@ -104,22 +108,21 @@
         backdrop-filter: blur(4px);
     }
 
+        .btn-portfolio:hover {
+            background: rgba(59,130,246,0.20);
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59,130,246,0.15);
+            color: #fff;
+        }
+
         .btn-portfolio i {
-            font-size: 0.85rem;
             transition: transform 0.3s ease;
         }
 
-        .btn-portfolio:hover {
-            background: rgba(59, 130, 246, 0.20);
-            border-color: #3b82f6;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
-            color: #ffffff;
+        .btn-portfolio:hover i {
+            transform: translateX(4px);
         }
-
-            .btn-portfolio:hover i {
-                transform: translateX(4px);
-            }
 
         .btn-portfolio:active {
             transform: scale(0.96);
@@ -243,7 +246,6 @@
         z-index: 2;
     }
 
-    /* ----- PARTICLES BACKGROUND ----- */
     .bg-particles {
         position: fixed;
         top: 0;
@@ -260,10 +262,10 @@
             display: block;
             width: 6px;
             height: 6px;
-            background: rgba(59, 130, 246, 0.2);
+            background: rgba(59,130,246,0.2);
             border-radius: 50%;
             animation: floatParticle 12s infinite alternate ease-in-out;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
+            box-shadow: 0 0 20px rgba(59,130,246,0.05);
         }
 
             .bg-particles span:nth-child(1) {
@@ -536,7 +538,6 @@
         justify-content: center;
     }
 
-    /* ----- TYPEWRITER ----- */
     .typewriter .text {
         display: inline;
         background: linear-gradient(to left, #f0f4ff, #94a3b8);
@@ -602,7 +603,51 @@
         font-size: 1.1rem;
     }
 
-    /* ----- ABOUT ----- */
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 0 20px rgba(59,130,246,0.15);
+        font-family: inherit;
+    }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(59,130,246,0.4);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.15);
+        color: #eef2f8;
+        padding: 8px 22px;
+        border-radius: 40px;
+        font-weight: 500;
+        transition: 0.3s;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+
+        .btn-outline:hover {
+            border-color: #3b82f6;
+            color: #fff;
+            background: rgba(59,130,246,0.08);
+            box-shadow: 0 0 30px rgba(59,130,246,0.1);
+        }
+
     .about-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -762,6 +807,58 @@
     }
 
         .skill-item:hover {
+            border-color: transparent;
+            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.10);
+        }
+
+    .service-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 18px;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.12));
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .service-card h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 10px;
+    }
+
+    .service-card p {
+        color: #94a3b8;
+        font-size: 0.92rem;
+        line-height: 1.9;
+        margin: 0;
+    }
+
+    /* ----- SKILLS ----- */
+    .skills-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 28px;
+        margin-top: 10px;
+    }
+
+    .skill-item {
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px;
+        padding: 24px 20px;
+        transition: 0.35s;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .skill-item:hover {
             border-color: rgba(59,130,246,0.4);
             transform: translateY(-4px);
         }
@@ -800,7 +897,813 @@
             box-shadow: 0 0 20px rgba(59,130,246,0.2);
         }
 
-    /* ----- PORTFOLIO ----- */
+    .learning-timeline {
+        position: relative;
+        max-width: 900px;
+        margin: 0 auto;
+        padding-right: 50px;
+    }
+
+        .learning-timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 15px;
+            width: 2px;
+            background: linear-gradient(180deg, #3b82f6, #8b5cf6, #3b82f6);
+            background-size: 100% 200%;
+            animation: learningLineShift 6s linear infinite;
+            opacity: 0.4;
+            border-radius: 2px;
+        }
+
+    @@keyframes learningLineShift {
+        0% {
+            background-position: 0 0;
+        }
+
+        100% {
+            background-position: 0 200%;
+        }
+    }
+
+    .learning-item {
+        position: relative;
+        margin-bottom: 32px;
+        padding-right: 20px;
+    }
+
+        .learning-item:last-child {
+            margin-bottom: 0;
+        }
+
+    .learning-dot {
+        position: absolute;
+        right: -42px;
+        top: 18px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border: 3px solid #0a0e17;
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.4), 0 0 20px rgba(59,130,246,0.5);
+        z-index: 2;
+    }
+
+        .learning-dot::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59,130,246,0.3), transparent 70%);
+            animation: dotPulse 2.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+    @@keyframes dotPulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 0.6;
+        }
+
+        50% {
+            transform: scale(1.4);
+            opacity: 0;
+        }
+    }
+
+    .learning-card {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px;
+        padding: 22px 24px;
+        transition: all 0.35s cubic-bezier(0.2,0.9,0.3,1);
+    }
+
+        .learning-card:hover {
+            transform: translateX(-6px);
+            border-color: rgba(59,130,246,0.35);
+            background: rgba(59,130,246,0.04);
+            box-shadow: 0 16px 40px rgba(59,130,246,0.12);
+        }
+
+    .learning-year {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 4px 14px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15));
+        color: #93c5fd;
+        border: 1px solid rgba(59,130,246,0.3);
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+        font-family: 'Fira Code', monospace;
+    }
+
+    .learning-card h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .learning-card p {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        line-height: 1.9;
+        margin: 0;
+    }
+
+    .learning-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 14px;
+    }
+
+        .learning-tags span {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(139,92,246,0.1);
+            color: #c4b5fd;
+            border: 1px solid rgba(139,92,246,0.2);
+            font-weight: 600;
+        }
+
+    .tech-category {
+        margin-bottom: 44px;
+    }
+
+        .tech-category:last-child {
+            margin-bottom: 0;
+        }
+
+    .tech-category-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #60a5fa;
+        margin-bottom: 20px;
+        padding-right: 12px;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+    }
+
+        .tech-category-title::before {
+            content: '';
+            width: 4px;
+            height: 1.1rem;
+            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+            border-radius: 4px;
+        }
+
+        .tech-category-title i {
+            font-size: 1rem;
+            color: #8b5cf6;
+        }
+
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 14px;
+    }
+
+    .tech-item {
+        position: relative;
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 16px;
+        padding: 18px 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.35s cubic-bezier(0.2,0.9,0.3,1);
+        cursor: default;
+        overflow: hidden;
+    }
+
+        .tech-item:hover {
+            transform: translateY(-6px);
+            border-color: rgba(59,130,246,0.4);
+            box-shadow: 0 16px 40px rgba(59,130,246,0.15);
+        }
+
+        .tech-item i {
+            font-size: 2.2rem;
+            transition: transform 0.35s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tech-item:hover i {
+            transform: scale(1.15);
+        }
+
+        .tech-item span {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #b8c4d6;
+            text-align: center;
+            transition: color 0.3s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tech-item:hover span {
+            color: #fff;
+        }
+
+        .tech-item .tech-years {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(139,92,246,0.15);
+            color: #c4b5fd;
+            border: 1px solid rgba(139,92,246,0.25);
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover .tech-years {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    /* ===== TECH RADAR ===== */
+    .radar-timeline {
+        position: relative;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .radar-now, .radar-next, .radar-future {
+        position: relative;
+        margin-bottom: 40px;
+    }
+
+    .radar-future {
+        margin-bottom: 0;
+    }
+
+    .radar-ring-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1rem;
+        font-weight: 800;
+        padding: 10px 20px;
+        border-radius: 40px;
+        margin-bottom: 20px;
+        letter-spacing: 0.3px;
+    }
+
+    .radar-now .radar-ring-label {
+        background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(59,130,246,0.1));
+        color: #34d399;
+        border: 1.5px solid rgba(52,211,153,0.3);
+        box-shadow: 0 8px 30px rgba(52,211,153,0.15);
+    }
+
+    .radar-next .radar-ring-label {
+        background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(251,146,60,0.1));
+        color: #fbbf24;
+        border: 1.5px solid rgba(251,191,36,0.3);
+    }
+
+    .radar-future .radar-ring-label {
+        background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.1));
+        color: #c4b5fd;
+        border: 1.5px solid rgba(139,92,246,0.3);
+    }
+
+    .radar-ring-label i {
+        font-size: 1.1rem;
+    }
+
+    .radar-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 14px;
+    }
+
+    .radar-item {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.35s ease;
+    }
+
+        .radar-item:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59,130,246,0.35);
+            background: rgba(59,130,246,0.04);
+            box-shadow: 0 12px 30px rgba(59,130,246,0.12);
+        }
+
+    .radar-item-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .radar-now .radar-item-icon {
+        background: rgba(52,211,153,0.12);
+        color: #34d399;
+        border: 1px solid rgba(52,211,153,0.25);
+    }
+
+    .radar-next .radar-item-icon {
+        background: rgba(251,191,36,0.12);
+        color: #fbbf24;
+        border: 1px solid rgba(251,191,36,0.25);
+    }
+
+    .radar-future .radar-item-icon {
+        background: rgba(139,92,246,0.12);
+        color: #c4b5fd;
+        border: 1px solid rgba(139,92,246,0.25);
+    }
+
+    .radar-item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .radar-item-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 3px;
+    }
+
+    .radar-item-status {
+        font-size: 0.72rem;
+        color: #64748b;
+    }
+
+    /* ===== OPEN SOURCE ===== */
+    .opensource-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 22px;
+    }
+
+    .repo-card {
+        position: relative;
+        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px;
+        padding: 24px;
+        transition: all 0.4s cubic-bezier(0.2,0.9,0.3,1);
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+        .repo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #60a5fa, #c4b5fd);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s ease;
+        }
+
+        .repo-card:hover::before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        .repo-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(96,165,250,0.4);
+            box-shadow: 0 24px 60px rgba(96,165,250,0.18);
+            background: linear-gradient(180deg, rgba(96,165,250,0.06), rgba(139,92,246,0.02));
+        }
+
+    .repo-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .repo-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        background: rgba(96,165,250,0.12);
+        color: #60a5fa;
+        border: 1px solid rgba(96,165,250,0.25);
+        flex-shrink: 0;
+    }
+
+    .repo-name {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #fff;
+        font-family: 'Fira Code', monospace;
+        letter-spacing: -0.3px;
+    }
+
+    .repo-desc {
+        color: #94a3b8;
+        font-size: 0.88rem;
+        line-height: 1.9;
+        margin-bottom: 18px;
+        flex: 1;
+    }
+
+    .repo-stats {
+        display: flex;
+        gap: 18px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        font-size: 0.8rem;
+    }
+
+    .repo-stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #94a3b8;
+    }
+
+        .repo-stat i {
+            color: #fbbf24;
+            font-size: 0.85rem;
+        }
+
+        .repo-stat.lang i {
+            color: #60a5fa;
+        }
+
+    .repo-lang-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #a855f7;
+        margin-left: 4px;
+    }
+
+    /* ===== RESOURCES ===== */
+    .resources-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 22px;
+    }
+
+    .resource-card {
+        position: relative;
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px;
+        padding: 24px;
+        transition: all 0.4s cubic-bezier(0.2,0.9,0.3,1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .resource-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s ease;
+        }
+
+        .resource-card:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(59,130,246,0.35);
+            box-shadow: 0 20px 50px rgba(59,130,246,0.12);
+        }
+
+    .resource-type {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 14px;
+        width: fit-content;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+        .resource-type.book {
+            background: rgba(251,146,60,0.12);
+            color: #fb923c;
+            border: 1px solid rgba(251,146,60,0.25);
+        }
+
+        .resource-type.course {
+            background: rgba(59,130,246,0.12);
+            color: #60a5fa;
+            border: 1px solid rgba(59,130,246,0.25);
+        }
+
+        .resource-type.docs {
+            background: rgba(52,211,153,0.12);
+            color: #34d399;
+            border: 1px solid rgba(52,211,153,0.25);
+        }
+
+        .resource-type.video {
+            background: rgba(236,72,153,0.12);
+            color: #f9a8d4;
+            border: 1px solid rgba(236,72,153,0.25);
+        }
+
+        .resource-type.tool {
+            background: rgba(139,92,246,0.12);
+            color: #c4b5fd;
+            border: 1px solid rgba(139,92,246,0.25);
+        }
+
+    .resource-card h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 10px;
+        line-height: 1.6;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .resource-card h3 i {
+            color: #60a5fa;
+            font-size: 1rem;
+        }
+
+    .resource-card p {
+        color: #94a3b8;
+        font-size: 0.87rem;
+        line-height: 1.9;
+        margin-bottom: 16px;
+        flex: 1;
+    }
+
+    .resource-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #3b82f6;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: gap 0.3s;
+        margin-top: auto;
+    }
+
+        .resource-link:hover {
+            gap: 12px;
+            color: #60a5fa;
+        }
+
+    /* ===== COURSES ===== */
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+    }
+
+    .course-card {
+        position: relative;
+        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 22px;
+        padding: 28px 24px;
+        transition: all 0.4s cubic-bezier(0.2,0.9,0.3,1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .course-card.featured {
+            border-color: rgba(96,165,250,0.5);
+            background: linear-gradient(180deg, rgba(96,165,250,0.06), rgba(139,92,246,0.03));
+        }
+
+            .course-card.featured::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #60a5fa, #c4b5fd, #60a5fa);
+                background-size: 200% 100%;
+                animation: courseShift 3s linear infinite;
+            }
+
+    @@keyframes courseShift {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        100% {
+            background-position: 200% 50%;
+        }
+    }
+
+    .course-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(96,165,250,0.4);
+        box-shadow: 0 24px 60px rgba(96,165,250,0.15);
+    }
+
+    .course-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .course-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, rgba(96,165,250,0.15), rgba(196,181,253,0.12));
+        color: #60a5fa;
+        border: 1px solid rgba(96,165,250,0.25);
+        flex-shrink: 0;
+    }
+
+    .course-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+        .course-meta span {
+            font-size: 0.68rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(96,165,250,0.08);
+            color: #93c5fd;
+            border: 1px solid rgba(96,165,250,0.2);
+            font-weight: 600;
+        }
+
+    .course-card h3 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
+        line-height: 1.5;
+    }
+
+    .course-card p {
+        color: #94a3b8;
+        font-size: 0.88rem;
+        line-height: 1.9;
+        margin: 0 0 18px 0;
+        flex: 1;
+    }
+
+    .course-topics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 18px;
+    }
+
+        .course-topics span {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(139,92,246,0.1);
+            color: #c4b5fd;
+            border: 1px solid rgba(139,92,246,0.2);
+            font-weight: 600;
+        }
+
+    .course-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        gap: 12px;
+    }
+
+    .course-price {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .course-price .label {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+
+        .course-price .amount {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #60a5fa;
+            font-family: 'Fira Code', monospace;
+            text-shadow: 0 0 20px rgba(96,165,250,0.25);
+        }
+
+            .course-price .amount.free {
+                color: #34d399;
+            }
+
+    .course-enroll {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 20px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 0.82rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+        .course-enroll.primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(59,130,246,0.3);
+        }
+
+            .course-enroll.primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 35px rgba(59,130,246,0.5);
+            }
+
+        .course-enroll.outline {
+            background: transparent;
+            color: #93c5fd;
+            border: 1.5px solid rgba(96,165,250,0.35);
+        }
+
+            .course-enroll.outline:hover {
+                background: rgba(96,165,250,0.12);
+                color: #fff;
+                border-color: #60a5fa;
+                transform: translateY(-2px);
+            }
+
+    /* ===== PORTFOLIO ===== */
     .portfolio-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -845,7 +1748,133 @@
                 font-size: 0.95rem;
             }
 
-    /* ----- PROJECTS ----- */
+    /* ===== CASE STUDIES ===== */
+    .case-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 26px;
+    }
+
+    .case-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 24px;
+        padding: 30px 28px;
+        transition: all 0.4s cubic-bezier(0.2,0.9,0.3,1);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .case-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+            background-size: 200% 100%;
+            animation: caseBorderShift 4s linear infinite;
+            opacity: 0.7;
+        }
+
+    @@keyframes caseBorderShift {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        100% {
+            background-position: 200% 50%;
+        }
+    }
+
+    .case-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(59,130,246,0.35);
+        box-shadow: 0 24px 60px rgba(59,130,246,0.15);
+    }
+
+    .case-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 20px;
+        background: rgba(59,130,246,0.12);
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.25);
+        margin-bottom: 16px;
+        width: fit-content;
+        letter-spacing: 0.4px;
+    }
+
+    .case-card h3 {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 12px;
+        line-height: 1.5;
+    }
+
+    .case-desc {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        line-height: 1.9;
+        margin-bottom: 20px;
+        flex: 1;
+    }
+
+    .case-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 22px;
+    }
+
+        .case-stack span {
+            font-size: 0.68rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(139,92,246,0.1);
+            color: #c4b5fd;
+            border: 1px solid rgba(139,92,246,0.2);
+            font-weight: 600;
+        }
+
+    .case-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .case-metric {
+        text-align: center;
+    }
+
+    .case-metric-value {
+        font-size: 1.35rem;
+        font-weight: 900;
+        color: #60a5fa;
+        text-shadow: 0 0 20px rgba(59,130,246,0.25);
+        font-family: 'Fira Code', monospace;
+        line-height: 1.2;
+    }
+
+    .case-metric-label {
+        font-size: 0.68rem;
+        color: #64748b;
+        margin-top: 4px;
+        letter-spacing: 0.3px;
+    }
+
+    /* ===== PROJECTS ===== */
     .project-list {
         display: flex;
         flex-direction: column;
@@ -889,17 +1918,281 @@
             border: 1px solid rgba(59,130,246,0.1);
         }
 
-    /* ----- PURCHASE / API ----- */
-    .purchase-grid {
+    /* ===== CONSULTATION ===== */
+    .consultation-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-        gap: 32px;
-        margin-top: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+        gap: 24px;
+        align-items: stretch;
     }
 
-    .purchase-card {
+    .consult-card {
+        position: relative;
         background: rgba(255,255,255,0.03);
-        backdrop-filter: blur(6px);
+        backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(255,255,255,0.06);
+        border-radius: 26px;
+        padding: 34px 28px;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.4s cubic-bezier(0.2,0.9,0.3,1);
+        overflow: hidden;
+    }
+
+        .consult-card.featured {
+            border-color: rgba(59,130,246,0.5);
+            background: linear-gradient(180deg, rgba(59,130,246,0.06), rgba(139,92,246,0.03));
+            transform: scale(1.03);
+        }
+
+            .consult-card.featured::before {
+                content: 'محبوب‌ترین';
+                position: absolute;
+                top: 18px;
+                left: -34px;
+                background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                color: #fff;
+                padding: 5px 40px;
+                font-size: 0.7rem;
+                font-weight: 800;
+                transform: rotate(-45deg);
+                letter-spacing: 0.5px;
+                box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+            }
+
+        .consult-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(59,130,246,0.5);
+            box-shadow: 0 24px 60px rgba(59,130,246,0.18);
+        }
+
+        .consult-card.featured:hover {
+            transform: translateY(-8px) scale(1.04);
+        }
+
+    .consult-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.12));
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.25);
+    }
+
+    .consult-card h3 {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 6px;
+    }
+
+    .consult-subtitle {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+
+    .consult-price {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px dashed rgba(255,255,255,0.08);
+    }
+
+        .consult-price .amount {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #60a5fa;
+            font-family: 'Fira Code', monospace;
+            line-height: 1;
+        }
+
+        .consult-price .unit {
+            font-size: 0.82rem;
+            color: #64748b;
+        }
+
+    .consult-features {
+        list-style: none;
+        margin: 0 0 26px 0;
+        padding: 0;
+        flex: 1;
+    }
+
+        .consult-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+            color: #cbd5e1;
+            font-size: 0.88rem;
+            line-height: 1.7;
+        }
+
+            .consult-features li i {
+                color: #34d399;
+                font-size: 0.85rem;
+                margin-top: 5px;
+                flex-shrink: 0;
+            }
+
+    .consult-card .btn-consult {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 20px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+        .consult-card .btn-consult.outline {
+            background: transparent;
+            color: #eef2f8;
+            border: 1.5px solid rgba(255,255,255,0.15);
+        }
+
+            .consult-card .btn-consult.outline:hover {
+                border-color: #3b82f6;
+                background: rgba(59,130,246,0.08);
+                color: #fff;
+                transform: translateY(-2px);
+            }
+
+        .consult-card .btn-consult.primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #fff;
+            box-shadow: 0 8px 30px rgba(59,130,246,0.3);
+        }
+
+            .consult-card .btn-consult.primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 40px rgba(59,130,246,0.5);
+            }
+
+    /* ===== GUARANTEE ===== */
+    .guarantee-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 22px;
+    }
+
+    .guarantee-card {
+        position: relative;
+        background: linear-gradient(180deg, rgba(52,211,153,0.05), rgba(59,130,246,0.02));
+        backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(52,211,153,0.15);
+        border-radius: 22px;
+        padding: 30px 24px;
+        transition: all 0.4s cubic-bezier(0.2,0.9,0.3,1);
+        overflow: hidden;
+    }
+
+        .guarantee-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #34d399, #60a5fa, #34d399);
+            background-size: 200% 100%;
+            animation: guaranteeShift 4s linear infinite;
+        }
+
+    @@keyframes guaranteeShift {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        100% {
+            background-position: 200% 50%;
+        }
+    }
+
+    .guarantee-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(52,211,153,0.4);
+        box-shadow: 0 24px 60px rgba(52,211,153,0.18);
+    }
+
+    .guarantee-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.7rem;
+        margin-bottom: 18px;
+        background: linear-gradient(135deg, rgba(52,211,153,0.18), rgba(59,130,246,0.12));
+        color: #34d399;
+        border: 1px solid rgba(52,211,153,0.3);
+        box-shadow: 0 8px 30px rgba(52,211,153,0.15);
+        transition: all 0.4s ease;
+    }
+
+    .guarantee-card:hover .guarantee-icon {
+        transform: scale(1.1) rotate(-6deg);
+        color: #6ee7b7;
+    }
+
+    .guarantee-card h3 {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .guarantee-card h3::before {
+            content: '✓';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(52,211,153,0.2);
+            color: #34d399;
+            font-size: 0.7rem;
+            font-weight: 900;
+        }
+
+    .guarantee-card p {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        line-height: 1.95;
+        margin: 0;
+    }
+
+    /* ===== QUICK SERVICES ===== */
+    .quick-services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 22px;
+    }
+
+    .quick-service {
+        position: relative;
+        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
+        backdrop-filter: blur(8px);
         border: 1px solid rgba(255,255,255,0.06);
         border-radius: 28px;
         padding: 36px 24px;
@@ -912,37 +2205,368 @@
             border-color: rgba(59,130,246,0.4);
         }
 
-        .purchase-card.featured {
-            border-color: #3b82f6;
-            background: rgba(59,130,246,0.06);
-            box-shadow: 0 0 50px rgba(59,130,246,0.05);
+    @@keyframes quickShift {
+        0% {
+            background-position: 0% 50%;
         }
 
-        .purchase-card h3 {
+        100% {
+            background-position: 200% 50%;
+        }
+    }
+
+    .quick-service:hover {
+        transform: translateY(-8px);
+        border-color: rgba(251,191,36,0.4);
+        box-shadow: 0 24px 60px rgba(251,191,36,0.15);
+    }
+
+    .quick-service-badge {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 20px;
+        background: rgba(251,191,36,0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(251,191,36,0.3);
+        letter-spacing: 0.5px;
+    }
+
+    .quick-service-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        margin-bottom: 18px;
+        background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(251,146,60,0.12));
+        color: #fbbf24;
+        border: 1px solid rgba(251,191,36,0.28);
+        transition: all 0.4s ease;
+    }
+
+    .quick-service:hover .quick-service-icon {
+        transform: scale(1.1) rotate(-6deg);
+        color: #fcd34d;
+    }
+
+    .quick-service h3 {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .quick-service .duration {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        color: #fb923c;
+        margin-bottom: 14px;
+    }
+
+    .quick-service p {
+        color: #94a3b8;
+        font-size: 0.88rem;
+        line-height: 1.9;
+        margin: 0 0 18px 0;
+        flex: 1;
+    }
+
+    .quick-service-price {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        padding-top: 16px;
+        border-top: 1px dashed rgba(255,255,255,0.08);
+        margin-bottom: 16px;
+    }
+
+        .quick-service-price .amount {
             font-size: 1.6rem;
-            margin-bottom: 8px;
+            font-weight: 900;
+            color: #fbbf24;
+            font-family: 'Fira Code', monospace;
+            text-shadow: 0 0 20px rgba(251,191,36,0.25);
+            line-height: 1;
         }
 
-        .purchase-card .price {
-            font-size: 2.4rem;
-            font-weight: 800;
-            color: #3b82f6;
-            margin: 16px 0;
-            text-shadow: 0 0 20px rgba(59,130,246,0.1);
+        .quick-service-price .unit {
+            font-size: 0.78rem;
+            color: #64748b;
         }
 
-        .purchase-card ul {
-            list-style: none;
-            margin: 22px 0;
-            color: #b8c4d6;
+    .quick-service .btn-quick {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 10px 16px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-decoration: none;
+        background: rgba(251,191,36,0.12);
+        border: 1.5px solid rgba(251,191,36,0.3);
+        color: #fbbf24;
+        transition: all 0.3s ease;
+    }
+
+        .quick-service .btn-quick:hover {
+            background: rgba(251,191,36,0.25);
+            color: #fff;
+            border-color: #fbbf24;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(251,191,36,0.3);
         }
 
-            .purchase-card ul li {
-                padding: 8px 0;
-                border-bottom: 1px solid rgba(255,255,255,0.04);
+    /* ===== TEMPLATES ===== */
+    .templates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+        gap: 24px;
+    }
+
+    .template-card {
+        position: relative;
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+        backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(255,255,255,0.06);
+        border-radius: 22px;
+        padding: 26px 24px;
+        transition: all 0.4s cubic-bezier(0.2,0.9,0.3,1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .template-card.featured {
+            border-color: rgba(236,72,153,0.5);
+            background: linear-gradient(180deg, rgba(236,72,153,0.06), rgba(139,92,246,0.03));
+        }
+
+            .template-card.featured::before {
+                content: 'پرفروش';
+                position: absolute;
+                top: 12px;
+                left: 12px;
+                font-size: 0.65rem;
+                font-weight: 800;
+                padding: 3px 10px;
+                border-radius: 20px;
+                background: linear-gradient(135deg, #ec4899, #8b5cf6);
+                color: #fff;
+                letter-spacing: 0.5px;
+                box-shadow: 0 4px 15px rgba(236,72,153,0.4);
             }
 
-    /* ----- REQUEST PROJECT ----- */
+        .template-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(236,72,153,0.4);
+            box-shadow: 0 24px 60px rgba(236,72,153,0.15);
+        }
+
+    .template-preview {
+        width: 100%;
+        height: 140px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(236,72,153,0.12), rgba(139,92,246,0.08));
+        color: #f9a8d4;
+        font-size: 3rem;
+        margin-bottom: 18px;
+        border: 1px solid rgba(236,72,153,0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .template-card h3 {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .template-card .stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 14px;
+    }
+
+        .template-card .stack span {
+            font-size: 0.68rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(139,92,246,0.1);
+            color: #c4b5fd;
+            border: 1px solid rgba(139,92,246,0.2);
+            font-weight: 600;
+        }
+
+    .template-card p {
+        color: #94a3b8;
+        font-size: 0.87rem;
+        line-height: 1.9;
+        margin: 0 0 18px 0;
+        flex: 1;
+    }
+
+    .template-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        gap: 12px;
+    }
+
+    .template-price {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .template-price .old {
+            font-size: 0.72rem;
+            color: #64748b;
+            text-decoration: line-through;
+        }
+
+        .template-price .new {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: #f9a8d4;
+            font-family: 'Fira Code', monospace;
+            text-shadow: 0 0 20px rgba(236,72,153,0.25);
+            line-height: 1.2;
+        }
+
+        .template-price .currency {
+            font-size: 0.72rem;
+            color: #94a3b8;
+        }
+
+    .template-buy {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 20px;
+        border-radius: 40px;
+        background: linear-gradient(135deg, #ec4899, #8b5cf6);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.82rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(236,72,153,0.25);
+        white-space: nowrap;
+    }
+
+        .template-buy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(236,72,153,0.45);
+        }
+
+    /* ===== COMPARE ===== */
+    .compare-wrapper {
+        background: rgba(255,255,255,0.02);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 24px;
+        padding: 8px;
+        overflow: hidden;
+    }
+
+    .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        direction: rtl;
+    }
+
+        .compare-table thead {
+            background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.1));
+        }
+
+        .compare-table th {
+            padding: 20px 16px;
+            text-align: right;
+            color: #93c5fd;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            border-bottom: 2px solid rgba(59,130,246,0.3);
+            white-space: nowrap;
+        }
+
+            .compare-table th.highlight {
+                background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(59,130,246,0.12));
+                color: #34d399;
+                position: relative;
+            }
+
+                .compare-table th.highlight::after {
+                    content: 'بهترین انتخاب';
+                    position: absolute;
+                    top: 6px;
+                    left: 12px;
+                    font-size: 0.6rem;
+                    padding: 2px 8px;
+                    border-radius: 20px;
+                    background: rgba(52,211,153,0.25);
+                    color: #6ee7b7;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                }
+
+        .compare-table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #cbd5e1;
+            font-size: 0.88rem;
+            text-align: right;
+            vertical-align: middle;
+        }
+
+            .compare-table td.highlight {
+                background: rgba(52,211,153,0.04);
+                color: #fff;
+                font-weight: 600;
+            }
+
+            .compare-table td i.fa-check-circle {
+                color: #34d399;
+                font-size: 1.1rem;
+            }
+
+            .compare-table td i.fa-times-circle {
+                color: #f87171;
+                font-size: 1.1rem;
+            }
+
+            .compare-table td i.fa-minus-circle {
+                color: #fb923c;
+                font-size: 1.1rem;
+            }
+
+        .compare-table tbody tr:hover {
+            background: rgba(59,130,246,0.05);
+        }
+
+        .compare-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    /* ===== REQUEST / CONTACT ===== */
     .request-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1016,7 +2640,6 @@
                 font-size: 0.95rem;
             }
 
-    /* ----- CONTACT ----- */
     .contact-wrapper {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1083,7 +2706,7 @@
                 transform: scale(1.05);
             }
 
-    /* ----- FAQ ----- */
+    /* ===== FAQ ===== */
     .faq-list {
         max-width: 780px;
         margin: 0 auto;
@@ -1129,7 +2752,7 @@
         overflow: hidden;
         padding: 0 28px;
         color: #b8c4d6;
-        transition: max-height 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), padding 0.3s ease, opacity 0.3s ease;
+        transition: max-height 0.4s cubic-bezier(0.2,0.9,0.3,1), padding 0.3s ease, opacity 0.3s ease;
         opacity: 0;
     }
 
@@ -1143,7 +2766,139 @@
         transform: rotate(180deg);
     }
 
-    /* ----- FLOAT ANIMATION ----- */
+    /* ===== BLOG PREVIEW ===== */
+    .blog-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+    }
+
+    .blog-preview-card {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.35s cubic-bezier(0.2,0.9,0.3,1);
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+        .blog-preview-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(59,130,246,0.4);
+            box-shadow: 0 20px 50px rgba(59,130,246,0.12);
+        }
+
+    .blog-preview-icon {
+        height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(139,92,246,0.08));
+        color: #60a5fa;
+        font-size: 3rem;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .blog-preview-card:hover .blog-preview-icon {
+        color: #93c5fd;
+    }
+
+    .blog-preview-body {
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .blog-preview-topic {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #8b5cf6;
+        letter-spacing: 0.4px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .blog-preview-card h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.6;
+        margin-bottom: 10px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: color 0.3s;
+    }
+
+    .blog-preview-card:hover h3 {
+        color: #60a5fa;
+    }
+
+    .blog-preview-excerpt {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        line-height: 1.9;
+        margin-bottom: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+    }
+
+    .blog-preview-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .blog-preview-date {
+        font-size: 0.72rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .blog-preview-read {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #3b82f6;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: gap 0.3s;
+    }
+
+    .blog-preview-card:hover .blog-preview-read {
+        gap: 10px;
+        color: #60a5fa;
+    }
+
+    .blog-preview-empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 50px 20px;
+        color: #64748b;
+        font-size: 0.95rem;
+        background: rgba(255,255,255,0.02);
+        border: 1px dashed rgba(255,255,255,0.08);
+        border-radius: 20px;
+    }
+
     @@keyframes float {
         0% {
             transform: translateY(0px);
@@ -1220,7 +2975,7 @@
             font-size: 2.8rem;
         }
 
-        .skills-grid {
+        .skills-grid, .services-grid {
             grid-template-columns: 1fr;
         }
 
@@ -1242,11 +2997,7 @@
             font-size: 2.2rem;
         }
 
-        .portfolio-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .about-stats {
+        .portfolio-grid, .about-stats {
             grid-template-columns: 1fr;
         }
 
@@ -1269,8 +3020,7 @@
             gap: 12px;
         }
 
-            .hero-actions .btn-primary,
-            .hero-actions .btn-outline {
+            .hero-actions .btn-primary, .hero-actions .btn-outline {
                 width: 100%;
                 justify-content: center;
                 padding: 12px 20px;
@@ -1281,7 +3031,10 @@
             font-size: 0.95rem;
             margin-bottom: 32px;
         }
-    }
+
+        .about-text p {
+            font-size: 0.95rem;
+        }
 
     /* ============================================================
            Alert Boxes
@@ -1452,6 +3205,54 @@
     </div>
 </section>
 
+<!-- ===== خدمات ===== -->
+<section class="section" id="services">
+    <div class="container">
+        <h2 class="section-title fade-up">خدمات <span>برنامه نویسی</span></h2>
+        <p class="section-subtitle fade-up">
+            طراحی سایت، توسعه API و ساخت داشبورد با ASP.NET Core و Blazor
+        </p>
+
+        <div class="services-grid">
+            <div class="service-card fade-up">
+                <div class="service-icon"><i class="fas fa-globe"></i></div>
+                <h3>طراحی سایت با ASP.NET Core</h3>
+                <p>ساخت وب‌سایت‌های سریع، امن و مقیاس‌پذیر با ASP.NET Core و Blazor.</p>
+            </div>
+
+            <div class="service-card fade-up">
+                <div class="service-icon"><i class="fas fa-code"></i></div>
+                <h3>توسعه API و REST API</h3>
+                <p>طراحی و پیاده‌سازی APIهای مقیاس‌پذیر با احراز هویت JWT و مستندات Swagger.</p>
+            </div>
+
+            <div class="service-card fade-up">
+                <div class="service-icon"><i class="fas fa-chart-line"></i></div>
+                <h3>داشبورد مدیریتی</h3>
+                <p>ساخت داشبوردهای تحلیلی و مدیریتی حرفه‌ای با نمودار و گزارش‌گیری پیشرفته.</p>
+            </div>
+
+            <div class="service-card fade-up">
+                <div class="service-icon"><i class="fas fa-cubes"></i></div>
+                <h3>پروژه‌های Blazor</h3>
+                <p>ساخت اپلیکیشن‌های وب مدرن و تعاملی با Blazor Server و WebAssembly.</p>
+            </div>
+
+            <div class="service-card fade-up">
+                <div class="service-icon"><i class="fas fa-database"></i></div>
+                <h3>پایگاه داده و EF Core</h3>
+                <p>طراحی و بهینه‌سازی پایگاه داده SQL Server و PostgreSQL با Entity Framework Core.</p>
+            </div>
+
+            <div class="service-card fade-up">
+                <div class="service-icon"><i class="fas fa-cloud"></i></div>
+                <h3>میکروسرویس و Docker</h3>
+                <p>طراحی معماری میکروسرویس، Dockerize و استقرار روی سرورهای ابری.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ===== مهارت‌ها ===== -->
 <section class="section" id="skills">
     <div class="container">
@@ -1461,12 +3262,229 @@
             @foreach (var skill in skills)
             {
                 <div class="skill-item fade-up" data-progress="@skill.Progress">
-                    <div class="skill-header">
-                        <i class="@skill.Icon"></i>
-                        <span>@skill.Name</span>
+                    <div class="skill-header"><i class="@skill.Icon"></i><span>@skill.Name</span></div>
+                    <div class="skill-progress"><div class="bar" style="width: @(skill.IsVisible ? skill.Progress + "%" : "0%")"></div></div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ===== مسیر یادگیری ===== -->
+<section class="section" id="learning-path">
+    <div class="container">
+        <h2 class="section-title fade-up">مسیر <span>یادگیری من</span></h2>
+        <p class="section-subtitle fade-up">سفر حرفه‌ای من از صفر تا امروز — گام به گام</p>
+        <div class="learning-timeline">
+            @foreach (var step in learningPath)
+            {
+                <div class="learning-item fade-up">
+                    <div class="learning-dot"></div>
+                    <div class="learning-card">
+                        <span class="learning-year">@step.Year</span>
+                        <h3>@step.Title</h3>
+                        <p>@step.Desc</p>
+                        <div class="learning-tags">
+                            @foreach (var tag in step.Tags)
+                            {
+                                <span>@tag</span>
+                            }
+                        </div>
                     </div>
-                    <div class="skill-progress">
-                        <div class="bar" style="width: @(skill.IsVisible ? skill.Progress + "%" : "0%")"></div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ===== تکنولوژی‌ها ===== -->
+<section class="section" id="tech">
+    <div class="container">
+        <h2 class="section-title fade-up">تکنولوژی‌های <span>تخصصی</span></h2>
+        <p class="section-subtitle fade-up">ابزارها، فریم‌ورک‌ها و پایگاه داده‌هایی که در پروژه‌های واقعی استفاده می‌کنم</p>
+
+        <div class="tech-category">
+            <div class="tech-category-title"><i class="fas fa-server"></i> بک‌اند و API</div>
+            <div class="tech-grid">
+                <div class="tech-item fade-up" title="C#"><span class="tech-years">۵ سال</span><i class="devicon-csharp-plain colored"></i><span>C#</span></div>
+                <div class="tech-item fade-up" title=".NET 8"><span class="tech-years">۵ سال</span><i class="devicon-dotnetcore-plain colored"></i><span>.NET Core</span></div>
+                <div class="tech-item fade-up" title="ASP.NET Core"><span class="tech-years">۴ سال</span><i class="fas fa-fire" style="color:#a855f7;"></i><span>ASP.NET Core</span></div>
+                <div class="tech-item fade-up" title="EF Core"><span class="tech-years">۴ سال</span><i class="fas fa-database" style="color:#60a5fa;"></i><span>EF Core</span></div>
+                <div class="tech-item fade-up" title="REST API"><span class="tech-years">۴ سال</span><i class="fas fa-plug" style="color:#34d399;"></i><span>REST API</span></div>
+                <div class="tech-item fade-up" title="SignalR"><span class="tech-years">۳ سال</span><i class="fas fa-bolt" style="color:#fbbf24;"></i><span>SignalR</span></div>
+                <div class="tech-item fade-up" title="Blazor"><span class="tech-years">۳ سال</span><i class="fas fa-cubes" style="color:#8b5cf6;"></i><span>Blazor</span></div>
+                <div class="tech-item fade-up" title="gRPC"><span class="tech-years">۲ سال</span><i class="fas fa-exchange-alt" style="color:#06b6d4;"></i><span>gRPC</span></div>
+            </div>
+        </div>
+
+        <div class="tech-category">
+            <div class="tech-category-title"><i class="fas fa-database"></i> پایگاه داده و Cache</div>
+            <div class="tech-grid">
+                <div class="tech-item fade-up" title="SQL Server"><span class="tech-years">۵ سال</span><i class="devicon-microsoftsqlserver-plain colored"></i><span>SQL Server</span></div>
+                <div class="tech-item fade-up" title="PostgreSQL"><span class="tech-years">۳ سال</span><i class="devicon-postgresql-plain colored"></i><span>PostgreSQL</span></div>
+                <div class="tech-item fade-up" title="Redis"><span class="tech-years">۲ سال</span><i class="devicon-redis-plain colored"></i><span>Redis</span></div>
+                <div class="tech-item fade-up" title="MongoDB"><span class="tech-years">۲ سال</span><i class="devicon-mongodb-plain colored"></i><span>MongoDB</span></div>
+            </div>
+        </div>
+
+        <div class="tech-category">
+            <div class="tech-category-title"><i class="fas fa-cloud"></i> DevOps و ابزارها</div>
+            <div class="tech-grid">
+                <div class="tech-item fade-up" title="Docker"><span class="tech-years">۳ سال</span><i class="devicon-docker-plain colored"></i><span>Docker</span></div>
+                <div class="tech-item fade-up" title="Git"><span class="tech-years">۵ سال</span><i class="devicon-git-plain colored"></i><span>Git</span></div>
+                <div class="tech-item fade-up" title="Linux"><span class="tech-years">۳ سال</span><i class="devicon-linux-plain"></i><span>Linux</span></div>
+                <div class="tech-item fade-up" title="RabbitMQ"><span class="tech-years">۲ سال</span><i class="fas fa-envelope-open-text" style="color:#fb923c;"></i><span>RabbitMQ</span></div>
+                <div class="tech-item fade-up" title="GitHub Actions"><span class="tech-years">۲ سال</span><i class="devicon-github-original"></i><span>GitHub</span></div>
+                <div class="tech-item fade-up" title="Nginx"><span class="tech-years">۲ سال</span><i class="fas fa-server" style="color:#34d399;"></i><span>Nginx</span></div>
+            </div>
+        </div>
+
+        <div class="tech-category">
+            <div class="tech-category-title"><i class="fas fa-palette"></i> فرانت‌اند</div>
+            <div class="tech-grid">
+                <div class="tech-item fade-up" title="HTML5"><span class="tech-years">۵ سال</span><i class="devicon-html5-plain colored"></i><span>HTML5</span></div>
+                <div class="tech-item fade-up" title="CSS3"><span class="tech-years">۵ سال</span><i class="devicon-css3-plain colored"></i><span>CSS3</span></div>
+                <div class="tech-item fade-up" title="JavaScript"><span class="tech-years">۴ سال</span><i class="devicon-javascript-plain colored"></i><span>JavaScript</span></div>
+                <div class="tech-item fade-up" title="Bootstrap"><span class="tech-years">۴ سال</span><i class="devicon-bootstrap-plain colored"></i><span>Bootstrap</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== Tech Radar - در حال یادگیری ===== -->
+<section class="section" id="tech-radar">
+    <div class="container">
+        <h2 class="section-title fade-up">تکنولوژی‌های <span>در حال یادگیری</span></h2>
+        <p class="section-subtitle fade-up">همیشه در حال به‌روز نگه‌داشتن دانشم هستم — این چیزهایی است که الان روی آنها کار می‌کنم</p>
+        <div class="radar-timeline">
+            <div class="radar-now fade-up">
+                <div class="radar-ring-label"><i class="fas fa-fire"></i> در حال یادگیری عمیق</div>
+                <div class="radar-items">
+                    @foreach (var item in techRadar.Where(x => x.Status == "learning"))
+                    {
+                        <div class="radar-item">
+                            <div class="radar-item-icon"><i class="@item.Icon"></i></div>
+                            <div class="radar-item-info">
+                                <div class="radar-item-name">@item.Name</div>
+                                <div class="radar-item-status">@item.StatusText</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="radar-next fade-up">
+                <div class="radar-ring-label"><i class="fas fa-compass"></i> در حال کاوش و آزمایش</div>
+                <div class="radar-items">
+                    @foreach (var item in techRadar.Where(x => x.Status == "exploring"))
+                    {
+                        <div class="radar-item">
+                            <div class="radar-item-icon"><i class="@item.Icon"></i></div>
+                            <div class="radar-item-info">
+                                <div class="radar-item-name">@item.Name</div>
+                                <div class="radar-item-status">@item.StatusText</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="radar-future fade-up">
+                <div class="radar-ring-label"><i class="fas fa-rocket"></i> در برنامه آینده</div>
+                <div class="radar-items">
+                    @foreach (var item in techRadar.Where(x => x.Status == "future"))
+                    {
+                        <div class="radar-item">
+                            <div class="radar-item-icon"><i class="@item.Icon"></i></div>
+                            <div class="radar-item-info">
+                                <div class="radar-item-name">@item.Name</div>
+                                <div class="radar-item-status">@item.StatusText</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== پروژه‌های متن‌باز ===== -->
+<section class="section" id="open-source">
+    <div class="container">
+        <h2 class="section-title fade-up">پروژه‌های <span>متن‌باز</span></h2>
+        <p class="section-subtitle fade-up">پروژه‌هایی که به‌صورت رایگان در GitHub منتشر کرده‌ام</p>
+        <div class="opensource-grid">
+            @foreach (var repo in openSourceRepos)
+            {
+                <a class="repo-card fade-up" href="@repo.Link" target="_blank" rel="noopener noreferrer">
+                    <div class="repo-header">
+                        <div class="repo-icon"><i class="@repo.Icon"></i></div>
+                        <div class="repo-name">@repo.Name</div>
+                    </div>
+                    <p class="repo-desc">@repo.Description</p>
+                    <div class="repo-stats">
+                        <span class="repo-stat lang"><span class="repo-lang-dot" style="background:@repo.LangColor;"></span>@repo.Language</span>
+                        <span class="repo-stat"><i class="fas fa-star"></i> @repo.Stars</span>
+                        <span class="repo-stat"><i class="fas fa-code-branch"></i> @repo.Forks</span>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ===== منابع آموزشی ===== -->
+<section class="section" id="resources">
+    <div class="container">
+        <h2 class="section-title fade-up">منابع <span>آموزشی پیشنهادی</span></h2>
+        <p class="section-subtitle fade-up">بهترین کتاب‌ها، دوره‌ها و ابزارهایی که برای یادگیری دات نت پیشنهاد می‌کنم</p>
+        <div class="resources-grid">
+            @foreach (var r in resources)
+            {
+                <div class="resource-card fade-up">
+                    <span class="resource-type @r.TypeClass"><i class="@r.TypeIcon"></i> @r.TypeLabel</span>
+                    <h3><i class="@r.Icon"></i> @r.Title</h3>
+                    <p>@r.Desc</p>
+                    @if (!string.IsNullOrEmpty(r.Link))
+                    {
+                        <a href="@r.Link" target="_blank" rel="noopener noreferrer" class="resource-link">مشاهده <i class="fas fa-arrow-left"></i></a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ===== دوره‌ها و کارگاه‌ها ===== -->
+<section class="section" id="courses">
+    <div class="container">
+        <h2 class="section-title fade-up">دوره‌ها و <span>کارگاه‌های آموزشی</span></h2>
+        <p class="section-subtitle fade-up">آموزش‌های تخصصی که خودم برگزار می‌کنم — از مبتدی تا پیشرفته</p>
+        <div class="courses-grid">
+            @foreach (var c in courses)
+            {
+                <div class="course-card fade-up @(c.IsFeatured ? "featured" : "")">
+                    <div class="course-header">
+                        <div class="course-icon"><i class="@c.Icon"></i></div>
+                        <div class="course-meta">
+                            <span>@c.Level</span>
+                            <span>@c.Format</span>
+                        </div>
+                    </div>
+                    <h3>@c.Title</h3>
+                    <p>@c.Description</p>
+                    <div class="course-topics">
+                        @foreach (var topic in c.Topics)
+                        {
+                            <span>@topic</span>
+                        }
+                    </div>
+                    <div class="course-footer">
+                        <div class="course-price">
+                            <span class="label">شهریه</span>
+                            <span class="amount @(c.IsFree ? "free" : "")">@c.Price</span>
+                        </div>
+                        <a href="/#contact" class="course-enroll @(c.IsFeatured ? "primary" : "outline")">
+                            @(c.IsFree ? "ثبت‌نام رایگان" : "ثبت‌نام") <i class="fas fa-arrow-left"></i>
+                        </a>
                     </div>
                 </div>
             }
@@ -1506,9 +3524,7 @@
                                 <p>@item.Description</p>
                                 @if (!string.IsNullOrEmpty(item.Link))
                                 {
-                                    <a href="@item.Link" target="_blank" rel="noopener noreferrer" class="btn-portfolio">
-                                        <i class="fas fa-external-link-alt"></i> مشاهده پروژه
-                                    </a>
+                                    <a href="@item.Link" target="_blank" rel="noopener noreferrer" class="btn-portfolio"><i class="fas fa-external-link-alt"></i> مشاهده پروژه</a>
                                 }
                             </div>
                         </div>
@@ -1518,6 +3534,49 @@
         </section>
     }
 }
+
+<!-- ===== پروژه‌های شاخص ===== -->
+<section class="section" id="case-studies">
+    <div class="container">
+        <h2 class="section-title fade-up">پروژه‌های <span>شاخص</span></h2>
+        <p class="section-subtitle fade-up">نمونه‌هایی از پروژه‌هایی که با نتایج قابل اندازه‌گیری به سرانجام رسیدند</p>
+        <div class="case-grid">
+            <div class="case-card fade-up">
+                <span class="case-badge"><i class="fas fa-fire"></i> فین‌تک</span>
+                <h3>سیستم پرداخت اشتراکی با درگاه‌های ایرانی</h3>
+                <p class="case-desc">پلتفرم فروش اشتراک API با اتصال به زرین‌پال و آیدی‌پی. طراحی معماری میکروسرویس با MediatR، مدیریت Rate Limiting و پنل مدیریت کامل گزارش‌گیری.</p>
+                <div class="case-stack"><span>ASP.NET Core</span><span>Redis</span><span>PostgreSQL</span><span>Docker</span></div>
+                <div class="case-metrics">
+                    <div class="case-metric"><div class="case-metric-value">۴۰٪</div><div class="case-metric-label">افزایش سرعت</div></div>
+                    <div class="case-metric"><div class="case-metric-value">۱۰K</div><div class="case-metric-label">کاربر فعال</div></div>
+                    <div class="case-metric"><div class="case-metric-value">۹۹٪</div><div class="case-metric-label">Uptime</div></div>
+                </div>
+            </div>
+            <div class="case-card fade-up">
+                <span class="case-badge"><i class="fas fa-chart-line"></i> داشبورد تحلیلی</span>
+                <h3>داشبورد مدیریت و تحلیل داده‌های فروش</h3>
+                <p class="case-desc">داشبورد Real-time با SignalR برای نمایش زنده فروش و KPIها. گزارش‌گیری پیشرفته، خروجی Excel و PDF، و بهینه‌سازی Queryهای سنگین با Dapper.</p>
+                <div class="case-stack"><span>Blazor</span><span>SignalR</span><span>SQL Server</span><span>Dapper</span></div>
+                <div class="case-metrics">
+                    <div class="case-metric"><div class="case-metric-value">۸۵٪</div><div class="case-metric-label">کاهش زمان گزارش</div></div>
+                    <div class="case-metric"><div class="case-metric-value">۲۰ms</div><div class="case-metric-label">پاسخ Query</div></div>
+                    <div class="case-metric"><div class="case-metric-value">۵۰K</div><div class="case-metric-label">رکورد روزانه</div></div>
+                </div>
+            </div>
+            <div class="case-card fade-up">
+                <span class="case-badge"><i class="fas fa-shield-halved"></i> امنیت</span>
+                <h3>سیستم احراز هویت چندلایه برای سازمان</h3>
+                <p class="case-desc">پیاده‌سازی IdentityServer با JWT، 2FA و مدیریت نقش‌های پیچیده. پیاده‌سازی Refresh Token، Session Management و Audit Logging کامل.</p>
+                <div class="case-stack"><span>IdentityServer</span><span>JWT</span><span>OWASP</span><span>Redis</span></div>
+                <div class="case-metrics">
+                    <div class="case-metric"><div class="case-metric-value">۱۰۰٪</div><div class="case-metric-label">پوشش OWASP</div></div>
+                    <div class="case-metric"><div class="case-metric-value">۰</div><div class="case-metric-label">رخنه امنیتی</div></div>
+                    <div class="case-metric"><div class="case-metric-value">۲FA</div><div class="case-metric-label">احراز هویت</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- ===== پروژه‌ها ===== -->
 <section class="section" id="projects">
@@ -1550,8 +3609,8 @@
     </div>
 </section>
 
-<!-- ===== خرید اشتراک ===== -->
-<section class="section" id="purchase">
+<!-- ===== قالب‌ها و کیت‌های آماده ===== -->
+<section class="section" id="templates">
     <div class="container">
         <h2 class="section-title fade-up">خرید اشتراک <span>API</span></h2>
         <p class="section-subtitle fade-up">دسترسی به APIهای قدرتمند با تعرفه‌های منعطف</p>
@@ -1593,14 +3652,10 @@
 </section>
 
 <!-- ===== درخواست پروژه ===== -->
-@using BackEnd.Core.Project.Commands.ProjectRequestV1.Create
-@using BackEnd.Data.Entities.ProjectRequestV1
-
 <section class="section" id="request">
     <div class="container">
         <h2 class="section-title fade-up">درخواست <span>پروژه</span></h2>
         <p class="section-subtitle fade-up">پروژه خود را شرح دهید تا در سریع‌ترین زمان با شما هماهنگ کنیم</p>
-
         <EditForm Model="@_createCommand" OnValidSubmit="@HandleSubmit" class="request-grid">
             <div class="request-form fade-up">
                 <InputText @bind-Value="_createCommand.FullName" placeholder="نام کامل" />
@@ -1630,34 +3685,19 @@
                 <InputCheckbox @bind-Value="_createCommand.IsWasSeen" style="display:none" />
                 <InputCheckbox @bind-Value="_createCommand.IsWorked" style="display:none" />
                 <InputCheckbox @bind-Value="_createCommand.IsDone" style="display:none" />
-
                 <button type="submit" class="btn-primary ripple" disabled="@_isSubmitting">
                     <i class="fas fa-paper-plane"></i>
                     @(_isSubmitting ? "در حال ارسال..." : "ارسال درخواست")
                 </button>
-
                 @if (!string.IsNullOrEmpty(_message))
                 {
                     <div class="@(_isSuccess ? "alert-success" : "alert-danger")">@_message</div>
                 }
             </div>
-
             <div class="request-info fade-up">
-                <div class="feature-box">
-                    <i class="fas fa-clock"></i>
-                    <h4>پاسخگویی سریع</h4>
-                    <p>حداکثر ۲۴ ساعت پس از ثبت درخواست، با شما تماس می‌گیریم.</p>
-                </div>
-                <div class="feature-box">
-                    <i class="fas fa-shield-alt"></i>
-                    <h4>حریم خصوصی</h4>
-                    <p>اطلاعات پروژه شما نزد ما کاملاً محرمانه نگهداری می‌شود.</p>
-                </div>
-                <div class="feature-box">
-                    <i class="fas fa-handshake"></i>
-                    <h4>تضمین کیفیت</h4>
-                    <p>پس از تحویل، یک ماه پشتیبانی رایگان برای رضایت کامل شما.</p>
-                </div>
+                <div class="feature-box"><i class="fas fa-clock"></i><h4>پاسخگویی سریع</h4><p>حداکثر ۲۴ ساعت پس از ثبت درخواست، با شما تماس می‌گیریم.</p></div>
+                <div class="feature-box"><i class="fas fa-shield-alt"></i><h4>حریم خصوصی</h4><p>اطلاعات پروژه شما نزد ما کاملاً محرمانه نگهداری می‌شود.</p></div>
+                <div class="feature-box"><i class="fas fa-handshake"></i><h4>تضمین کیفیت</h4><p>پس از تحویل، یک ماه پشتیبانی رایگان برای رضایت کامل شما.</p></div>
             </div>
         </EditForm>
     </div>
@@ -1678,7 +3718,6 @@
                     <i class="fas fa-paper-plane"></i> ارسال پیام
                 </button>
             </form>
-
             <div class="contact-info fade-up">
                 <div class="item">
                     <i class="fas fa-envelope float-icon"></i>
@@ -1901,19 +3940,253 @@
     private bool _isSubmitting = false;
     private string _message = "";
     private bool _isSuccess = false;
+    private bool _hasAdminAccess { get; set; } = false;
+    private bool UserIsAuthenticate { get; set; } = false;
+
+    // ─── ACHIEVEMENTS ───
+    private List<Achievement> achievements = new()
+    {
+        new Achievement { Icon = "fas fa-project-diagram", Number = "۲۰+", Label = "پروژه تحویل داده شده", Desc = "از سایت شخصی تا پلتفرم‌های SaaS" },
+        new Achievement { Icon = "fas fa-users", Number = "۱۵+", Label = "مشتری راضی", Desc = "در ایران و خارج از کشور" },
+        new Achievement { Icon = "fas fa-code", Number = "۵۰K+", Label = "خط کد نوشته شده", Desc = "در پروژه‌های واقعی" },
+        new Achievement { Icon = "fas fa-clock", Number = "۵,۰۰۰+", Label = "ساعت کدنویسی", Desc = "در ۵ سال گذشته" },
+        new Achievement { Icon = "fas fa-star", Number = "۴.۹", Label = "امتیاز رضایت", Desc = "از ۵ در نظرسنجی مشتریان" },
+        new Achievement { Icon = "fas fa-trophy", Number = "۱۰۰٪", Label = "تحویل به‌موقع", Desc = "هیچ پروژه‌ای عقب نیفتاده" }
+    };
+
+    // ─── LEARNING PATH ───
+    private List<LearningStep> learningPath = new()
+    {
+        new LearningStep { Year = "۲۰۲۲", Title = "شروع با سی‌شارپ و مبانی برنامه‌نویسی", Desc = "آشنایی با زبان C#، اصول شیء‌گرایی (OOP) و ساخت اولین اپلیکیشن‌های کنسولی. یادگیری SQL Server و Entity Framework Core.", Tags = new[] { "C#", "OOP", "SQL Server", "EF Core" } },
+        new LearningStep { Year = "۲۰۲۳", Title = "ورود به دنیای وب با ASP.NET Core", Desc = "یادگیری ASP.NET Core Web API، طراحی REST API، احراز هویت با JWT و Identity. ساخت اولین پروژه‌های واقعی برای مشتری.", Tags = new[] { "ASP.NET Core", "REST API", "JWT", "Identity" } },
+        new LearningStep { Year = "۲۰۲۳", Title = "تخصص در معماری نرم‌افزار", Desc = "آشنایی عمیق با Clean Architecture، DDD، CQRS و MediatR. یادگیری SOLID و الگوهای طراحی.", Tags = new[] { "Clean Architecture", "DDD", "CQRS", "MediatR" } },
+        new LearningStep { Year = "۲۰۲۴", Title = "Real-time و Blazor", Desc = "تسلط بر SignalR برای ساخت سیستم‌های Real-time و یادگیری Blazor Server و WebAssembly برای پروژه‌های تعاملی.", Tags = new[] { "SignalR", "Blazor", "WebSocket", "Real-time" } },
+        new LearningStep { Year = "۲۰۲۴", Title = "DevOps و بهینه‌سازی", Desc = "یادگیری Docker، Linux، CI/CD با GitHub Actions و بهینه‌سازی Performance با Redis Cache و پروفایلینگ.", Tags = new[] { "Docker", "Linux", "Redis", "GitHub Actions" } },
+        new LearningStep { Year = "۲۰۲۵", Title = "معماری میکروسرویس و ابر", Desc = "طراحی سیستم‌های توزیع‌شده، Message Queue با RabbitMQ، و استقرار روی سرورهای ابری با Nginx.", Tags = new[] { "Microservices", "RabbitMQ", "Nginx", "Cloud" } }
+    };
+
+    // ─── RESOURCES ───
+    private List<Resource> resources = new()
+    {
+        new Resource { TypeClass = "book", TypeLabel = "کتاب", TypeIcon = "fas fa-book", Icon = "fas fa-book-open", Title = "Clean Architecture", Desc = "کتاب Robert C. Martin — راهنمای جامع برای معماری نرم‌افزار تمیز و قابل نگهداری." },
+        new Resource { TypeClass = "docs", TypeLabel = "مستندات", TypeIcon = "fas fa-file-alt", Icon = "fas fa-file-code", Title = "Microsoft .NET Docs", Desc = "مستندات رسمی مایکروسافت برای یادگیری .NET، ASP.NET Core و Blazor از پایه تا پیشرفته.", Link = "https://learn.microsoft.com/dotnet" },
+        new Resource { TypeClass = "course", TypeLabel = "دوره", TypeIcon = "fas fa-graduation-cap", Icon = "fas fa-video", Title = "ASP.NET Core Web API", Desc = "بهترین دوره‌های فارسی برای یادگیری ASP.NET Core Web API و Clean Architecture.", Link = "https://www.youtube.com/results?search_query=ASP.NET+Core+Web+API" },
+        new Resource { TypeClass = "tool", TypeLabel = "ابزار", TypeIcon = "fas fa-tools", Icon = "fas fa-terminal", Title = "Visual Studio 2022", Desc = "قوی‌ترین IDE برای توسعه .NET با امکانات debugging، profiling و IntelliSense پیشرفته.", Link = "https://visualstudio.microsoft.com" },
+        new Resource { TypeClass = "video", TypeLabel = "کانال", TypeIcon = "fas fa-play-circle", Icon = "fab fa-youtube", Title = "Nick Chapsas", Desc = "کانال YouTube با آموزش‌های پیشرفته C#، Performance و معماری نرم‌افزار." },
+        new Resource { TypeClass = "tool", TypeLabel = "ابزار", TypeIcon = "fas fa-tools", Icon = "fas fa-database", Title = "Docker Desktop", Desc = "ابزار ضروری برای containerization پروژه‌های .NET و اجرای پایگاه داده در محیط توسعه.", Link = "https://www.docker.com/products/docker-desktop" }
+    };
+
+    // ─── TESTIMONIALS ───
+    private List<Testimonial> testimonials = new()
+    {
+        new Testimonial { Name = "علی رضایی", Role = "مدیر فنی، استارتاپ فین‌تک", Initial = "ع", Rating = 5, Text = "محمد پارسا یکی از دقیق‌ترین برنامه‌نویسانی بود که با او کار کردم. کد تمیز، مستندسازی عالی و تحویل به‌موقع. حتماً دوباره با او همکاری می‌کنم." },
+        new Testimonial { Name = "سارا محمدی", Role = "بنیان‌گذار، پلتفرم SaaS", Initial = "س", Rating = 5, Text = "برای پروژه API ما، یک معماری کامل و مقیاس‌پذیر طراحی کرد. سرعت و امنیت API ما بعد از کارش چند برابر شد." },
+        new Testimonial { Name = "محمد حسینی", Role = "مدیر محصول، شرکت نرم‌افزاری", Initial = "م", Rating = 5, Text = "داشبورد مدیریتی که ساخت، فراتر از انتظار ما بود. SignalR را طوری پیاده کرد که تجربه کاربری کاملاً Real-time شد." },
+        new Testimonial { Name = "رضا کریمی", Role = "مدیرعامل، فروشگاه آنلاین", Initial = "ر", Rating = 5, Text = "از مشاوره اولیه تا تحویل نهایی، همه‌چیز شفاف و حرفه‌ای بود. اتصال به درگاه پرداخت را بدون مشکل انجام داد." },
+        new Testimonial { Name = "نیلوفر احمدی", Role = "توسعه‌دهنده ارشد، همکار تیمی", Initial = "ن", Rating = 5, Text = "به عنوان همکار تیمی، کار با پارسا لذت‌بخش بود. تسلط او بر Clean Architecture و SOLID باعث شد کل تیم از کد او الگو بگیرد." },
+        new Testimonial { Name = "امیر تهرانی", Role = "مدیر فناوری، سازمان دولتی", Initial = "ا", Rating = 5, Text = "پروژه احراز هویت ما استانداردهای OWASP را کامل رعایت کرد. مستندسازی، تست‌نویسی و ارائه جلسات آموزشی همه در سطح سازمانی بود." }
+    };
+
+    // ─── BRANDS ───
+    private List<Brand> brands = new()
+    {
+        new Brand { Name = "فین‌تک پارس", Industry = "صنعت مالی", Initial = "FP" },
+        new Brand { Name = "داده‌پرداز", Industry = "تحلیل داده", Initial = "DP" },
+        new Brand { Name = "شاپ آنلاین", Industry = "فروشگاهی", Initial = "SA" },
+        new Brand { Name = "بیمه هوشمند", Industry = "بیمه", Initial = "BH" },
+        new Brand { Name = "کلینیک‌یار", Industry = "سلامت دیجیتال", Initial = "KY" },
+        new Brand { Name = "لاستیک‌سنج", Industry = "تولیدی", Initial = "LS" },
+        new Brand { Name = "سفرینو", Industry = "گردشگری", Initial = "SF" },
+        new Brand { Name = "کتابینو", Industry = "آموزش آنلاین", Initial = "KB" }
+    };
+
+    // ─── OPEN SOURCE ───
+    private List<Repo> openSourceRepos = new()
+    {
+        new Repo { Name = "GeneralJwtUtility", Icon = "fas fa-key", Description = "کتابخانه‌ی ساده برای تولید، اعتبارسنجی و مدیریت JWT در ASP.NET Core با پشتیبانی از Refresh Token و انعطاف‌پذیری کامل.", Language = "C#", LangColor = "#a855f7", Stars = "48", Forks = "12", Link = "https://github.com/prsa9601" },
+        new Repo { Name = "CleanArchitecture-Template", Icon = "fas fa-sitemap", Description = "قالب آماده‌ی Clean Architecture با ASP.NET Core 8، CQRS، MediatR و EF Core — برای شروع سریع پروژه‌های جدی.", Language = "C#", LangColor = "#a855f7", Stars = "32", Forks = "8", Link = "https://github.com/prsa9601" },
+        new Repo { Name = "Redis-Cache-Helper", Icon = "fas fa-bolt", Description = "کتابخانه‌ی کمکی برای استفاده‌ی آسان از Redis در ASP.NET Core با الگوهای Cache-Aside و Distributed Lock.", Language = "C#", LangColor = "#a855f7", Stars = "21", Forks = "5", Link = "https://github.com/prsa9601" }
+    };
+
+    // ─── TECH RADAR ───
+    private List<TechRadarItem> techRadar = new()
+    {
+        new TechRadarItem { Name = ".NET Aspire", Icon = "fas fa-cloud", Status = "learning", StatusText = "۸۰٪ تسلط" },
+        new TechRadarItem { Name = "Minimal APIs", Icon = "fas fa-bolt", Status = "learning", StatusText = "۷۵٪ تسلط" },
+        new TechRadarItem { Name = "Vertical Slice", Icon = "fas fa-th-large", Status = "learning", StatusText = "۶۰٪ تسلط" },
+        new TechRadarItem { Name = "gRPC Web", Icon = "fas fa-exchange-alt", Status = "exploring", StatusText = "در حال کاوش" },
+        new TechRadarItem { Name = "GraphQL", Icon = "fas fa-project-diagram", Status = "exploring", StatusText = "در حال کاوش" },
+        new TechRadarItem { Name = "Kafka", Icon = "fas fa-stream", Status = "exploring", StatusText = "در حال کاوش" },
+        new TechRadarItem { Name = "MAUI", Icon = "fas fa-mobile-alt", Status = "future", StatusText = "در برنامه" },
+        new TechRadarItem { Name = "AKS / K8s", Icon = "fas fa-cubes", Status = "future", StatusText = "در برنامه" },
+        new TechRadarItem { Name = "Machine Learning", Icon = "fas fa-brain", Status = "future", StatusText = "در برنامه" }
+    };
+
+    // ─── COURSES ───
+    private List<Course> courses = new()
+    {
+        new Course
+        {
+            Icon = "fas fa-code",
+            Level = "مبتدی تا پیشرفته",
+            Format = "آنلاین زنده",
+            Title = "دوره جامع ASP.NET Core Web API",
+            Description = "از پایه تا ساخت APIهای Production-Ready با احراز هویت JWT، مستندسازی و تست‌نویسی.",
+            Topics = new[] { "REST API", "JWT", "Swagger", "xUnit" },
+            Price = "۲.۹M",
+            IsFree = false,
+            IsFeatured = true
+        },
+        new Course
+        {
+            Icon = "fas fa-sitemap",
+            Level = "متوسط",
+            Format = "ضبط شده",
+            Title = "Clean Architecture در ASP.NET Core",
+            Description = "طراحی پروژه‌های enterprise با Clean Architecture، DDD و CQRS به‌صورت عملی.",
+            Topics = new[] { "DDD", "CQRS", "MediatR", "SOLID" },
+            Price = "۳.۵M",
+            IsFree = false
+        },
+        new Course
+        {
+            Icon = "fas fa-play-circle",
+            Level = "همه سطوح",
+            Format = "رایگان",
+            Title = "آشنایی با Blazor Server",
+            Description = "مقدمه‌ای رایگان برای شروع کار با Blazor Server و ساخت اپلیکیشن‌های تعاملی.",
+            Topics = new[] { "Blazor", "SignalR", "WebSocket" },
+            Price = "رایگان",
+            IsFree = true
+        }
+    };
+
+    // ─── QUICK SERVICES ───
+    private List<QuickService> quickServices = new()
+    {
+        new QuickService
+        {
+            Badge = "۲۴ ساعته",
+            Icon = "fas fa-bug",
+            Title = "رفع باگ و خطا",
+            Duration = "تحویل ۲۴-۴۸ ساعت",
+            Desc = "تشخیص و رفع سریع باگ در پروژه‌های ASP.NET Core، Blazor و SQL Server.",
+            Price = "۵۰۰K",
+            Unit = "شروع قیمت"
+        },
+        new QuickService
+        {
+            Badge = "محبوب",
+            Icon = "fas fa-search-plus",
+            Title = "Code Review تخصصی",
+            Duration = "تحویل ۳ روز",
+            Desc = "بازبینی کامل کد شما با گزارش مکتوب — ارتقای کیفیت، امنیت و Performance.",
+            Price = "۱.۵M",
+            Unit = "شروع قیمت"
+        },
+        new QuickService
+        {
+            Icon = "fas fa-chalkboard-teacher",
+            Title = "مشاوره فنی تخصصی",
+            Duration = "جلسه ۱ ساعته",
+            Desc = "جلسه‌ی عمیق مشاوره درباره معماری، انتخاب تکنولوژی یا حل مسئله‌ی فنی خاص.",
+            Price = "۵۰۰K",
+            Unit = "هر جلسه"
+        },
+        new QuickService
+        {
+            Badge = "پرفروش",
+            Icon = "fas fa-tachometer-alt",
+            Title = "بهینه‌سازی Performance",
+            Duration = "تحویل ۵ روز",
+            Desc = "تحلیل کامل Performance API، بهینه‌سازی Queryها و کاهش زمان پاسخ.",
+            Price = "۲.۵M",
+            Unit = "شروع قیمت"
+        }
+    };
+
+    // ─── TEMPLATES ───
+    private List<Template> templates = new()
+    {
+        new Template
+        {
+            Name = "CleanArchitecture Starter Kit",
+            Icon = "fas fa-layer-group",
+            Stack = new[] { "ASP.NET Core 8", "CQRS", "MediatR", "EF Core" },
+            Description = "شروع سریع پروژه‌های Clean Architecture با همه چیز آماده — از DDD تا Testing.",
+            OldPrice = "۴.۵M تومان",
+            Price = "۲.۹M",
+            IsFeatured = true,
+            Link = "/#contact"
+        },
+        new Template
+        {
+            Name = "Admin Dashboard Pro",
+            Icon = "fas fa-chart-pie",
+            Stack = new[] { "Blazor", "SignalR", "Chart.js", "Identity" },
+            Description = "داشبورد ادمین حرفه‌ای با نمودارهای Real-time، مدیریت کاربران و گزارش‌گیری پیشرفته.",
+            Price = "۳.۵M",
+            Link = "/#contact"
+        },
+        new Template
+        {
+            Name = "E-commerce API Kit",
+            Icon = "fas fa-shopping-bag",
+            Stack = new[] { "REST API", "Stripe", "Redis", "JWT" },
+            Description = "API کامل فروشگاه آنلاین با درگاه پرداخت، مدیریت انبار و سیستم تخفیف.",
+            Price = "۴.۲M",
+            Link = "/#contact"
+        }
+    };
+
+    // ─── LATEST BLOGS ───
+    private List<Blog> latestBlogs = new();
+
+    // ─── HELPERS ───
+    private string GetBlogExcerpt(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return "برای مطالعه کامل این مقاله کلیک کنید...";
+        var plain = System.Text.RegularExpressions.Regex.Replace(content, @"```[\s\S]*?```", " ");
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"[#*`>\[\]()!\-]", " ");
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"\s+", " ").Trim();
+        return plain.Length > 130 ? plain.Substring(0, 127).TrimEnd() + "..." : plain;
+    }
+
+    private static string ToPersianDate(DateTime dt)
+    {
+        try
+        {
+            var pc = new System.Globalization.PersianCalendar();
+            return $"{pc.GetYear(dt):0000}/{pc.GetMonth(dt):00}/{pc.GetDayOfMonth(dt):00}";
+        }
+        catch { return dt.ToString("yyyy/MM/dd"); }
+    }
+
+    // ─── MODELS ───
+    public class Achievement { public string Icon { get; set; } = ""; public string Number { get; set; } = ""; public string Label { get; set; } = ""; public string Desc { get; set; } = ""; }
+    public class LearningStep { public string Year { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; public string[] Tags { get; set; } = Array.Empty<string>(); }
+    public class Resource { public string TypeClass { get; set; } = ""; public string TypeLabel { get; set; } = ""; public string TypeIcon { get; set; } = ""; public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; public string? Link { get; set; } }
+    public class Testimonial { public string Name { get; set; } = ""; public string Role { get; set; } = ""; public string Initial { get; set; } = ""; public int Rating { get; set; } = 5; public string Text { get; set; } = ""; }
+    public class Brand { public string Name { get; set; } = ""; public string Industry { get; set; } = ""; public string Initial { get; set; } = ""; }
+    public class Repo { public string Name { get; set; } = ""; public string Icon { get; set; } = ""; public string Description { get; set; } = ""; public string Language { get; set; } = ""; public string LangColor { get; set; } = "#a855f7"; public string Stars { get; set; } = "0"; public string Forks { get; set; } = "0"; public string Link { get; set; } = ""; }
+    public class TechRadarItem { public string Name { get; set; } = ""; public string Icon { get; set; } = ""; public string Status { get; set; } = ""; public string StatusText { get; set; } = ""; }
+    public class Course { public string Icon { get; set; } = ""; public string Level { get; set; } = ""; public string Format { get; set; } = ""; public string Title { get; set; } = ""; public string Description { get; set; } = ""; public string[] Topics { get; set; } = Array.Empty<string>(); public string Price { get; set; } = ""; public bool IsFree { get; set; } public bool IsFeatured { get; set; } }
+    public class QuickService { public string? Badge { get; set; } public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Duration { get; set; } = ""; public string Desc { get; set; } = ""; public string Price { get; set; } = ""; public string Unit { get; set; } = ""; }
+    public class Template { public string Name { get; set; } = ""; public string Icon { get; set; } = ""; public string[] Stack { get; set; } = Array.Empty<string>(); public string Description { get; set; } = ""; public string? OldPrice { get; set; } public string Price { get; set; } = ""; public bool IsFeatured { get; set; } public string Link { get; set; } = "/#contact"; }
+    public class StatItem { public string Label { get; set; } = ""; public int Target { get; set; } public int CurrentValue { get; set; } }
+    public class SkillItem { public string Name { get; set; } = ""; public string Icon { get; set; } = ""; public int Progress { get; set; } public bool IsVisible { get; set; } }
+    public class FaqItem { public string Question { get; set; } = ""; public string Answer { get; set; } = ""; public bool IsActive { get; set; } public int Sequense { get; set; } }
 
     // ─── HANDLERS ───
     private async Task HandleSubmit()
     {
         _isSubmitting = true;
         _message = "";
-
         try
         {
             _createCommand.IsWasSeen = false;
             _createCommand.IsWorked = false;
             _createCommand.IsDone = false;
-
             var result = await _prV1Facade.Create(_createCommand);
             if (result.Status == BackEnd.Shared.CoreShared.OperationResultStatus.Success)
             {
@@ -1987,21 +4260,29 @@
                 GetForMainPage = true,
             });
 
-            await GetSetting();
+            try
+            {
+                var blogResult = await _blogApiService.GetFilter(new BlogFilterParam { PageId = 1, Take = 3, IsAdmin = false });
+                latestBlogs = blogResult?.Data?.Where(b => b != null).Take(3).ToList() ?? new List<Blog>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Home] Blog load error: {ex.Message}");
+                latestBlogs = new List<Blog>();
+            }
 
             var getSkillResult = await _skillFacade.GetFilter(new BackEnd.Core.Skills.Queries.DTOs.SkillFilterParam
             {
-                IsActive = true,
-                Take = 12,
-                PageId = 1
-            });
-            skills = getSkillResult.Data.Select(i => new SkillItem
-            {
-                Icon = i.Icon,
-                IsVisible = i.IsActive,
-                Name = i.Title,
-                Progress = i.SkillPercentage,
-            }).ToList();
+                var getSkillResult = await _skillFacade.GetFilter(new BackEnd.Core.Skills.Queries.DTOs.SkillFilterParam { IsActive = true, Take = 16, PageId = 1 });
+                skills = getSkillResult.Data.Select(i => new SkillItem
+                {
+                    Icon = i.Icon,
+                    IsVisible = i.IsActive,
+                    Name = i.Title,
+                    Progress = i.SkillPercentage,
+                }).ToList();
+            }
+            catch (Exception ex) { Console.WriteLine($"[Home] Skills error: {ex.Message}"); }
 
             var getFAQFilterResult = await _faqFacade.GetFilter(new BackEnd.Core.FAQ.Queries.DTOs.FAQFilterParam
             {
@@ -2083,15 +4364,19 @@
 
     private async Task ScrollToSection(string sectionId)
     {
-        await JSRuntime.InvokeVoidAsync("eval", $@"
-            const element = document.getElementById('{sectionId}');
-            if (element) {{
-                const navbar = document.querySelector('.navbar') || document.querySelector('.front-navbar');
-                const navbarHeight = navbar?.offsetHeight || 80;
-                const offset = element.getBoundingClientRect().top + window.pageYOffset - navbarHeight - 20;
-                window.scrollTo({{ top: offset, behavior: 'smooth' }});
-            }}
-        ");
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", $@"
+                const element = document.getElementById('{sectionId}');
+                if (element) {{
+                    const navbar = document.querySelector('.navbar') || document.querySelector('.front-navbar');
+                    const navbarHeight = navbar?.offsetHeight || 80;
+                    const offset = element.getBoundingClientRect().top + window.pageYOffset - navbarHeight - 20;
+                    window.scrollTo({{ top: offset, behavior: 'smooth' }});
+                }}
+            ");
+        }
+        catch { }
     }
 
     // ─── FAQ ───
@@ -2173,10 +4458,10 @@
 
     public class FaqItem
     {
-        public string Question { get; set; } = "";
-        public string Answer { get; set; } = "";
-        public bool IsActive { get; set; }
-        public int Sequense { get; set; }
+        counterTimer?.Stop();
+        counterTimer?.Dispose();
+        typewriterTimer?.Stop();
+        typewriterTimer?.Dispose();
     }
 }
 <script src="../../../../../js/user-alert.js"></script>
