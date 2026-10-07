@@ -6,10 +6,14 @@ namespace BackEnd.Data.Entities.Tutorial
 {
     public class Tutorial : BaseEntity
     {
+
         public int TutorialApiId { get; set; }
 
         [MaxLength(500)]
         public string Title { get; set; } = "";
+
+        [MaxLength(500)]
+        public string Slug { get; set; } = "";
 
         [MaxLength(200)]
         public string Topic { get; set; } = "";

@@ -1,6 +1,6 @@
 ﻿@page "/Tutorials"
 @layout FrontLayout
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@rendermode @(new InteractiveServerRenderMode(prerender: true))
 @inject ITutorialApiService TutorialService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -9,6 +9,7 @@
 
 <PageTitle>آموزش‌ها | محمد پارسا کریمی</PageTitle>
 
+<link rel="canonical" href="https://parsakarimidev.ir/Tutorials" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
 
@@ -725,7 +726,7 @@
             <div class="tut-grid">
                 @foreach (var t in pagedTutorials)
                 {
-                    <a class="tut-card fade-up" href="@($"/Tutorials/{t.TutorialApiId}")" @key="t.Id">
+                    <a class="tut-card fade-up" href="@($"/Tutorials/{Uri.EscapeDataString(t.Slug)}")" @key="t.Id">
                         <div class="tut-head">
                             <div class="tut-icon @GetCategoryClass(t.Category)">
                                 <i class="@GetCategoryIcon(t.Category)"></i>

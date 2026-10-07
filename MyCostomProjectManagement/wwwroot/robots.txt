@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /Admin
+Disallow: /Dashboard
+Disallow: /Auth
+Disallow: /Packages
 
 Sitemap: https://parsakarimidev.ir/sitemap.xml

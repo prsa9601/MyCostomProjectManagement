@@ -10,6 +10,9 @@ namespace BackEnd.Data.Entities.Blogs
         [MaxLength(500)]
         public string Title { get; set; } = "";
 
+        [MaxLength(500)]
+        public string Slug { get; set; } = "";
+
         public string Content { get; set; } = "";
 
         [MaxLength(300)]

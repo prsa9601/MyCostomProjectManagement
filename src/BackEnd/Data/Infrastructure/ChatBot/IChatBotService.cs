@@ -17,6 +17,7 @@ public class ChatBotService : IChatBotService
 {
     private const string url = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
     private readonly string _apiKey;
+    private readonly string _apiModel;
 
     // ============================================================
     // 🎭 SYSTEM PROMPT - شخصیت محمد پارسا کریمی
@@ -343,6 +344,10 @@ public class ChatBotService : IChatBotService
         _apiKey = configuration["DashScopeApiKey"]
                   ?? throw new InvalidOperationException(
                       "کلید 'DashScopeApiKey' در تنظیمات (appsettings.json) یافت نشد.");
+
+        _apiModel = configuration["DashScopeModel"]
+                  ?? throw new InvalidOperationException(
+                      "کلید 'DashScopeModel' در تنظیمات (appsettings.json) یافت نشد.");
     }
 
     public async IAsyncEnumerable<string> AskStreamingAsync(
@@ -350,7 +355,7 @@ public class ChatBotService : IChatBotService
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var clientOptions = new OpenAIClientOptions { Endpoint = new Uri(url) };
-        var client = new ChatClient("qwen-vl-max", new ApiKeyCredential(_apiKey), clientOptions);
+        var client = new ChatClient(_apiModel, new ApiKeyCredential(_apiKey), clientOptions);
 
         var chatMessages = new List<OpenAI.Chat.ChatMessage>();
         chatMessages.Add(new SystemChatMessage(SystemPrompt));

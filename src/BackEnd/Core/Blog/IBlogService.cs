@@ -43,6 +43,7 @@ namespace BackEnd.Core.Blog
                     IsApproved = false,
                     IsActive = true,
                     IsDelete = false,
+                    Slug = blog.Title,
                 }).ToList();
 
                 await db.Blogs.AddRangeAsync(blogList);
@@ -89,7 +90,8 @@ namespace BackEnd.Core.Blog
                             CreationDate = blog.CreationDate,
                             IsActive = blog.IsActive,
                             IsApproved = blog.IsApproved,
-                            IsDelete = blog.IsDelete
+                            IsDelete = blog.IsDelete,
+                            Slug = blog.Slug,
                         }).ToListAsync(),
                     FilterParams = new BlogFilterParam
                     {

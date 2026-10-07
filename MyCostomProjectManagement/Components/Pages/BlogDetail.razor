@@ -1,6 +1,6 @@
-﻿@page "/Blogs/{BlogApiId:int}"
+﻿@page "/Blogs/{Slug}"
 @layout FrontLayout
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: true))
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject IDbContextFactory<Context> _dbFactory
@@ -10,6 +10,35 @@
 @using MyCostomProjectManagement.Helpers
 
 <PageTitle>@(blog?.Title ?? "مقاله") | محمد پارسا کریمی</PageTitle>
+
+
+<HeadContent>
+    @if (blog != null)
+    {
+        <meta name="description" content="@GetMetaDescription()" />
+        <meta name="keywords" content="@GetMetaKeywords()" />
+        <meta name="author" content="محمد پارسا کریمی" />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <link rel="canonical" href="@CanonicalUrl" />
+
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content="@blog.Title" />
+        <meta property="og:description" content="@GetMetaDescription()" />
+        <meta property="og:url" content="@CanonicalUrl" />
+        <meta property="og:image" content="@OgImage" />
+        <meta property="article:published_time"
+              content="@(blog.CreatedAt == default ? blog.CreationDate : blog.CreatedAt).ToString(" yyyy-MM-ddTHH:mm:ss+03:30")" />
+        <meta property="article:author" content="محمد پارسا کریمی" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="@blog.Title" />
+        <meta name="twitter:description" content="@GetMetaDescription()" />
+        <meta name="twitter:image" content="@OgImage" />
+
+        <script type="application/ld+json">@((MarkupString)BuildBlogJsonLd())</script>
+        <script type="application/ld+json">@((MarkupString)BuildBreadcrumbJsonLd())</script>
+    }
+</HeadContent>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -80,8 +109,8 @@
 
 <style>
     /* ============================================================
-           BLOG DETAIL — هماهنگ با Home
-        ============================================================ */
+               BLOG DETAIL — هماهنگ با Home
+            ============================================================ */
 
     .hero {
         padding: 160px 0 60px;
@@ -196,8 +225,8 @@
     }
 
     /* ============================================================
-           LAYOUT
-        ============================================================ */
+               LAYOUT
+            ============================================================ */
     .content-grid {
         display: grid;
         grid-template-columns: 1fr 300px;
@@ -219,8 +248,8 @@
     }
 
     /* ============================================================
-           BLOG CONTENT
-        ============================================================ */
+               BLOG CONTENT
+            ============================================================ */
     .blog-content {
         color: #d8e3e5;
         font-size: 1rem;
@@ -439,8 +468,8 @@
             }
 
         /* ============================================================
-               CODE BLOCK
-            ============================================================ */
+                   CODE BLOCK
+                ============================================================ */
         .blog-content pre {
             position: relative;
             background: linear-gradient(180deg, #1e2227 0%, #1a1d22 100%) !important;
@@ -548,8 +577,8 @@
             }
 
         /* ============================================================
-               BLOCKQUOTE
-            ============================================================ */
+                   BLOCKQUOTE
+                ============================================================ */
         .blog-content blockquote {
             position: relative;
             border-right: 3px solid #3b82f6;
@@ -579,8 +608,8 @@
             }
 
         /* ============================================================
-               TABLE
-            ============================================================ */
+                   TABLE
+                ============================================================ */
         .blog-content table {
             width: 100%;
             border-collapse: separate;
@@ -642,8 +671,8 @@
             }
 
         /* ============================================================
-               HR
-            ============================================================ */
+                   HR
+                ============================================================ */
         .blog-content hr {
             border: none;
             height: 2px;
@@ -654,8 +683,8 @@
         }
 
         /* ============================================================
-               IMG
-            ============================================================ */
+                   IMG
+                ============================================================ */
         .blog-content img {
             max-width: 100%;
             border-radius: 14px;
@@ -670,8 +699,8 @@
             }
 
     /* ============================================================
-           SIDEBAR
-        ============================================================ */
+               SIDEBAR
+            ============================================================ */
     .sidebar {
         display: flex;
         flex-direction: column;
@@ -772,8 +801,8 @@
         }
 
     /* ============================================================
-           STATE
-        ============================================================ */
+               STATE
+            ============================================================ */
     .state-box {
         text-align: center;
         padding: 100px 20px;
@@ -810,8 +839,8 @@
     }
 
     /* ============================================================
-           TOAST
-        ============================================================ */
+               TOAST
+            ============================================================ */
     .toast {
         position: fixed;
         bottom: 30px;
@@ -845,8 +874,8 @@
     }
 
     /* ============================================================
-           GLOBAL SCROLLBAR (اختیاری — کل صفحه)
-        ============================================================ */
+               GLOBAL SCROLLBAR (اختیاری — کل صفحه)
+            ============================================================ */
     html {
         scrollbar-width: thin;
         scrollbar-color: rgba(59, 130, 246, 0.4) transparent;
@@ -873,8 +902,8 @@
             }
 
     /* ============================================================
-           RESPONSIVE
-        ============================================================ */
+               RESPONSIVE
+            ============================================================ */
     @@media (max-width: 900px) {
         .content-grid {
             grid-template-columns: 1fr;
@@ -1100,7 +1129,7 @@ else
 }
 
 @code {
-    [Parameter] public int BlogApiId { get; set; }
+    [Parameter] public string Slug { get; set; }
 
     private Blog? blog;
     private bool isLoading = true;
@@ -1111,12 +1140,107 @@ else
     private System.Timers.Timer? toastTimer;
     private bool _disposed = false;
 
+
+
+
+
+
+    private const string BaseUrl = "https://parsakarimidev.ir";
+
+
+    private string CanonicalUrl => blog != null && !string.IsNullOrEmpty(blog.Slug)
+        ? $"{BaseUrl}/Blogs/{Uri.EscapeDataString(blog.Slug)}"
+        : $"{BaseUrl}/Blogs";
+
+    private string OgImage => $"{BaseUrl}/images/og/blog-{(blog?.BlogApiId ?? 0)}.png";
+
+    private string GetMetaDescription()
+    {
+        if (blog == null || string.IsNullOrWhiteSpace(blog.Content)) return "";
+        var plain = System.Text.RegularExpressions.Regex.Replace(blog.Content, @"[#*`>\[\]()!\-]", " ");
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"\s+", " ").Trim();
+        return plain.Length > 160 ? plain.Substring(0, 157) + "..." : plain;
+    }
+
+    private string GetMetaKeywords()
+    {
+        if (blog == null) return "";
+        var kws = new List<string>();
+        if (!string.IsNullOrWhiteSpace(blog.Topic)) kws.Add(blog.Topic);
+        if (!string.IsNullOrWhiteSpace(blog.Mode)) kws.Add(blog.Mode);
+        kws.Add("برنامه نویسی");
+        kws.Add("محمد پارسا کریمی");
+        return string.Join(", ", kws);
+    }
+
+    private string BuildBlogJsonLd()
+    {
+        if (blog == null) return "{}";
+        var dt = blog.CreatedAt == default ? blog.CreationDate : blog.CreatedAt;
+        var data = new Dictionary<string, object?>
+        {
+            ["@context"] = "https://schema.org",
+            ["@type"] = "BlogPosting",
+            ["headline"] = blog.Title,
+            ["description"] = GetMetaDescription(),
+            ["image"] = OgImage,
+            ["datePublished"] = dt.ToString("yyyy-MM-ddTHH:mm:ss+03:30"),
+            ["dateModified"] = dt.ToString("yyyy-MM-ddTHH:mm:ss+03:30"),
+            ["inLanguage"] = "fa-IR",
+            ["author"] = new Dictionary<string, object>
+            {
+                ["@type"] = "Person",
+                ["name"] = "محمد پارسا کریمی",
+                ["url"] = BaseUrl
+            },
+            ["publisher"] = new Dictionary<string, object>
+            {
+                ["@type"] = "Person",
+                ["name"] = "محمد پارسا کریمی"
+            },
+            ["mainEntityOfPage"] = new Dictionary<string, object>
+            {
+                ["@type"] = "WebPage",
+                ["@id"] = CanonicalUrl
+            },
+            ["keywords"] = GetMetaKeywords()
+        };
+        var opts = new System.Text.Json.JsonSerializerOptions
+        {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+        return System.Text.Json.JsonSerializer.Serialize(data, opts);
+    }
+
+    private string BuildBreadcrumbJsonLd()
+    {
+        if (blog == null) return "{}";
+        var data = new Dictionary<string, object?>
+        {
+            ["@context"] = "https://schema.org",
+            ["@type"] = "BreadcrumbList",
+            ["itemListElement"] = new List<object>
+        {
+            new Dictionary<string, object> { ["@type"]="ListItem", ["position"]=1, ["name"]="خانه", ["item"]=BaseUrl },
+            new Dictionary<string, object> { ["@type"]="ListItem", ["position"]=2, ["name"]="مقالات", ["item"]=$"{BaseUrl}/Blogs" },
+            new Dictionary<string, object> { ["@type"]="ListItem", ["position"]=3, ["name"]=blog.Title ?? "", ["item"]=CanonicalUrl }
+        }
+        };
+        var opts = new System.Text.Json.JsonSerializerOptions
+        {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+        return System.Text.Json.JsonSerializer.Serialize(data, opts);
+    }
+
+
+
     // ============================================================
     // LIFECYCLE
     // ============================================================
     protected override async Task OnParametersSetAsync()
     {
-        if (BlogApiId <= 0)
+        if (Slug.Length <= 0)
         {
             blog = null;
             isLoading = false;
@@ -1156,7 +1280,7 @@ else
 
             // فقط مقالات تأیید شده، فعال و حذف‌نشده
             blog = await db.Blogs.AsNoTracking()
-                .Where(x => x.BlogApiId == BlogApiId
+                .Where(x => x.Slug == Slug
                             && !x.IsDelete
                             && x.IsActive
                             && x.IsApproved)
@@ -1283,4 +1407,5 @@ else
         }
         catch { return dt.ToString("yyyy/MM/dd"); }
     }
+
 }

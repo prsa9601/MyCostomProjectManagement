@@ -1,4 +1,4 @@
-﻿@page "/Tutorials/{Id:int}"
+﻿@page "/Tutorials/{Slug}"
 @layout FrontLayout
 @rendermode @(new InteractiveServerRenderMode(prerender: true))
 @using System.Net
@@ -58,13 +58,13 @@
     }
 
     @* ═══════════ TWITTER CARD ═══════════ *@
-    <meta name="twitter:card" content="summary_large_image" />
+@*     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@TwitterHandle" />
     <meta name="twitter:creator" content="@TwitterHandle" />
     <meta name="twitter:title" content="@seoTitle" />
     <meta name="twitter:description" content="@seoDescription" />
     <meta name="twitter:image" content="@ogImage" />
-    <meta name="twitter:image:alt" content="@(tutorial?.Title ?? "آموزش")" />
+    <meta name="twitter:image:alt" content="@(tutorial?.Title ?? "آموزش")" /> *@
 
     @* ═══════════ HREFLANG ═══════════ *@
     <link rel="alternate" hreflang="fa-IR" href="@canonicalUrl" />
@@ -2247,7 +2247,7 @@ else
 }
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public string Slug { get; set; }
 
     private TutorialDto? tutorial;
     private bool isLoading = true;
@@ -2357,7 +2357,7 @@ else
     }
 
     private string canonicalUrl => tutorial != null
-        ? $"{BaseUrl}/Tutorials/{tutorial.Id}"
+        ? $"{BaseUrl}/Tutorials/{tutorial.Title}"
         : $"{BaseUrl}/Tutorials";
 
     private string ogImage => $"{BaseUrl}/images/og/tutorial-{tutorial?.Id ?? 0}.png";
@@ -2572,7 +2572,7 @@ else
     ═══════════════════════════════════════════ */
     protected override async Task OnParametersSetAsync()
     {
-        if (Id <= 0)
+        if (Slug.Length <= 0)
         {
             tutorial = null;
             isLoading = false;
@@ -2601,7 +2601,7 @@ else
             using var db = await _dbFactory.CreateDbContextAsync();
 
             var tutorialEntity = await db.Tutorials.FirstOrDefaultAsync(i =>
-                i.TutorialApiId == Id &&
+                i.Slug == Slug &&
                 i.IsDelete == false &&
                 i.IsApproved == true &&
                 i.IsActive == true);

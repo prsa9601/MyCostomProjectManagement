@@ -173,7 +173,6 @@ else
                             <i class="fas fa-pen"></i>
                         </button>
 
-                        @* ← جدید: دکمه تأیید/لغو تأیید *@
                         <button class="btn-icon approve @(t.IsApproved ? "is-on" : "")"
                                 title="@(t.IsApproved ? "لغو تأیید" : "تأیید آموزش")"
                                 @onclick="() => ToggleApproved(t)">
@@ -253,6 +252,21 @@ else
                     <div class="form-field full">
                         <label><i class="fas fa-heading"></i> عنوان <span class="required">*</span></label>
                         <input type="text" @bind="formModel.Title" maxlength="500" placeholder="عنوان آموزش..." />
+                    </div>
+
+                    <!-- 👇 فیلد جدید: Slug -->
+                    <div class="form-field full">
+                        <label><i class="fas fa-link"></i> اسلاگ (Slug)</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="text" @bind="formModel.Slug" maxlength="500"
+                                   placeholder="مثلاً: async-await-in-csharp"
+                                   dir="ltr" style="flex:1;" />
+                            <button type="button" class="btn-search"
+                                    @onclick="GenerateSlugFromTitle"
+                                    title="تولید خودکار از عنوان">
+                                <i class="fas fa-magic"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="form-field">
@@ -549,7 +563,8 @@ else
             IsActive = false,
             TutorialApiId = 0,
             SectionCount = 0,
-            CodeBlockCount = 0
+            CodeBlockCount = 0,
+            Slug = ""
         };
         formError = "";
         showFormModal = true;
@@ -563,6 +578,7 @@ else
         {
             TutorialApiId = t.TutorialApiId,
             Title = t.Title,
+            Slug = t.Slug ?? "",
             Topic = t.Topic ?? "",
             Subject = t.Subject ?? "",
             Level = string.IsNullOrWhiteSpace(t.Level) ? "all" : t.Level,
@@ -583,6 +599,50 @@ else
         showFormModal = false;
         formError = "";
     }
+   
+    /// <summary>
+    /// تبدیل عنوان به slug امن برای URL
+    /// - حروف فارسی، انگلیسی و اعداد نگه داشته می‌شوند
+    /// - فاصله، نیم‌فاصله و علائم خاص → خط تیره
+    /// - بقیه کاراکترها حذف می‌شوند
+    /// </summary>
+    private void GenerateSlugFromTitle()
+    {
+        if (string.IsNullOrWhiteSpace(formModel.Title))
+        {
+            formModel.Slug = string.Empty;
+            return;
+        }
+
+        var slug = formModel.Title.Trim().ToLowerInvariant();
+
+        // ۱) نیم‌فاصله فارسی (ZWNJ / ZWJ) → خط تیره
+        slug = slug.Replace("\u200C", "-").Replace("\u200D", "-");
+
+        // ۲) علائم خاص فارسی و انگلیسی → خط تیره
+        slug = System.Text.RegularExpressions.Regex.Replace(
+            slug,
+            @"[؟?!:؛،\.«»\(\)\[\]\{\}'""`~@#\$%\^&\*\+=\|\\/<>…—–]",
+            "-");
+
+        // ۳) ⭐ فاصله (و هر نوع whitespace) → خط تیره  ← باید قبل از مرحله ۴ باشد
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
+
+        // ۴) حذف کاراکترهای غیرمجاز (حالا دیگر فضایی نمانده که حذف شود)
+        slug = System.Text.RegularExpressions.Regex.Replace(
+            slug,
+            @"[^\w\u0600-\u06FF\-]",
+            "");
+
+        // ۵) underscore → dash
+        slug = slug.Replace("_", "-");
+
+        // ۶) چند dash پشت سر هم → یکی
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
+
+        // ۷) dash ابتدا و انتها → حذف
+        formModel.Slug = slug.Trim('-');
+    }
 
     private async Task SaveTutorial()
     {
@@ -597,6 +657,11 @@ else
         if (formModel.Title.Length > 500)
         {
             formError = "عنوان نباید بیشتر از ۵۰۰ کاراکتر باشد.";
+            return;
+        }
+        if ((formModel.Slug?.Length ?? 0) > 500)
+        {
+            formError = "اسلاگ نباید بیشتر از ۵۰۰ کاراکتر باشد.";
             return;
         }
         if ((formModel.Topic?.Length ?? 0) > 200)
@@ -646,6 +711,7 @@ else
 
                 entity.TutorialApiId = formModel.TutorialApiId;
                 entity.Title = formModel.Title.Trim();
+                entity.Slug = formModel.Slug?.Trim() ?? "";
                 entity.Topic = formModel.Topic?.Trim() ?? "";
                 entity.Subject = formModel.Subject?.Trim() ?? "";
                 entity.Level = string.IsNullOrWhiteSpace(formModel.Level) ? "all" : formModel.Level;
@@ -665,6 +731,7 @@ else
                 {
                     TutorialApiId = formModel.TutorialApiId,
                     Title = formModel.Title.Trim(),
+                    Slug = formModel.Slug?.Trim() ?? "",
                     Topic = formModel.Topic?.Trim() ?? "",
                     Subject = formModel.Subject?.Trim() ?? "",
                     Level = string.IsNullOrWhiteSpace(formModel.Level) ? "all" : formModel.Level,
@@ -774,7 +841,7 @@ else
     }
 
     // ============================================================
-    // TOGGLE APPROVED  ← جدید
+    // TOGGLE APPROVED
     // ============================================================
     private async Task ToggleApproved(Tutorial t)
     {
@@ -930,6 +997,7 @@ else
     {
         public int TutorialApiId { get; set; }
         public string Title { get; set; } = "";
+        public string Slug { get; set; } = "";
         public string Topic { get; set; } = "";
         public string Subject { get; set; } = "";
         public string Level { get; set; } = "all";

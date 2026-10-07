@@ -71,7 +71,7 @@ namespace BackEnd.Data.DB
             {
                 builder.ToTable("Tutorials", "tutorial");
 
-                builder.HasIndex(b => b.TutorialApiId).IsUnique();
+                builder.HasIndex(b => b.TutorialApiId);
             });
 
             base.OnModelCreating(modelBuilder);

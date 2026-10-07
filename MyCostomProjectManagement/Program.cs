@@ -410,6 +410,77 @@ app.UseWhen(context => context.Request.Path.StartsWithSegments("/Admin"), appBui
     //appBuilder.UseStaticFiles();
 });
 
+app.MapGet("/sitemap.xml", async (IDbContextFactory<Context> dbFactory) =>
+{
+    const string BaseUrl = "https://parsakarimidev.ir";
+    var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+    List<(string Loc, string Lastmod, string Changefreq, string Priority)> urls = new();
+
+    // صفحات ثابت
+    urls.Add(($"{BaseUrl}/", today, "weekly", "1.0"));
+    urls.Add(($"{BaseUrl}/Hire", today, "weekly", "0.95"));
+    urls.Add(($"{BaseUrl}/Tutorials", today, "daily", "0.9"));
+    urls.Add(($"{BaseUrl}/Blogs", today, "daily", "0.9"));
+    urls.Add(($"{BaseUrl}/Chat", today, "monthly", "0.6"));
+
+    // دیتابیس
+    using var db = await dbFactory.CreateDbContextAsync();
+
+    var tutorials = await db.Tutorials.AsNoTracking()
+        .Where(t => !t.IsDelete && t.IsApproved && t.IsActive
+                    && t.Slug != null && t.Slug != "")   // ← این را اضافه کن
+        .OrderByDescending(t => t.CreationDate)
+        .Select(t => new { t.Slug, t.CreationDate })
+        .ToListAsync();
+
+    foreach (var t in tutorials)
+    {
+        urls.Add((
+            $"{BaseUrl}/Tutorials/{t.Slug}",
+            t.CreationDate.ToString("yyyy-MM-dd"),
+            "monthly",
+            "0.8"
+        ));
+    }
+
+
+    var blogs = await db.Blogs.AsNoTracking()
+        .Where(b => !b.IsDelete && b.IsApproved && b.IsActive
+                    && b.Slug != null && b.Slug != "")   // ← این را اضافه کن
+        .OrderByDescending(b => b.CreationDate)
+        .Select(b => new { b.Slug, b.CreationDate })
+        .ToListAsync();
+
+    foreach (var b in blogs)
+    {
+        urls.Add((
+            $"{BaseUrl}/Blogs/{b.Slug}",
+            b.CreationDate.ToString("yyyy-MM-dd"),
+            "monthly",
+            "0.7"
+        ));
+    }
+
+    // ساخت XML
+    var sb = new StringBuilder();
+    sb.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    sb.AppendLine("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
+
+    foreach (var u in urls)
+    {
+        sb.AppendLine("\t<url>");
+        sb.AppendLine($"\t\t<loc>{u.Loc}</loc>");
+        sb.AppendLine($"\t\t<lastmod>{u.Lastmod}</lastmod>");
+        sb.AppendLine($"\t\t<changefreq>{u.Changefreq}</changefreq>");
+        sb.AppendLine($"\t\t<priority>{u.Priority}</priority>");
+        sb.AppendLine("\t</url>");
+    }
+
+    sb.AppendLine("</urlset>");
+
+    return Results.Content(sb.ToString(), "application/xml", Encoding.UTF8);
+});
 
 app.UseStaticFiles();
 

@@ -277,6 +277,27 @@
         gap: .35rem;
     }
 
+    /* ---------- Slug Row ---------- */
+    .blogs-page .slug-row {
+        font-size: .72rem;
+        color: #8a8a95;
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+        font-family: monospace;
+        direction: ltr;
+        justify-content: flex-end;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        padding: 0 .25rem;
+    }
+
+        .blogs-page .slug-row i {
+            color: #4dc9dd;
+            flex-shrink: 0;
+        }
+
     /* ---------- Tags ---------- */
     .blogs-page .tags-row {
         display: flex;
@@ -666,6 +687,16 @@
             line-height: 1.7;
         }
 
+    .blogs-page .slug-input-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+        .blogs-page .slug-input-row input {
+            flex: 1;
+        }
+
     .blogs-page .checkbox-row {
         display: flex;
         gap: 1.2rem;
@@ -954,6 +985,15 @@
                         </div>
                     </div>
 
+                    <!-- 👇 نمایش Slug روی کارت -->
+                    @if (!string.IsNullOrWhiteSpace(b.Slug))
+                    {
+                        <div class="slug-row" title="@b.Slug">
+                            <i class="fas fa-link"></i>
+                            <span>@b.Slug</span>
+                        </div>
+                    }
+
                     <div class="tags-row">
                         @if (!string.IsNullOrWhiteSpace(b.Mode))
                         {
@@ -1100,6 +1140,21 @@
                         <div class="form-field full">
                             <label><i class="fas fa-heading"></i> عنوان <span class="required">*</span></label>
                             <input type="text" @bind="formModel.Title" maxlength="500" placeholder="عنوان مقاله..." />
+                        </div>
+
+                        <!-- 👇 فیلد جدید: Slug -->
+                        <div class="form-field full">
+                            <label><i class="fas fa-link"></i> اسلاگ (Slug)</label>
+                            <div class="slug-input-row">
+                                <input type="text" @bind="formModel.Slug" maxlength="500"
+                                       placeholder="مثلاً: how-to-use-blazor"
+                                       dir="ltr" />
+                                <button type="button" class="btn-search"
+                                        @onclick="GenerateSlugFromTitle"
+                                        title="تولید خودکار از عنوان">
+                                    <i class="fas fa-magic"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="form-field">
@@ -1418,6 +1473,7 @@
         {
             BlogApiId = b.BlogApiId,
             Title = b.Title,
+            Slug = b.Slug ?? "",
             Topic = b.Topic ?? "",
             Content = b.Content ?? "",
             Mode = b.Mode ?? "",
@@ -1439,6 +1495,43 @@
         formError = "";
     }
 
+    private void GenerateSlugFromTitle()
+    {
+        if (string.IsNullOrWhiteSpace(formModel.Title))
+        {
+            formModel.Slug = string.Empty;
+            return;
+        }
+
+        var slug = formModel.Title.Trim().ToLowerInvariant();
+
+        // ۱) نیم‌فاصله فارسی (ZWNJ / ZWJ) → خط تیره
+        slug = slug.Replace("\u200C", "-").Replace("\u200D", "-");
+
+        // ۲) علائم خاص فارسی و انگلیسی → خط تیره
+        slug = System.Text.RegularExpressions.Regex.Replace(
+            slug,
+            @"[؟?!:؛،\.«»\(\)\[\]\{\}'""`~@#\$%\^&\*\+=\|\\/<>…—–]",
+            "-");
+
+        // ۳) ⭐ فاصله (و هر نوع whitespace) → خط تیره  ← باید قبل از مرحله ۴ باشد
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
+
+        // ۴) حذف کاراکترهای غیرمجاز (حالا دیگر فضایی نمانده که حذف شود)
+        slug = System.Text.RegularExpressions.Regex.Replace(
+            slug,
+            @"[^\w\u0600-\u06FF\-]",
+            "");
+
+        // ۵) underscore → dash
+        slug = slug.Replace("_", "-");
+
+        // ۶) چند dash پشت سر هم → یکی
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
+
+        // ۷) dash ابتدا و انتها → حذف
+        formModel.Slug = slug.Trim('-');
+    }
     private async Task SaveBlog()
     {
         if (string.IsNullOrWhiteSpace(formModel.Title))
@@ -1449,6 +1542,11 @@
         if (formModel.Title.Length > 500)
         {
             formError = "عنوان نباید بیشتر از ۵۰۰ کاراکتر باشد.";
+            return;
+        }
+        if ((formModel.Slug?.Length ?? 0) > 500)
+        {
+            formError = "اسلاگ نباید بیشتر از ۵۰۰ کاراکتر باشد.";
             return;
         }
         if ((formModel.Topic?.Length ?? 0) > 300)
@@ -1493,6 +1591,7 @@
             }
 
             entity.Title = formModel.Title.Trim();
+            entity.Slug = formModel.Slug?.Trim() ?? "";
             entity.Topic = formModel.Topic?.Trim() ?? "";
             entity.Content = formModel.Content ?? "";
             entity.Mode = formModel.Mode?.Trim() ?? "";
@@ -1742,6 +1841,7 @@
     {
         public int BlogApiId { get; set; }
         public string Title { get; set; } = "";
+        public string Slug { get; set; } = "";
         public string Topic { get; set; } = "";
         public string Content { get; set; } = "";
         public string Mode { get; set; } = "";

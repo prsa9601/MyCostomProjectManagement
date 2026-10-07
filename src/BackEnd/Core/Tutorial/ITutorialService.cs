@@ -45,6 +45,7 @@ namespace BackEnd.Core.Tutorial
                     TutorialApiId = i.Id,
                     IsActive = true,
                     IsDelete = false,
+                    Slug = i.Title,
                 }).ToList();
 
                 await db.Tutorials.AddRangeAsync(tutorialList);
@@ -92,6 +93,7 @@ namespace BackEnd.Core.Tutorial
                             IsDelete = i.IsDelete,
                             TutorialApiId = i.TutorialApiId,
                             Topic = i.Topic,
+                            Slug = i.Slug ,
                         }).ToListAsync(),
                     FilterParams = new TutorialFilterParam
                     {

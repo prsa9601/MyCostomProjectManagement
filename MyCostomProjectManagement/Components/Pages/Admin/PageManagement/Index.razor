@@ -659,6 +659,7 @@
     {
         var result = await  _pageManagementUtil.GetPagesItem();
         pages = result;
+        // pages.ForEach(i => i.Url = i.Url.TrimEnd('/'));
         StateHasChanged();
         // pages = new List<BackEnd.Data.Entities.PageManagement.PageManagement>
         // {
