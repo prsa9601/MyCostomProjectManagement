@@ -1,4 +1,5 @@
-﻿using BackEnd.Data.Entities.FAQ;
+﻿using BackEnd.Data.DB.Seeders;
+using BackEnd.Data.Entities.FAQ;
 using BackEnd.Data.Entities.Portfolio;
 using BackEnd.Data.Entities.Role;
 using BackEnd.Data.Entities.Skills;
@@ -173,7 +174,7 @@ namespace BackEnd.Data.DB.Initializer
                      new TechnicalSkills ( "Postman", 75, "fas fa-paper-plane", SkillTypes.Others, false)
                 };
 
-                
+
                 await context.TechnicalSkills.AddRangeAsync(allSkills);
 
             }
@@ -186,7 +187,7 @@ namespace BackEnd.Data.DB.Initializer
                         new FAQ ("بعد از تحویل، پشتیبانی می‌دهید؟","بله، شش ماه پشتیبانی رایگان شامل رفع باگ‌های احتمالی، آموزش کار با پنل مدیریت، و تغییرات جزئی (مثل ویرایش متن یا عکس) ارائه می‌شود. پس از آن، قرارداد نگهداری ماهانه یا ساعتی قابل تنظیم است.",1,true),
                         new FAQ ("اگر ایده‌ای دارم ولی نمی‌دانم فنی‌اش چطور است، کمک می‌کنید؟","حتماً! من در جلسه مشاوره اولیه، ایده شما را از نظر فنی بررسی می‌کنم، نقاط قوت و ضعف آن را می‌گویم، و بهترین مسیر پیاده‌سازی را پیشنهاد می‌دهم. حتی اگر پروژه را به من نسپارید، خوشحال می‌شوم راهنمایی کنم.", 3,true)
                     };
-            await context.FAQs.AddRangeAsync(allFAQ);
+                await context.FAQs.AddRangeAsync(allFAQ);
             }
 
             if (!context.Portfolios.Any())
@@ -198,6 +199,12 @@ namespace BackEnd.Data.DB.Initializer
                     };
                 await context.Portfolios.AddRangeAsync(allPortfolio);
 
+            }
+
+            if (!context.SpecializedTechnologyCategories.Any() &&
+                !context.SpecializedTechnologies.Any() && !context.ProgrammingServices.Any())
+            {
+                await serviceProvider.SeedContentAsync();
             }
 
 

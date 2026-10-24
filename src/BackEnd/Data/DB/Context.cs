@@ -4,11 +4,13 @@ using BackEnd.Data.Entities.FAQ;
 using BackEnd.Data.Entities.Package;
 using BackEnd.Data.Entities.PageManagement;
 using BackEnd.Data.Entities.Portfolio;
+using BackEnd.Data.Entities.ProgrammingServices;
 using BackEnd.Data.Entities.ProjectRequestV1;
 using BackEnd.Data.Entities.Projects;
 using BackEnd.Data.Entities.Role;
 using BackEnd.Data.Entities.SiteSettings;
 using BackEnd.Data.Entities.Skills;
+using BackEnd.Data.Entities.SpecializedTechnology;
 using BackEnd.Data.Entities.Subscription;
 using BackEnd.Data.Entities.Tutorial;
 using BackEnd.Data.Entities.User;
@@ -39,6 +41,9 @@ namespace BackEnd.Data.DB
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<SubscriptionUser> SubscriptionUsers { get; set; }
         public DbSet<Tutorial> Tutorials { get; set; }
+        public DbSet<SpecializedTechnologyCategory> SpecializedTechnologyCategories  { get; set; }
+        public DbSet<SpecializedTechnology> SpecializedTechnologies  { get; set; }
+        public DbSet<ProgrammingServices> ProgrammingServices  { get; set; }
 
         public DbSet<Models.Logs> Logs { get; set; }
         #endregion

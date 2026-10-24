@@ -271,6 +271,34 @@ namespace BackEnd.Data.DB.Migrations
                     b.ToTable("PortfolioFiles", "portfolio");
                 });
 
+            modelBuilder.Entity("BackEnd.Data.Entities.ProgrammingServices.ProgrammingServices", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProgrammingServices");
+                });
+
             modelBuilder.Entity("BackEnd.Data.Entities.ProjectRequestV1.ProjectRequestV1", b =>
                 {
                     b.Property<Guid>("Id")
@@ -671,6 +699,51 @@ namespace BackEnd.Data.DB.Migrations
                     b.ToTable("TechnicalSkills");
                 });
 
+            modelBuilder.Entity("BackEnd.Data.Entities.SpecializedTechnology.SpecializedTechnology", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SpecializedTechnologies");
+                });
+
+            modelBuilder.Entity("BackEnd.Data.Entities.SpecializedTechnology.SpecializedTechnologyCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SpecializedTechnologyCategories");
+                });
+
             modelBuilder.Entity("BackEnd.Data.Entities.Subscription.Subscription", b =>
                 {
                     b.Property<Guid>("Id")
@@ -785,8 +858,8 @@ namespace BackEnd.Data.DB.Migrations
 
                     b.Property<string>("Subject")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Title")
                         .IsRequired()

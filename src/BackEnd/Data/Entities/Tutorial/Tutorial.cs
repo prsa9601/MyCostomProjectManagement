@@ -21,7 +21,7 @@ namespace BackEnd.Data.Entities.Tutorial
         /// <summary>
         /// زبان، فریمورک یا موضوع آموزش: "C#", "React", "Docker", "Git", ...
         /// </summary>
-        [MaxLength(100)]
+        [MaxLength(1000)]
         public string Subject { get; set; } = "";
 
         /// <summary>

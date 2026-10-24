@@ -28,8 +28,10 @@ namespace BackEnd.Core.Tutorial
                 var tutorialList = new List<Data.Entities.Tutorial.Tutorial>();
 
                 using var db = await _dbContextFactory.CreateDbContextAsync();
+                //var t = db.Tutorials.OrderBy(i=>i.TutorialApiId).ToList();
                 var tutorialApiIds = db.Tutorials.Select(i => i.TutorialApiId);
-                tutorialList = tutorials.Where(i => !tutorialApiIds.Contains(i.Id)).Select(i =>
+                tutorialList = tutorials.Where(i => !tutorialApiIds.Contains(i.Id) && i.Content.Length > 100)
+                    .Select(i =>
                 new Data.Entities.Tutorial.Tutorial
                 {
                     Category = i.Category,
@@ -93,7 +95,7 @@ namespace BackEnd.Core.Tutorial
                             IsDelete = i.IsDelete,
                             TutorialApiId = i.TutorialApiId,
                             Topic = i.Topic,
-                            Slug = i.Slug ,
+                            Slug = i.Slug,
                         }).ToListAsync(),
                     FilterParams = new TutorialFilterParam
                     {

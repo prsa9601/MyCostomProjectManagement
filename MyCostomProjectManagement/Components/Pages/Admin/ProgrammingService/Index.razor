@@ -1,0 +1,602 @@
+﻿@page "/Admin/ProgrammingServices"
+@layout AdminLayout
+@rendermode InteractiveServer
+@using BackEnd.Data.DB
+@using BackEnd.Data.Entities.ProgrammingServices
+@using Microsoft.EntityFrameworkCore
+@inject Context DbContext
+@inject IJSRuntime JSRuntime
+
+<style>
+    .ps-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .ps-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .ps-title i {
+            color: #e8a838;
+        }
+
+    .btn-gold {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 40px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.3s;
+        font-family: inherit;
+    }
+
+        .btn-gold:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(232,168,56,0.3);
+        }
+
+        .btn-gold:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .ps-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .ps-table {
+        width: 100%;
+        border-collapse: collapse;
+        direction: rtl;
+    }
+
+        .ps-table thead {
+            background: rgba(232,168,56,0.08);
+        }
+
+        .ps-table th {
+            padding: 14px 16px;
+            text-align: right;
+            color: #e8a838;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            white-space: nowrap;
+        }
+
+        .ps-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .ps-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .ps-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    .badge-active {
+        background: rgba(82,183,136,0.15);
+        color: #52b788;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .badge-inactive {
+        background: rgba(148,163,184,0.15);
+        color: #94a3b8;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .action-btns {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: transparent;
+        color: #cbd5e1;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        font-size: 0.8rem;
+    }
+
+        .btn-icon:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .btn-icon.edit:hover {
+            color: #e8a838;
+            border-color: rgba(232,168,56,0.3);
+        }
+
+        .btn-icon.delete:hover {
+            color: #dc3545;
+            border-color: rgba(220,53,69,0.3);
+        }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .modal-box {
+        background: #1a5c69;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 28px;
+        width: 100%;
+        max-width: 560px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+        .modal-box h3 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .modal-box h3 i {
+                color: #e8a838;
+            }
+
+    .form-field {
+        margin-bottom: 16px;
+    }
+
+        .form-field label {
+            display: block;
+            color: #e8f0f1;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+            .form-field label .req {
+                color: #f87171;
+            }
+
+        .form-field input, .form-field textarea {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+            .form-field input:focus, .form-field textarea:focus {
+                outline: none;
+                border-color: #e8a838;
+                background: rgba(255,255,255,0.06);
+            }
+
+        .form-field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+    }
+
+        .form-check input[type=checkbox] {
+            width: 18px;
+            height: 18px;
+            accent-color: #e8a838;
+            cursor: pointer;
+        }
+
+        .form-check label {
+            margin: 0;
+            cursor: pointer;
+            color: #e8f0f1;
+            font-size: 0.9rem;
+        }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 22px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #cbd5e1;
+        border: 1px solid rgba(255,255,255,0.15);
+        padding: 10px 20px;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: 0.2s;
+    }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+    .alert {
+        padding: 12px 18px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-success {
+        background: rgba(82,183,136,0.15);
+        color: #52b788;
+        border: 1px solid rgba(82,183,136,0.3);
+    }
+
+    .alert-error {
+        background: rgba(220,53,69,0.15);
+        color: #f87171;
+        border: 1px solid rgba(220,53,69,0.3);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748b;
+    }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.3;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+    .icon-preview {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #e8a838;
+        font-size: 1.1rem;
+    }
+
+    @@media (max-width: 768px) {
+        .ps-table th:nth-child(2), .ps-table td:nth-child(2) {
+            display: none;
+        }
+
+        .ps-table th, .ps-table td {
+            padding: 10px 8px;
+            font-size: 0.82rem;
+        }
+
+        .modal-box {
+            padding: 22px 18px;
+        }
+    }
+</style>
+
+<div class="ps-header">
+    <h1 class="ps-title"><i class="fas fa-cogs"></i> مدیریت خدمات برنامه‌نویسی</h1>
+    <button class="btn-gold" @onclick="OpenAddForm"><i class="fas fa-plus"></i> افزودن خدمت</button>
+</div>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success"><i class="fas fa-check-circle"></i> @successMessage</div>
+}
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> @errorMessage</div>
+}
+
+<div class="ps-card">
+    @if (isLoading)
+    {
+        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>در حال بارگذاری...</p></div>
+    }
+    else if (!services.Any())
+    {
+        <div class="empty-state"><i class="fas fa-inbox"></i><p>هنوز خدمتی ثبت نشده است</p></div>
+    }
+    else
+    {
+        <table class="ps-table">
+            <thead>
+                <tr>
+                    <th>عنوان و توضیحات</th>
+                    <th>آیکون</th>
+                    <th>وضعیت</th>
+                    <th style="width:100px;">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in services)
+                {
+                    <tr @key="item.Id">
+                        <td>
+                            <strong style="color:#fff; display:block; margin-bottom:4px;">@item.Title</strong>
+                            <div style="color:#94a3b8; font-size:0.8rem; line-height:1.6;">@item.Description</div>
+                        </td>
+                        <td><span class="icon-preview"><i class="@item.Icon"></i></span></td>
+                        <td>
+                            @if (item.IsActive)
+                            {
+                                <span class="badge-active">فعال</span>
+                            }
+                            else
+                            {
+                                <span class="badge-inactive">غیرفعال</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-icon edit" @onclick="() => OpenEditForm(item)" title="ویرایش">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon delete" @onclick="() => DeleteService(item)" title="حذف">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (showForm)
+{
+    <div class="modal-overlay" @onclick="CloseForm">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <h3>
+                <i class="@(editingId == Guid.Empty ? "fas fa-plus-circle" : "fas fa-edit")"></i>
+                @(editingId == Guid.Empty ? "افزودن خدمت جدید" : "ویرایش خدمت")
+            </h3>
+            <div class="form-field">
+                <label>عنوان <span class="req">*</span></label>
+                <input @bind="formModel.Title" placeholder="مثلاً: طراحی سایت با ASP.NET Core" />
+            </div>
+            <div class="form-field">
+                <label>توضیحات <span class="req">*</span></label>
+                <textarea @bind="formModel.Description" placeholder="توضیح کوتاه درباره خدمت"></textarea>
+            </div>
+            <div class="form-field">
+                <label>کلاس آیکون FontAwesome <span class="req">*</span></label>
+                <input @bind="formModel.Icon" placeholder="مثلاً: fas fa-code" />
+                <div style="margin-top:8px; font-size:0.78rem; color:#94a3b8;">
+                    پیش‌نمایش: <span class="icon-preview" style="margin-right:8px;"><i class="@formModel.Icon"></i></span>
+                </div>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="chkActive" @bind="formModel.IsActive" />
+                <label for="chkActive">فعال باشد</label>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" @onclick="CloseForm">انصراف</button>
+                <button class="btn-gold" @onclick="SaveService" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <i class="fas fa-spinner fa-spin"></i> <span>ذخیره...</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-save"></i> <span>ذخیره</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ProgrammingServices> services = new();
+    private bool isLoading = true;
+    private bool showForm = false;
+    private bool isSaving = false;
+    private string successMessage = "";
+    private string errorMessage = "";
+    private Guid editingId = Guid.Empty;
+
+    private class FormData
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "fas fa-code";
+        public bool IsActive { get; set; } = true;
+    }
+    private FormData formModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadServices();
+    }
+
+    private async Task LoadServices()
+    {
+        isLoading = true;
+        try
+        {
+            services = await DbContext.ProgrammingServices
+                .OrderByDescending(x => x.Id)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"خطا در بارگذاری داده‌ها: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OpenAddForm()
+    {
+        editingId = Guid.Empty;
+        formModel = new FormData();
+        showForm = true;
+        successMessage = "";
+        errorMessage = "";
+    }
+
+    private void OpenEditForm(ProgrammingServices item)
+    {
+        editingId = item.Id;
+        formModel = new FormData
+        {
+            Title = item.Title ?? "",
+            Description = item.Description ?? "",
+            Icon = item.Icon ?? "fas fa-code",
+            IsActive = item.IsActive
+        };
+        showForm = true;
+        successMessage = "";
+        errorMessage = "";
+    }
+
+    private void CloseForm()
+    {
+        showForm = false;
+        editingId = Guid.Empty;
+    }
+
+    private async Task SaveService()
+    {
+        if (string.IsNullOrWhiteSpace(formModel.Title) ||
+            string.IsNullOrWhiteSpace(formModel.Description) ||
+            string.IsNullOrWhiteSpace(formModel.Icon))
+        {
+            errorMessage = "لطفاً فیلدهای عنوان، توضیحات و آیکون را پر کنید.";
+            return;
+        }
+
+        isSaving = true;
+        errorMessage = "";
+        try
+        {
+            if (editingId == Guid.Empty)
+            {
+                var newItem = new ProgrammingServices
+                {
+                    Id = Guid.NewGuid(),
+                    Title = formModel.Title.Trim(),
+                    Description = formModel.Description.Trim(),
+                    Icon = formModel.Icon.Trim(),
+                    IsActive = formModel.IsActive
+                };
+                DbContext.ProgrammingServices.Add(newItem);
+                await DbContext.SaveChangesAsync();
+                successMessage = "✅ خدمت جدید با موفقیت اضافه شد.";
+            }
+            else
+            {
+                var existing = await DbContext.ProgrammingServices.FindAsync(editingId);
+                if (existing == null)
+                {
+                    errorMessage = "خدمت مورد نظر پیدا نشد.";
+                    return;
+                }
+                existing.Title = formModel.Title.Trim();
+                existing.Description = formModel.Description.Trim();
+                existing.Icon = formModel.Icon.Trim();
+                existing.IsActive = formModel.IsActive;
+                await DbContext.SaveChangesAsync();
+                successMessage = "✅ خدمت با موفقیت به‌روزرسانی شد.";
+            }
+            CloseForm();
+            await LoadServices();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"خطا در ذخیره: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteService(ProgrammingServices item)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+            $"آیا از حذف «{item.Title}» مطمئن هستید؟");
+        if (!confirmed) return;
+
+        errorMessage = "";
+        successMessage = "";
+        try
+        {
+            var existing = await DbContext.ProgrammingServices.FindAsync(item.Id);
+            if (existing != null)
+            {
+                DbContext.ProgrammingServices.Remove(existing);
+                await DbContext.SaveChangesAsync();
+                successMessage = "✅ خدمت با موفقیت حذف شد.";
+                await LoadServices();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"خطا در حذف: {ex.Message}";
+        }
+    }
+}
