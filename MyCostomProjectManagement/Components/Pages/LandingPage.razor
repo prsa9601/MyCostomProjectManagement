@@ -5908,7 +5908,7 @@
 </section>
 
 <!-- FEATURED PROJECT -->
-<section class="section" id="featured-project">
+@* <section class="section" id="featured-project">
     <div class="container">
         <h2 class="section-title fade-up">پروژه <span>برجسته</span></h2>
         <p class="section-subtitle fade-up">تحلیل عمیق یک پروژه واقعی — از چالش تا نتیجه</p>
@@ -5941,49 +5941,9 @@
     }
 </div>
 </div>
-</section>
+</section> *@
 
-<!-- JOURNEY STORY -->
-<section class="section" id="journey-story">
-    <div class="container">
-        <h2 class="section-title fade-up">مسیر <span>حرفه‌ای</span></h2>
-        <p class="section-subtitle fade-up">از اولین خط کد تا امروز — بدون اغراق</p>
-        <div class="journey-story-wrapper">
-            <div class="journey-story-intro fade-up"><p>هر توسعه‌دهنده مسیر خودش را دارد. این مسیر من است — واقعی و بدون بزرگ‌نمایی.</p></div>
-            <div class="journey-story-chapters">
-                @foreach (var jc in journeyChapters)
-                {
-                    <div class="journey-story-chapter fade-up">
-                        <div class="journey-story-chapter-num"><span class="num">@jc.Num</span><span class="lbl">@jc.Label</span></div>
-                        <div class="journey-story-chapter-body"><h3>@jc.Title</h3><p>@jc.Text</p></div>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-</section>
 
-<!-- CAREER TIMELINE -->
-<section class="section" id="career">
-    <div class="container">
-        <h2 class="section-title fade-up">مسیر <span>کاری</span></h2>
-        <p class="section-subtitle fade-up">از اولین خط کد تا امروز</p>
-        <div class="comm-timeline">
-            @foreach (var c in careerSteps)
-            {
-                <div class="comm-step fade-up">
-                    <div class="comm-dot"></div>
-                    <div class="comm-body">
-                        <span class="comm-time">@c.Year</span>
-                        <h4><i class="@c.Icon" style="color:#60a5fa; margin-left:6px;"></i> @c.Title</h4>
-                        <div style="color:#8b5cf6; font-size:0.82rem; font-weight:600; margin-bottom:8px;">@c.Company</div>
-                        <p>@c.Desc</p>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-</section>
 
 <!-- PHILOSOPHY -->
 <section class="section" id="philosophy">
@@ -6021,29 +5981,9 @@
     </div>
 </section>
 
-<!-- ADR -->
-<section class="section" id="adr">
-    <div class="container">
-        <h2 class="section-title fade-up">تصمیمات <span>معماری (ADR)</span></h2>
-        <p class="section-subtitle fade-up">سند تصمیمات کلیدی معماری — استاندارد صنعتی</p>
-        <div class="adr-grid">
-            @foreach (var adr in adrRecords)
-            {
-                <div class="adr-card fade-up">
-                    <span class="adr-num">ADR-@adr.Number</span>
-                    <h3>@adr.Title</h3>
-                    <span class="adr-status @adr.Status">@adr.StatusLabel</span>
-                    <div class="adr-block"><div class="adr-block-label">Context</div><p>@adr.Context</p></div>
-                    <div class="adr-block"><div class="adr-block-label">Decision</div><p>@adr.Decision</p></div>
-                    <div class="adr-block"><div class="adr-block-label">Consequences</div><p>@adr.Consequences</p></div>
-                </div>
-            }
-        </div>
-    </div>
-</section>
 
 <!-- ARCHITECTURE -->
-<section class="section" id="architecture">
+@* <section class="section" id="architecture">
     <div class="container">
         <h2 class="section-title fade-up">معماری <span>Clean</span></h2>
         <p class="section-subtitle fade-up">معماری با لایه‌های مستقل و قابل تست</p>
@@ -6061,36 +6001,8 @@
             }
         </div>
     </div>
-</section>
+</section> *@
 
-<!-- CODE REVIEW -->
-<section class="section" id="code-review">
-    <div class="container">
-        <h2 class="section-title fade-up">نمونه <span>Code Review</span></h2>
-        <p class="section-subtitle fade-up">نمونه‌ای از سبک بازبینی کد من</p>
-        <div class="code-review-wrapper fade-up">
-            <div class="code-review-header">
-                <div class="code-review-header-title"><i class="fab fa-github"></i><span>PR #142 — Feature: Add Payment Gateway</span></div>
-                <span class="code-review-badge"><i class="fas fa-check-circle"></i> Approved with suggestions</span>
-            </div>
-            @foreach (var cr in codeReviewComments)
-            {
-                <div class="code-review-comment">
-                    <div class="code-review-comment-header"><div class="code-review-comment-avatar">م</div><div><div class="code-review-comment-author">@cr.Author</div><div class="code-review-comment-time">@cr.Time</div></div></div>
-                    <div class="code-review-comment-body">@cr.Comment</div>
-                    @if (!string.IsNullOrEmpty(cr.CodeSnippet))
-                    {
-                        <div class="code-review-code">@cr.CodeSnippet</div>
-                    }
-                    @if (!string.IsNullOrEmpty(cr.Suggestion))
-                    {
-                        <div class="code-review-suggestion">@cr.Suggestion</div>
-                    }
-                </div>
-            }
-        </div>
-    </div>
-</section>
 
 <!-- SERVICES -->
 <section class="section" id="services">
@@ -6109,7 +6021,7 @@
 </section>
 
 <!-- WAR STORIES -->
-<section class="section" id="war-stories">
+@* <section class="section" id="war-stories">
     <div class="container">
         <h2 class="section-title fade-up">موارد <span>واقعی</span></h2>
         <p class="section-subtitle fade-up">۳ مشکل واقعی که در production حل کردم — با عدد و نتیجه</p>
@@ -6133,32 +6045,7 @@
         </div>
     </div>
 </section>
-
-<!-- WORKSHOPS -->
-<section class="section" id="workshops">
-    <div class="container">
-        <h2 class="section-title fade-up">کارگاه‌های <span>تخصصی</span></h2>
-        <p class="section-subtitle fade-up">آموزش تیم شما در موضوعات تخصصی .NET</p>
-        <div class="workshops-grid">
-            @foreach (var w in workshops)
-            {
-                <div class="workshop-card fade-up">
-                    <span class="workshop-level">@w.Level</span>
-                    <div class="workshop-icon"><i class="@w.Icon"></i></div>
-                    <h3>@w.Title</h3>
-                    <p>@w.Description</p>
-                    <div class="workshop-meta">
-                        <span><i class="far fa-clock"></i> @w.Duration</span>
-                        <span><i class="fas fa-users"></i> @w.Participants</span>
-                        <span><i class="fas fa-laptop"></i> @w.Format</span>
-                    </div>
-                    <div class="workshop-price"><span class="num">@w.Price</span><span class="unit">@w.Unit</span></div>
-                    <a href="/#contact" class="btn-workshop"><i class="fas fa-paper-plane"></i> درخواست کارگاه</a>
-                </div>
-            }
-        </div>
-    </div>
-</section>
+ *@
 
 <!-- SECURITY PROTOCOL -->
 <section class="section" id="security-protocol">
@@ -6266,7 +6153,7 @@
 </section>
 
 <!-- INTERNATIONAL -->
-<section class="section" id="international">
+@* <section class="section" id="international">
     <div class="container">
         <h2 class="section-title fade-up">تجربه <span>بین‌المللی</span></h2>
         <p class="section-subtitle fade-up">همکاری با کارفرمایان خارج از ایران</p>
@@ -6297,84 +6184,9 @@
     </div>
 </div>
 </section>
+ *@
 
-<!-- QUARTERLY STACK -->
-<section class="section" id="quarterly-stack">
-    <div class="container">
-        <h2 class="section-title fade-up">استک <span>فصلی</span></h2>
-        <p class="section-subtitle fade-up">ابزارهای فعلی — به‌روزرسانی هر فصل</p>
-        <div class="qstack-wrapper">
-            <div class="qstack-header fade-up">
-                <span class="qstack-quarter"><i class="far fa-calendar"></i> @currentQuarter</span>
-                <p>ابزارها و تکنولوژی‌هایی که در این فصل استفاده می‌کنم</p>
-            </div>
-            <div class="qstack-cats">
-                @foreach (var cat in quarterlyStack)
-                {
-                    <div class="qstack-cat fade-up">
-                        <div class="qstack-cat-header"><i class="@cat.Icon"></i><h4>@cat.Category</h4>@if (!string.IsNullOrEmpty(cat.ChangeType)) {
-                            <span class="qstack-change @cat.ChangeType">@cat.ChangeLabel</span>
-                        }
-                    </div>
-                    <div class="qstack-chips">@foreach (var item in cat.Items) {
-                        <span class="qstack-chip"><i class="@item.Icon"></i> @item.Name</span>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-</div>
-</div>
-</section>
 
-<!-- WEEKLY REPORT -->
-<section class="section" id="weekly-report">
-    <div class="container">
-        <h2 class="section-title fade-up">نمونه <span>گزارش هفتگی</span></h2>
-        <p class="section-subtitle fade-up">فرمت گزارش‌هایی که هر هفته دریافت می‌کنید</p>
-        <div class="wrs-wrapper fade-up">
-            <div class="wrs-toolbar"><div class="wrs-toolbar-left"><i class="fas fa-file-alt"></i><span>گزارش-هفتگی-نمونه.pdf</span></div><span class="wrs-toolbar-badge">نمونه واقعی</span></div>
-            <div class="wrs-body">
-                <div class="wrs-header"><h3>گزارش هفتگی پروژه فین‌تک</h3><span class="wrs-week">هفته ۴ — ۱۴۰۴/۰۳/۱۵</span></div>
-                <div class="wrs-summary">
-                    <div class="wrs-summary-item"><div class="val">۱۲</div><div class="lbl">تسک انجام‌شده</div></div>
-                    <div class="wrs-summary-item"><div class="val">۹۸٪</div><div class="lbl">پیشرفت هفته</div></div>
-                    <div class="wrs-summary-item"><div class="val">۲</div><div class="lbl">تسک در حال انجام</div></div>
-                    <div class="wrs-summary-item"><div class="val">۴۵٪</div><div class="lbl">پیشرفت کلی</div></div>
-                </div>
-                <div class="wrs-section">
-                    <div class="wrs-section-title"><i class="fas fa-check-circle"></i> کارهای انجام‌شده</div>
-                    <div class="wrs-tasks">
-                        <div class="wrs-task"><span class="wrs-task-status done"><i class="fas fa-check"></i></span><div class="wrs-task-body"><h5>پیاده‌سازی Endpoint احراز هویت</h5><p>JWT + Refresh Token — تست شده و مستند</p></div></div>
-                        <div class="wrs-task"><span class="wrs-task-status done"><i class="fas fa-check"></i></span><div class="wrs-task-body"><h5>اتصال به درگاه زرین‌پال</h5><p>تست موفق در Sandbox — آماده Production</p></div></div>
-                        <div class="wrs-task"><span class="wrs-task-status done"><i class="fas fa-check"></i></span><div class="wrs-task-body"><h5>Unit Test های لایه Domain</h5><p>پوشش تست به ۸۵٪ رسید</p></div></div>
-                    </div>
-                </div>
-                <div class="wrs-section">
-                    <div class="wrs-section-title"><i class="fas fa-spinner"></i> در حال انجام</div>
-                    <div class="wrs-tasks">
-                        <div class="wrs-task"><span class="wrs-task-status progress"><i class="fas fa-ellipsis-h"></i></span><div class="wrs-task-body"><h5>داشبورد مدیریت</h5><p>۶۰٪ تکمیل — تحویل هفته آینده</p></div></div>
-                    </div>
-                </div>
-                <div class="wrs-next"><strong style="color:#60a5fa;">برنامه هفته آینده: </strong><p>تکمیل داشبورد مدیریت، اتصال به آیدی‌پی، پیاده‌سازی گزارش‌گیری و شروع Integration Tests.</p></div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- AGILE -->
-<section class="section" id="agile">
-    <div class="container">
-        <h2 class="section-title fade-up">کار تیمی و <span>روش Agile</span></h2>
-        <p class="section-subtitle fade-up">روش کار در تیم‌های فنی</p>
-        <div class="agile-grid">
-            @foreach (var ag in agilePractices)
-            {
-                <div class="agile-card fade-up"><div class="agile-icon"><i class="@ag.Icon"></i></div><h3>@ag.Title</h3><p>@ag.Desc</p></div>
-            }
-        </div>
-    </div>
-</section>
 
 <!-- TESTIMONIALS -->
 <section class="section" id="testimonials">
@@ -6401,24 +6213,6 @@
 </div>
 </section>
 
-<!-- REFERENCES -->
-<section class="section" id="references">
-    <div class="container">
-        <h2 class="section-title fade-up">مراجع <span>قابل استعلام</span></h2>
-        <p class="section-subtitle fade-up">مراجع قابل استعلام برای پروژه‌های کلیدی</p>
-        <div class="references-grid">
-            @foreach (var r in referenceClients)
-            {
-                <div class="reference-card fade-up">
-                    <div class="reference-header"><div class="reference-avatar">@r.Initial</div><div class="reference-info"><h4>@r.Name</h4><p>@r.Role</p></div></div>
-                    <div class="reference-verified"><i class="fas fa-check-circle"></i> تأیید‌شده</div>
-                    <p class="ref-text">"@r.Text"</p>
-                    <div class="reference-project"><i class="fas fa-briefcase"></i> @r.Project</div>
-                </div>
-            }
-        </div>
-    </div>
-</section>
 
 <!-- CONCERNS -->
 <section class="section" id="concerns">
@@ -6514,25 +6308,6 @@
     </div>
 </section>
 
-<!-- DAILY TOOLS -->
-<section class="section" id="tools">
-    <div class="container">
-        <h2 class="section-title fade-up">جعبه‌ابزار <span>روزمره</span></h2>
-        <p class="section-subtitle fade-up">ابزارهای روزانه برای توسعه</p>
-        <div class="tools-cats">
-            @foreach (var cat in dailyTools)
-            {
-                <div class="tools-cat fade-up">
-                    <div class="tools-cat-header"><i class="@cat.Icon"></i> @cat.Name</div>
-                    <div class="tools-chips">@foreach (var t in cat.Tools) {
-                        <span class="tool-chip"><i class="@t.Icon"></i> @t.Name</span>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-</div>
-</section>
 
 <!-- CODE QUALITY -->
 <section class="section" id="quality">
@@ -6727,80 +6502,6 @@
 </div>
 </section>
 
-<!-- CONSULTATION -->
-<section class="section" id="consultation">
-    <div class="container">
-        <h2 class="section-title fade-up">مشاوره و <span>همکاری</span></h2>
-        <p class="section-subtitle fade-up">پکیج‌های منعطف برای هر نوع همکاری</p>
-        <div class="consultation-grid">
-            <div class="consult-card fade-up">
-                <div class="consult-icon"><i class="fas fa-comments"></i></div>
-                <h3>مشاوره سریع</h3>
-                <p class="consult-subtitle">برای سؤالات فنی و راهنمایی اولیه</p>
-                <div class="consult-price"><span class="amount">رایگان</span></div>
-                <ul class="consult-features">
-                    <li><i class="fas fa-check"></i> بررسی اولیه ایده</li>
-                    <li><i class="fas fa-check"></i> راهنمایی انتخاب تکنولوژی</li>
-                    <li><i class="fas fa-check"></i> تخمین زمان و هزینه</li>
-                    <li><i class="fas fa-check"></i> پاسخ به سؤالات فنی</li>
-                </ul>
-                <a href="/#contact" class="btn-consult outline"><i class="fas fa-phone-alt"></i> شروع مشاوره</a>
-            </div>
-            <div class="consult-card featured fade-up">
-                <div class="consult-icon"><i class="fas fa-user-tie"></i></div>
-                <h3>مشاوره تخصصی</h3>
-                <p class="consult-subtitle">جلسه عمیق برای پروژه‌های جدی</p>
-                <div class="consult-price"><span class="amount">رایگان</span></div>
-                <ul class="consult-features">
-                    <li><i class="fas fa-check"></i> تحلیل عمیق نیازمندی‌ها</li>
-                    <li><i class="fas fa-check"></i> طراحی معماری پیشنهادی</li>
-                    <li><i class="fas fa-check"></i> نقشه راه فنی کامل</li>
-                    <li><i class="fas fa-check"></i> مستندات جلسه</li>
-                    <li><i class="fas fa-check"></i> یک هفته پشتیبانی</li>
-                </ul>
-                <a href="/#contact" class="btn-consult primary"><i class="fas fa-rocket"></i> رزرو جلسه</a>
-            </div>
-            <div class="consult-card fade-up">
-                <div class="consult-icon"><i class="fas fa-briefcase"></i></div>
-                <h3>همکاری پروژه‌ای</h3>
-                <p class="consult-subtitle">از طراحی تا تحویل کامل</p>
-                <div class="consult-price"><span class="amount">توافقی</span></div>
-                <ul class="consult-features">
-                    <li><i class="fas fa-check"></i> طراحی و پیاده‌سازی کامل</li>
-                    <li><i class="fas fa-check"></i> مستندسازی و آموزش</li>
-                    <li><i class="fas fa-check"></i> یک ماه پشتیبانی رایگان</li>
-                    <li><i class="fas fa-check"></i> تحویل به‌موقع تضمینی</li>
-                </ul>
-                <a href="/#contact" class="btn-consult outline"><i class="fas fa-handshake"></i> درخواست همکاری</a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- PRICING -->
-<section class="section" id="pricing">
-    <div class="container">
-        <h2 class="section-title fade-up">پکیج‌های <span>قیمت‌گذاری</span></h2>
-        <p class="section-subtitle fade-up">۳ پکیج شفاف — از پروژه کوچک تا همکاری سازمانی</p>
-        <div class="pricing-grid">
-            @foreach (var p in pricingPackages)
-            {
-                <div class="pricing-card fade-up @(p.IsFeatured ? "featured" : "")">
-                    <div class="pricing-icon"><i class="@p.Icon"></i></div>
-                    <h3>@p.Name</h3>
-                    <p class="pricing-desc">@p.Desc</p>
-                    <div class="pricing-amount"><span class="num">@p.Price</span><span class="unit">@p.Unit</span></div>
-                    <ul class="pricing-features">@foreach (var f in p.Features) {
-                        <li class="@(f.IsAvailable ? "" : "disabled")"><i class="fas @(f.IsAvailable ? "fa-check" : "fa-times")"></i> @f.Text</li>
-                    }
-                </ul>
-                <a href="/#contact" class="btn-price @(p.IsFeatured ? "primary" : "outline")"><i class="fas fa-rocket"></i> @p.ButtonText</a>
-            </div>
-        }
-    </div>
-</div>
-</section>
-
 <!-- COST BREAKDOWN -->
 <section class="section" id="cost-breakdown">
     <div class="container">
@@ -6825,63 +6526,6 @@
     </div>
 </section>
 
-<!-- LONG TERM -->
-<section class="section" id="long-term">
-    <div class="container">
-        <h2 class="section-title fade-up">همکاری <span>بلندمدت</span></h2>
-        <p class="section-subtitle fade-up">مدل Retainer ماهانه برای همکاری‌های مستمر</p>
-        <div class="ltc-wrapper">
-            <div class="ltc-header fade-up">
-                <h3>چرا Retainer؟</h3>
-                <p>برای شرکت‌هایی که به توسعه‌دهنده ثابت نیاز دارند اما استخدام Full-Time به‌صرفه نیست، مدل Retainer بهترین گزینه است. ساعت‌های مشخص ماهانه با قیمت بهتر و تعهد بلندمدت.</p>
-            </div>
-            <div class="ltc-benefits">
-                @foreach (var b in retainerBenefits)
-                {
-                    <div class="ltc-benefit fade-up"><div class="ltc-benefit-icon"><i class="@b.Icon"></i></div><h4>@b.Title</h4><p>@b.Description</p></div>
-                }
-            </div>
-            <div class="ltc-plans">
-                @foreach (var plan in retainerPlans)
-                {
-                    <div class="ltc-plan fade-up @(plan.IsHighlight ? "highlight" : "")">
-                        <h4>@plan.Name</h4>
-                        <p class="ltc-plan-sub">@plan.Description</p>
-                        <div class="ltc-plan-hours"><span class="num">@plan.Hours</span><span class="unit">@plan.HoursUnit</span></div>
-                        <ul class="ltc-plan-features">@foreach (var f in plan.Features) {
-                            <li><i class="fas fa-check"></i> @f</li>
-                        }
-                    </ul>
-                    <a href="/#contact" class="btn-ltc"><i class="fas fa-handshake"></i> @plan.ButtonText</a>
-                </div>
-            }
-        </div>
-    </div>
-</div>
-</section>
-
-<!-- ONBOARDING -->
-<section class="section" id="onboarding">
-    <div class="container">
-        <h2 class="section-title fade-up">برنامه <span>۳۰ روز اول</span></h2>
-        <p class="section-subtitle fade-up">در ۳۰ روز اول چه می‌کنم</p>
-        <div class="onboarding-grid">
-            @foreach (var o in onboardingPlan)
-            {
-                <div class="onboarding-card fade-up">
-                    <span class="onboarding-week">@o.Week</span>
-                    <div class="onboarding-icon"><i class="@o.Icon"></i></div>
-                    <h3>@o.Title</h3>
-                    <p>@o.Desc</p>
-                    <ul class="onboarding-checklist">@foreach (var item in o.Checklist) {
-                        <li><i class="fas fa-check"></i> @item</li>
-                    }
-                </ul>
-            </div>
-        }
-    </div>
-</div>
-</section>
 
 <!-- COMMUNICATION -->
 <section class="section" id="communication">
@@ -6901,7 +6545,7 @@
 </section>
 
 <!-- WEEKLY RHYTHM -->
-<section class="section" id="weekly-rhythm">
+@* <section class="section" id="weekly-rhythm">
     <div class="container">
         <h2 class="section-title fade-up">ریتم <span>هفتگی</span></h2>
         <p class="section-subtitle fade-up">یک هفته کاری معمولی</p>
@@ -6940,30 +6584,7 @@
             </div>
         </div>
     </div>
-</section>
-
-<!-- AVAILABILITY -->
-<section class="section" id="availability">
-    <div class="container">
-        <h2 class="section-title fade-up">دسترس‌پذیری <span>و ساعات کاری</span></h2>
-        <p class="section-subtitle fade-up">وضعیت فعلی برای همکاری</p>
-        <div class="content-grid">
-            @foreach (var a in availabilitySlots)
-            {
-                <div class="content-card fade-up">
-                    <span style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:30px; font-size:0.78rem; font-weight:700; margin-bottom:14px; @(a.StatusClass == "available" ? "background:rgba(52,211,153,0.15); color:#34d399; border:1px solid rgba(52,211,153,0.35);" : a.StatusClass == "partial" ? "background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.35);" : "background:rgba(248,113,113,0.15); color:#f87171; border:1px solid rgba(248,113,113,0.35);")"><span style="width:8px; height:8px; border-radius:50%; background:currentColor;"></span> @a.StatusText</span>
-                    <div style="width:68px; height:68px; margin-bottom:14px; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:1.7rem; background:linear-gradient(135deg, rgba(52,211,153,0.18), rgba(59,130,246,0.12)); color:#34d399; border:1px solid rgba(52,211,153,0.3);"><i class="@a.Icon"></i></div>
-                    <h3>@a.Title</h3>
-                    <p>@a.Desc</p>
-                    <div style="display:flex; gap:14px; padding-top:12px; border-top:1px dashed rgba(255,255,255,0.08); font-size:0.78rem; color:#cbd5e1; margin-top:12px;">
-                        <span><i class="far fa-clock" style="color:#60a5fa;"></i> @a.Hours</span>
-                        <span><i class="fas fa-globe" style="color:#60a5fa;"></i> @a.Timezone</span>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-</section>
+</section> *@
 
 <!-- LIVE RESPONSE -->
 <section class="section" id="live-response">
@@ -6984,7 +6605,7 @@
 </section>
 
 <!-- CAPACITY -->
-<section class="section" id="capacity">
+@* <section class="section" id="capacity">
     <div class="container">
         <h2 class="section-title fade-up">تقویم <span>ظرفیت ۱۴۰۴</span></h2>
         <p class="section-subtitle fade-up">ظرفیت پروژه‌های سال ۱۴۰۴</p>
@@ -7007,7 +6628,7 @@
             </div>
         </div>
     </div>
-</section>
+</section> *@
 
 <!-- GUARANTEE -->
 <section class="section" id="guarantee">
@@ -7050,30 +6671,9 @@
     </div>
 </section>
 
-<!-- CONTENT CREATION -->
-<section class="section" id="content-creation">
-    <div class="container">
-        <h2 class="section-title fade-up">تولید محتوا و <span>آموزش</span></h2>
-        <p class="section-subtitle fade-up">اشتراک دانش فنی از طریق مقاله، ویدیو و منتورینگ</p>
-        <div class="content-grid">
-            @foreach (var cp in contentPlatforms)
-            {
-                <div class="content-card fade-up">
-                    <span class="content-badge @cp.BadgeClass">@cp.BadgeText</span>
-                    <h3>@cp.Title</h3>
-                    <p>@cp.Desc</p>
-                    <div class="content-stats">@foreach (var s in cp.Stats) {
-                        <span><i class="@s.Icon"></i> @s.Label</span>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-</div>
-</section>
 
 <!-- IDEAL ROLE -->
-<section class="section" id="ideal-role">
+@* <section class="section" id="ideal-role">
     <div class="container">
         <h2 class="section-title fade-up">شرایط <span>همکاری</span></h2>
         <p class="section-subtitle fade-up">شرایطی که با آن همکاری می‌کنم و شرایطی که نمی‌کنم</p>
@@ -7100,7 +6700,7 @@
     </div>
 </div>
 </div>
-</section>
+</section> *@
 
 <!-- INTERVIEW SIM -->
 <section class="section" id="interview-sim">
@@ -7283,22 +6883,6 @@
     </div>
 </section>
 
-<!-- HIRING FAQ -->
-<section class="section" id="hiring-faq">
-    <div class="container">
-        <h2 class="section-title fade-up">سوالات <span>همکاری</span></h2>
-        <p class="section-subtitle fade-up">پاسخ به سوالات متداول درباره همکاری</p>
-        <div class="hiring-grid">
-            @foreach (var hf in hiringFaqs)
-            {
-                <div class="hiring-card fade-up">
-                    <div class="hiring-q"><i class="fas fa-question-circle"></i> @hf.Question</div>
-                    <p class="hiring-a">@hf.Answer</p>
-                </div>
-            }
-        </div>
-    </div>
-</section>
 
 <!-- LATEST BLOG -->
 <section class="section" id="latest-blog">
