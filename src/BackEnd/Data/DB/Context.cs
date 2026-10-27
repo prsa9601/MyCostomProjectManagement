@@ -1,4 +1,5 @@
 ﻿using BackEnd.Data.Entities.Blogs;
+using BackEnd.Data.Entities.Comment;
 using BackEnd.Data.Entities.ContactUs;
 using BackEnd.Data.Entities.FAQ;
 using BackEnd.Data.Entities.Package;
@@ -7,6 +8,7 @@ using BackEnd.Data.Entities.Portfolio;
 using BackEnd.Data.Entities.ProgrammingServices;
 using BackEnd.Data.Entities.ProjectRequestV1;
 using BackEnd.Data.Entities.Projects;
+using BackEnd.Data.Entities.Qualification;
 using BackEnd.Data.Entities.Role;
 using BackEnd.Data.Entities.SiteSettings;
 using BackEnd.Data.Entities.Skills;
@@ -41,9 +43,11 @@ namespace BackEnd.Data.DB
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<SubscriptionUser> SubscriptionUsers { get; set; }
         public DbSet<Tutorial> Tutorials { get; set; }
-        public DbSet<SpecializedTechnologyCategory> SpecializedTechnologyCategories  { get; set; }
-        public DbSet<SpecializedTechnology> SpecializedTechnologies  { get; set; }
-        public DbSet<ProgrammingServices> ProgrammingServices  { get; set; }
+        public DbSet<SpecializedTechnologyCategory> SpecializedTechnologyCategories { get; set; }
+        public DbSet<SpecializedTechnology> SpecializedTechnologies { get; set; }
+        public DbSet<ProgrammingServices> ProgrammingServices { get; set; }
+        public DbSet<SpecializedQualification> SpecializedQualifications { get; set; }
+        public DbSet<Comment> Comments { get; set; }
 
         public DbSet<Models.Logs> Logs { get; set; }
         #endregion
@@ -78,6 +82,15 @@ namespace BackEnd.Data.DB
 
                 builder.HasIndex(b => b.TutorialApiId);
             });
+
+            modelBuilder.Entity<SpecializedQualification>()
+                .Property(x => x.Tags)
+                .HasConversion(
+                    v => string.Join("|", v ?? new List<string>()),
+                    v => string.IsNullOrEmpty(v)
+                        ? new List<string>()
+                        : v.Split("|", StringSplitOptions.RemoveEmptyEntries).ToList()
+                );
 
             base.OnModelCreating(modelBuilder);
         }

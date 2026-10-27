@@ -10,6 +10,11 @@
 @using BackEnd.Data.Infrastructure.Blog
 @using BackEnd.Data.Infrastructure.Blog.DTOs
 @using BackEnd.Data.Entities.Blogs
+@using BackEnd.Data.Entities.Comment
+@using BackEnd.Data.Entities.Qualification
+@using BackEnd.Data.Entities.ProgrammingServices
+@using BackEnd.Data.Entities.SpecializedTechnology
+@using Microsoft.EntityFrameworkCore
 @using MyCostomProjectManagement.Facade.ContactUs
 @using MyCostomProjectManagement.Facade.FAQ
 @using MyCostomProjectManagement.Facade.Portfolio
@@ -34,6 +39,7 @@
 @inject UserAuthentication _userAuthentication
 @inject IProjectRequestV1Facade _prV1Facade
 @inject IBlogApiService _blogApiService
+@inject IDbContextFactory<BackEnd.Data.DB.Context> DbFactory
 
 <HeadContent>
     <title>برنامه نویس دات نت و سی‌شارپ | محمد پارسا کریمی</title>
@@ -257,9 +263,9 @@
     }
 
         .btn-primary:hover {
-            background: #2563eb;
             transform: translateY(-2px);
             box-shadow: 0 12px 40px rgba(59,130,246,0.4);
+            filter: brightness(1.1);
         }
 
     .btn-outline {
@@ -1033,125 +1039,6 @@
             border: 1px solid rgba(59,130,246,0.1);
         }
 
-    .consultation-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-        gap: 24px;
-        align-items: stretch;
-    }
-
-    .consult-card {
-        background: rgba(255,255,255,0.03);
-        border: 1.5px solid rgba(255,255,255,0.06);
-        border-radius: 26px;
-        padding: 34px 28px;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
-
-        .consult-card.featured {
-            border-color: rgba(59,130,246,0.5);
-            background: linear-gradient(180deg, rgba(59,130,246,0.06), rgba(139,92,246,0.03));
-            transform: scale(1.03);
-        }
-
-        .consult-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(59,130,246,0.5);
-        }
-
-    .consult-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.6rem;
-        margin-bottom: 20px;
-        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.12));
-        color: #60a5fa;
-        border: 1px solid rgba(59,130,246,0.25);
-    }
-
-    .consult-card h3 {
-        font-size: 1.3rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 6px;
-    }
-
-    .consult-subtitle {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        margin-bottom: 20px;
-    }
-
-    .consult-price {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-        margin-bottom: 24px;
-        padding-bottom: 20px;
-        border-bottom: 1px dashed rgba(255,255,255,0.08);
-    }
-
-        .consult-price .amount {
-            font-size: 2rem;
-            font-weight: 900;
-            color: #60a5fa;
-            font-family: 'Fira Code', monospace;
-        }
-
-    .consult-features {
-        list-style: none;
-        padding: 0;
-        flex: 1;
-    }
-
-        .consult-features li {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 8px 0;
-            color: #cbd5e1;
-            font-size: 0.88rem;
-        }
-
-            .consult-features li i {
-                color: #34d399;
-                font-size: 0.85rem;
-                margin-top: 5px;
-            }
-
-    .consult-card .btn-consult {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-        padding: 12px 20px;
-        border-radius: 40px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        border: none;
-        cursor: pointer;
-        font-family: inherit;
-        text-decoration: none;
-    }
-
-        .consult-card .btn-consult.outline {
-            background: transparent;
-            color: #eef2f8;
-            border: 1.5px solid rgba(255,255,255,0.15);
-        }
-
-        .consult-card .btn-consult.primary {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: #fff;
-        }
-
     .guarantee-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1213,110 +1100,6 @@
         font-size: 0.9rem;
         line-height: 1.95;
         margin: 0;
-    }
-
-    .quick-services-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 22px;
-    }
-
-    .quick-service {
-        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 22px;
-        padding: 28px 24px;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-    }
-
-        .quick-service:hover {
-            transform: translateY(-8px);
-            border-color: rgba(251,191,36,0.4);
-        }
-
-    .quick-service-badge {
-        position: absolute;
-        top: 14px;
-        left: 14px;
-        font-size: 0.62rem;
-        font-weight: 800;
-        padding: 3px 10px;
-        border-radius: 20px;
-        background: rgba(251,191,36,0.15);
-        color: #fbbf24;
-        border: 1px solid rgba(251,191,36,0.3);
-    }
-
-    .quick-service-icon {
-        width: 58px;
-        height: 58px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.6rem;
-        margin-bottom: 18px;
-        background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(251,146,60,0.12));
-        color: #fbbf24;
-        border: 1px solid rgba(251,191,36,0.28);
-    }
-
-    .quick-service h3 {
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 8px;
-    }
-
-    .quick-service .duration {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.78rem;
-        color: #fb923c;
-        margin-bottom: 14px;
-    }
-
-    .quick-service p {
-        color: #94a3b8;
-        font-size: 0.88rem;
-        line-height: 1.9;
-        margin: 0 0 18px 0;
-        flex: 1;
-    }
-
-    .quick-service-price {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-        padding-top: 16px;
-        border-top: 1px dashed rgba(255,255,255,0.08);
-        margin-bottom: 16px;
-    }
-
-        .quick-service-price .amount {
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: #fbbf24;
-            font-family: 'Fira Code', monospace;
-        }
-
-    .quick-service .btn-quick {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-        padding: 10px 16px;
-        border-radius: 40px;
-        font-weight: 700;
-        font-size: 0.85rem;
-        background: rgba(251,191,36,0.12);
-        border: 1.5px solid rgba(251,191,36,0.3);
-        color: #fbbf24;
-        text-decoration: none;
     }
 
     .request-grid {
@@ -1684,7 +1467,15 @@
         color: #fbbf24;
         border: 1px solid rgba(251,191,36,0.3);
         flex-shrink: 0;
+        overflow: hidden;
     }
+
+        .cert-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
 
     .cert-body h3 {
         font-size: 0.98rem;
@@ -1770,112 +1561,6 @@
         font-size: 0.72rem;
         line-height: 1.6;
     }
-
-    .agile-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 20px;
-    }
-
-    .agile-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 18px;
-        padding: 24px 22px;
-    }
-
-        .agile-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(139,92,246,0.35);
-        }
-
-    .agile-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.1));
-        color: #c4b5fd;
-        border: 1px solid rgba(139,92,246,0.25);
-        margin-bottom: 16px;
-    }
-
-    .agile-card h3 {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 8px;
-    }
-
-    .agile-card p {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        line-height: 1.9;
-        margin: 0;
-    }
-
-    .tools-cats {
-        display: grid;
-        gap: 26px;
-    }
-
-    .tools-cat {
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 18px;
-        padding: 22px;
-    }
-
-        .tools-cat:hover {
-            border-color: rgba(59,130,246,0.25);
-        }
-
-    .tools-cat-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: #60a5fa;
-        margin-bottom: 14px;
-    }
-
-        .tools-cat-header i {
-            color: #8b5cf6;
-        }
-
-    .tools-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .tool-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 14px;
-        border-radius: 30px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        color: #cbd5e1;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-        .tool-chip:hover {
-            background: rgba(59,130,246,0.1);
-            border-color: rgba(59,130,246,0.35);
-            color: #fff;
-        }
-
-        .tool-chip i {
-            font-size: 0.9rem;
-            color: #60a5fa;
-        }
 
     .quality-grid {
         display: grid;
@@ -1991,92 +1676,6 @@
         margin: 0;
     }
 
-    .content-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 20px;
-    }
-
-    .content-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 20px;
-        padding: 26px 22px;
-    }
-
-        .content-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(236,72,153,0.35);
-        }
-
-    .content-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.68rem;
-        font-weight: 800;
-        padding: 4px 12px;
-        border-radius: 20px;
-        margin-bottom: 14px;
-    }
-
-        .content-badge.blog {
-            background: rgba(59,130,246,0.12);
-            color: #60a5fa;
-            border: 1px solid rgba(59,130,246,0.25);
-        }
-
-        .content-badge.video {
-            background: rgba(236,72,153,0.12);
-            color: #f9a8d4;
-            border: 1px solid rgba(236,72,153,0.25);
-        }
-
-        .content-badge.course {
-            background: rgba(52,211,153,0.12);
-            color: #34d399;
-            border: 1px solid rgba(52,211,153,0.25);
-        }
-
-        .content-badge.social {
-            background: rgba(139,92,246,0.12);
-            color: #c4b5fd;
-            border: 1px solid rgba(139,92,246,0.25);
-        }
-
-    .content-card h3 {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 8px;
-    }
-
-    .content-card p {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        line-height: 1.9;
-        margin-bottom: 14px;
-    }
-
-    .content-stats {
-        display: flex;
-        gap: 14px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255,255,255,0.05);
-        font-size: 0.75rem;
-        color: #64748b;
-    }
-
-        .content-stats span {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .content-stats i {
-            color: #60a5fa;
-        }
-
     .comm-timeline {
         max-width: 900px;
         margin: 0 auto;
@@ -2156,165 +1755,6 @@
         font-size: 0.85rem;
         line-height: 1.9;
         margin: 0;
-    }
-
-    .hiring-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 18px;
-        max-width: 1100px;
-        margin: 0 auto;
-    }
-
-    .hiring-card {
-        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 18px;
-        padding: 24px 22px;
-    }
-
-        .hiring-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(59,130,246,0.35);
-        }
-
-    .hiring-q {
-        font-size: 0.98rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-        .hiring-q i {
-            color: #60a5fa;
-            font-size: 0.9rem;
-            margin-top: 4px;
-        }
-
-    .hiring-a {
-        color: #94a3b8;
-        font-size: 0.87rem;
-        line-height: 1.95;
-        margin: 0;
-        padding-right: 22px;
-    }
-
-    .arch-diagram {
-        max-width: 700px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 20px 0;
-    }
-
-    .arch-layer {
-        position: relative;
-        padding: 20px 26px;
-        border-radius: 16px;
-        border: 1.5px solid;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        transition: all 0.35s;
-    }
-
-        .arch-layer::before {
-            content: attr(data-num);
-            position: absolute;
-            top: 50%;
-            right: -22px;
-            transform: translateY(-50%);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #0a0e17;
-            border: 2px solid currentColor;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 900;
-            font-family: 'Fira Code', monospace;
-        }
-
-        .arch-layer .layer-info h4 {
-            font-size: 1rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-            color: #fff;
-        }
-
-        .arch-layer .layer-info p {
-            font-size: 0.82rem;
-            color: #94a3b8;
-            margin: 0;
-            line-height: 1.7;
-        }
-
-        .arch-layer .layer-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            flex-shrink: 0;
-        }
-
-        .arch-layer.domain {
-            background: rgba(236,72,153,0.06);
-            border-color: rgba(236,72,153,0.35);
-            color: #f9a8d4;
-        }
-
-            .arch-layer.domain .layer-icon {
-                background: rgba(236,72,153,0.15);
-            }
-
-        .arch-layer.application {
-            background: rgba(139,92,246,0.06);
-            border-color: rgba(139,92,246,0.35);
-            color: #c4b5fd;
-        }
-
-            .arch-layer.application .layer-icon {
-                background: rgba(139,92,246,0.15);
-            }
-
-        .arch-layer.infrastructure {
-            background: rgba(59,130,246,0.06);
-            border-color: rgba(59,130,246,0.35);
-            color: #93c5fd;
-        }
-
-            .arch-layer.infrastructure .layer-icon {
-                background: rgba(59,130,246,0.15);
-            }
-
-        .arch-layer.presentation {
-            background: rgba(52,211,153,0.06);
-            border-color: rgba(52,211,153,0.35);
-            color: #6ee7b7;
-        }
-
-            .arch-layer.presentation .layer-icon {
-                background: rgba(52,211,153,0.15);
-            }
-
-        .arch-layer:hover {
-            transform: translateX(-8px);
-        }
-
-    .arch-arrow {
-        text-align: center;
-        color: #475569;
-        font-size: 1rem;
     }
 
     .building-grid {
@@ -2419,337 +1859,6 @@
             font-weight: 600;
         }
 
-    .pricing-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 24px;
-        max-width: 1080px;
-        margin: 0 auto;
-    }
-
-    .pricing-card {
-        background: rgba(255,255,255,0.03);
-        border: 1.5px solid rgba(255,255,255,0.08);
-        border-radius: 24px;
-        padding: 32px 26px;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
-
-        .pricing-card.featured {
-            border-color: rgba(251,191,36,0.5);
-            background: linear-gradient(180deg, rgba(251,191,36,0.08), rgba(251,146,60,0.03));
-            transform: scale(1.03);
-        }
-
-            .pricing-card.featured::before {
-                content: 'پیشنهاد می‌شود';
-                position: absolute;
-                top: 16px;
-                left: -32px;
-                background: linear-gradient(135deg, #fbbf24, #fb923c);
-                color: #1a1a1a;
-                padding: 4px 40px;
-                font-size: 0.68rem;
-                font-weight: 900;
-                transform: rotate(-45deg);
-            }
-
-        .pricing-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(251,191,36,0.5);
-        }
-
-    .pricing-icon {
-        width: 64px;
-        height: 64px;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.7rem;
-        margin-bottom: 20px;
-        background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(251,146,60,0.12));
-        color: #fbbf24;
-        border: 1px solid rgba(251,191,36,0.3);
-    }
-
-    .pricing-card h3 {
-        font-size: 1.3rem;
-        font-weight: 900;
-        color: #fff;
-        margin-bottom: 6px;
-    }
-
-    .pricing-desc {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        margin-bottom: 22px;
-        min-height: 40px;
-    }
-
-    .pricing-amount {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-        margin-bottom: 24px;
-        padding-bottom: 22px;
-        border-bottom: 1px dashed rgba(255,255,255,0.08);
-    }
-
-        .pricing-amount .num {
-            font-size: 2.2rem;
-            font-weight: 900;
-            color: #fbbf24;
-            font-family: 'Fira Code', monospace;
-            line-height: 1;
-        }
-
-        .pricing-amount .unit {
-            font-size: 0.82rem;
-            color: #64748b;
-        }
-
-    .pricing-features {
-        list-style: none;
-        padding: 0;
-        flex: 1;
-        margin-bottom: 22px;
-    }
-
-        .pricing-features li {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 9px 0;
-            color: #cbd5e1;
-            font-size: 0.88rem;
-            line-height: 1.7;
-        }
-
-            .pricing-features li i {
-                color: #34d399;
-                font-size: 0.85rem;
-                margin-top: 5px;
-            }
-
-            .pricing-features li.disabled {
-                color: #475569;
-            }
-
-                .pricing-features li.disabled i {
-                    color: #475569;
-                }
-
-    .pricing-card .btn-price {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-        padding: 13px 20px;
-        border-radius: 40px;
-        font-weight: 700;
-        font-size: 0.92rem;
-        border: none;
-        cursor: pointer;
-        font-family: inherit;
-        text-decoration: none;
-    }
-
-        .pricing-card .btn-price.outline {
-            background: transparent;
-            color: #fbbf24;
-            border: 1.5px solid rgba(251,191,36,0.4);
-        }
-
-        .pricing-card .btn-price.primary {
-            background: linear-gradient(135deg, #fbbf24, #fb923c);
-            color: #1a1a1a;
-        }
-
-    .onboarding-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 20px;
-    }
-
-    .onboarding-card {
-        background: linear-gradient(180deg, rgba(139,92,246,0.05), rgba(59,130,246,0.02));
-        border: 1.5px solid rgba(139,92,246,0.18);
-        border-radius: 20px;
-        padding: 28px 22px;
-    }
-
-        .onboarding-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(139,92,246,0.4);
-        }
-
-    .onboarding-week {
-        display: inline-block;
-        font-size: 0.7rem;
-        font-weight: 800;
-        padding: 4px 14px;
-        border-radius: 20px;
-        background: rgba(139,92,246,0.15);
-        color: #c4b5fd;
-        border: 1px solid rgba(139,92,246,0.35);
-        margin-bottom: 14px;
-        font-family: 'Fira Code', monospace;
-    }
-
-    .onboarding-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 16px;
-        background: rgba(139,92,246,0.15);
-        color: #c4b5fd;
-        border: 1px solid rgba(139,92,246,0.3);
-    }
-
-    .onboarding-card h3 {
-        font-size: 1.02rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 10px;
-        line-height: 1.5;
-    }
-
-    .onboarding-card p {
-        color: #94a3b8;
-        font-size: 0.86rem;
-        line-height: 1.9;
-        margin: 0 0 14px 0;
-    }
-
-    .onboarding-checklist {
-        list-style: none;
-        padding: 0;
-    }
-
-        .onboarding-checklist li {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            padding: 5px 0;
-            font-size: 0.8rem;
-            color: #cbd5e1;
-            line-height: 1.7;
-        }
-
-            .onboarding-checklist li i {
-                color: #c4b5fd;
-                font-size: 0.72rem;
-                margin-top: 5px;
-            }
-
-    .ideal-role-wrapper {
-        max-width: 980px;
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-    }
-
-    .ideal-role-col {
-        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 22px;
-        padding: 30px 26px;
-    }
-
-        .ideal-role-col.looking {
-            border-color: rgba(52,211,153,0.2);
-            background: linear-gradient(180deg, rgba(52,211,153,0.04), rgba(59,130,246,0.02));
-        }
-
-        .ideal-role-col.avoiding {
-            border-color: rgba(248,113,113,0.2);
-            background: linear-gradient(180deg, rgba(248,113,113,0.04), rgba(139,92,246,0.02));
-        }
-
-    .ideal-role-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding-bottom: 18px;
-        margin-bottom: 18px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .ideal-role-header-icon {
-        width: 52px;
-        height: 52px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-    }
-
-    .looking .ideal-role-header-icon {
-        background: rgba(52,211,153,0.15);
-        color: #34d399;
-        border: 1px solid rgba(52,211,153,0.3);
-    }
-
-    .avoiding .ideal-role-header-icon {
-        background: rgba(248,113,113,0.15);
-        color: #f87171;
-        border: 1px solid rgba(248,113,113,0.3);
-    }
-
-    .ideal-role-header h3 {
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: #fff;
-    }
-
-    .ideal-role-header p {
-        font-size: 0.8rem;
-        color: #94a3b8;
-        margin-top: 2px;
-    }
-
-    .ideal-role-list {
-        list-style: none;
-        padding: 0;
-    }
-
-        .ideal-role-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 10px 0;
-            color: #cbd5e1;
-            font-size: 0.9rem;
-            line-height: 1.8;
-            border-bottom: 1px dashed rgba(255,255,255,0.04);
-        }
-
-            .ideal-role-list li:last-child {
-                border-bottom: none;
-            }
-
-    .looking .ideal-role-list li i {
-        color: #34d399;
-        font-size: 0.9rem;
-        margin-top: 5px;
-    }
-
-    .avoiding .ideal-role-list li i {
-        color: #f87171;
-        font-size: 0.9rem;
-        margin-top: 5px;
-    }
-
     .live-response-wrapper {
         max-width: 900px;
         margin: 0 auto;
@@ -2838,149 +1947,6 @@
             font-size: 0.78rem;
             margin-top: 6px;
         }
-
-    .capacity-wrapper {
-        max-width: 1100px;
-        margin: 0 auto;
-        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 24px;
-        padding: 32px 28px;
-    }
-
-    .capacity-legend {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-        margin-bottom: 22px;
-    }
-
-    .capacity-legend-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.8rem;
-        color: #94a3b8;
-    }
-
-        .capacity-legend-item .swatch {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-
-    .swatch.available {
-        background: rgba(52,211,153,0.7);
-    }
-
-    .swatch.partial {
-        background: rgba(251,191,36,0.7);
-    }
-
-    .swatch.booked {
-        background: rgba(248,113,113,0.7);
-    }
-
-    .swatch.past {
-        background: rgba(255,255,255,0.08);
-    }
-
-    .capacity-grid {
-        display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        gap: 8px;
-        direction: rtl;
-    }
-
-    .capacity-month {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 12px;
-        padding: 16px 8px;
-        text-align: center;
-    }
-
-        .capacity-month:hover {
-            transform: translateY(-4px) scale(1.05);
-            border-color: rgba(59,130,246,0.4);
-        }
-
-        .capacity-month .m-name {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #cbd5e1;
-            margin-bottom: 8px;
-            font-family: 'Fira Code', monospace;
-        }
-
-        .capacity-month .m-status {
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 12px;
-        }
-
-        .capacity-month.available {
-            background: rgba(52,211,153,0.1);
-            border-color: rgba(52,211,153,0.3);
-        }
-
-            .capacity-month.available .m-status {
-                background: rgba(52,211,153,0.2);
-                color: #34d399;
-            }
-
-        .capacity-month.partial {
-            background: rgba(251,191,36,0.1);
-            border-color: rgba(251,191,36,0.3);
-        }
-
-            .capacity-month.partial .m-status {
-                background: rgba(251,191,36,0.2);
-                color: #fbbf24;
-            }
-
-        .capacity-month.booked {
-            background: rgba(248,113,113,0.1);
-            border-color: rgba(248,113,113,0.3);
-        }
-
-            .capacity-month.booked .m-status {
-                background: rgba(248,113,113,0.2);
-                color: #f87171;
-            }
-
-        .capacity-month.past {
-            opacity: 0.4;
-        }
-
-            .capacity-month.past .m-status {
-                background: rgba(255,255,255,0.05);
-                color: #64748b;
-            }
-
-    .capacity-footer {
-        margin-top: 22px;
-        padding-top: 20px;
-        border-top: 1px dashed rgba(255,255,255,0.08);
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 14px;
-    }
-
-        .capacity-footer .info {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            color: #94a3b8;
-        }
-
-            .capacity-footer .info i {
-                color: #60a5fa;
-            }
 
     .quiz-wrapper {
         max-width: 780px;
@@ -3096,7 +2062,6 @@
     .quiz-result-title {
         font-size: 1.5rem;
         font-weight: 900;
-        color: #fff;
         margin-bottom: 10px;
     }
 
@@ -3113,8 +2078,6 @@
         padding: 10px 26px;
         border-radius: 30px;
         background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(59,130,246,0.1));
-        border: 1px solid rgba(52,211,153,0.35);
-        color: #34d399;
         font-size: 1rem;
         font-weight: 900;
         font-family: 'Fira Code', monospace;
@@ -3127,16 +2090,18 @@
         gap: 8px;
         padding: 11px 24px;
         border-radius: 30px;
-        background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.15);
         color: #fff;
         font-weight: 700;
         font-size: 0.88rem;
-        border: none;
         cursor: pointer;
         font-family: inherit;
+        transition: all 0.3s;
     }
 
         .quiz-restart:hover {
+            background: rgba(255,255,255,0.1);
             transform: translateY(-2px);
         }
 
@@ -3482,201 +2447,6 @@
             color: #93c5fd;
         }
 
-    .war-stories-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 22px;
-    }
-
-    .war-story-card {
-        background: linear-gradient(180deg, rgba(248,113,113,0.05), rgba(139,92,246,0.02));
-        border: 1.5px solid rgba(248,113,113,0.18);
-        border-radius: 22px;
-        padding: 26px 24px;
-    }
-
-        .war-story-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(248,113,113,0.4);
-        }
-
-    .war-story-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.65rem;
-        font-weight: 800;
-        padding: 4px 12px;
-        border-radius: 20px;
-        background: rgba(248,113,113,0.15);
-        color: #f87171;
-        border: 1px solid rgba(248,113,113,0.3);
-        margin-bottom: 14px;
-    }
-
-    .war-story-card h3 {
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 14px;
-        line-height: 1.5;
-    }
-
-    .war-story-section {
-        margin-bottom: 12px;
-    }
-
-    .war-story-section-label {
-        font-size: 0.68rem;
-        font-weight: 800;
-        color: #60a5fa;
-        margin-bottom: 4px;
-    }
-
-    .war-story-section p {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        line-height: 1.85;
-        margin: 0;
-    }
-
-    .war-story-metrics {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        padding-top: 14px;
-        border-top: 1px solid rgba(255,255,255,0.06);
-        margin-top: 14px;
-    }
-
-    .war-story-metric {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        color: #34d399;
-        font-weight: 700;
-        font-size: 0.75rem;
-    }
-
-    .weekly-rhythm-wrapper {
-        max-width: 1080px;
-        margin: 0 auto;
-        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 22px;
-        padding: 24px;
-        overflow-x: auto;
-    }
-
-    .weekly-rhythm-table {
-        width: 100%;
-        border-collapse: collapse;
-        direction: rtl;
-        min-width: 700px;
-    }
-
-        .weekly-rhythm-table th {
-            padding: 12px 8px;
-            text-align: center;
-            font-size: 0.78rem;
-            font-weight: 800;
-            color: #94a3b8;
-            border-bottom: 2px solid rgba(59,130,246,0.2);
-        }
-
-            .weekly-rhythm-table th.day-header {
-                background: rgba(59,130,246,0.08);
-                color: #93c5fd;
-            }
-
-        .weekly-rhythm-table td {
-            padding: 8px 6px;
-            text-align: center;
-            font-size: 0.75rem;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            color: #cbd5e1;
-        }
-
-    .weekly-rhythm-slot {
-        padding: 8px 4px;
-        border-radius: 8px;
-        font-size: 0.68rem;
-        font-weight: 700;
-    }
-
-        .weekly-rhythm-slot.deep-work {
-            background: rgba(52,211,153,0.15);
-            color: #34d399;
-            border: 1px solid rgba(52,211,153,0.3);
-        }
-
-        .weekly-rhythm-slot.meeting {
-            background: rgba(59,130,246,0.15);
-            color: #60a5fa;
-            border: 1px solid rgba(59,130,246,0.3);
-        }
-
-        .weekly-rhythm-slot.learning {
-            background: rgba(139,92,246,0.15);
-            color: #c4b5fd;
-            border: 1px solid rgba(139,92,246,0.3);
-        }
-
-        .weekly-rhythm-slot.personal {
-            background: rgba(251,191,36,0.15);
-            color: #fbbf24;
-            border: 1px solid rgba(251,191,36,0.3);
-        }
-
-        .weekly-rhythm-slot.off {
-            background: rgba(255,255,255,0.03);
-            color: #475569;
-        }
-
-    .weekly-rhythm-legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        margin-top: 20px;
-        padding-top: 18px;
-        border-top: 1px dashed rgba(255,255,255,0.08);
-        justify-content: center;
-    }
-
-        .weekly-rhythm-legend span {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.78rem;
-            color: #94a3b8;
-        }
-
-        .weekly-rhythm-legend .dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-        }
-
-            .weekly-rhythm-legend .dot.deep-work {
-                background: #34d399;
-            }
-
-            .weekly-rhythm-legend .dot.meeting {
-                background: #60a5fa;
-            }
-
-            .weekly-rhythm-legend .dot.learning {
-                background: #c4b5fd;
-            }
-
-            .weekly-rhythm-legend .dot.personal {
-                background: #fbbf24;
-            }
-
-            .weekly-rhythm-legend .dot.off {
-                background: #475569;
-            }
-
     .cost-breakdown-wrapper {
         max-width: 900px;
         margin: 0 auto;
@@ -3771,746 +2541,6 @@
         font-weight: 800;
         color: #fff;
         font-family: 'Fira Code', monospace;
-    }
-
-    .references-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
-    }
-
-    .reference-card {
-        background: linear-gradient(180deg, rgba(52,211,153,0.04), rgba(59,130,246,0.01));
-        border: 1.5px solid rgba(52,211,153,0.18);
-        border-radius: 20px;
-        padding: 24px 22px;
-    }
-
-        .reference-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(52,211,153,0.4);
-        }
-
-    .reference-header {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 14px;
-    }
-
-    .reference-avatar {
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        font-weight: 800;
-        color: #fff;
-        background: linear-gradient(135deg, #34d399, #3b82f6);
-        flex-shrink: 0;
-    }
-
-    .reference-info h4 {
-        font-size: 0.95rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 3px;
-    }
-
-    .reference-info p {
-        font-size: 0.78rem;
-        color: #94a3b8;
-    }
-
-    .reference-verified {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 3px 10px;
-        border-radius: 20px;
-        background: rgba(52,211,153,0.12);
-        color: #34d399;
-        border: 1px solid rgba(52,211,153,0.3);
-        font-size: 0.65rem;
-        font-weight: 800;
-        margin-bottom: 12px;
-    }
-
-    .reference-card p.ref-text {
-        color: #cbd5e1;
-        font-size: 0.86rem;
-        line-height: 1.9;
-        margin-bottom: 14px;
-    }
-
-    .reference-project {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 12px;
-        border-radius: 20px;
-        background: rgba(59,130,246,0.1);
-        color: #93c5fd;
-        border: 1px solid rgba(59,130,246,0.25);
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-
-    .risk-wrapper {
-        max-width: 1080px;
-        margin: 0 auto;
-        overflow-x: auto;
-    }
-
-    .risk-table {
-        width: 100%;
-        border-collapse: collapse;
-        direction: rtl;
-        min-width: 800px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.06);
-    }
-
-        .risk-table thead {
-            background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(139,92,246,0.08));
-        }
-
-        .risk-table th {
-            padding: 16px;
-            text-align: right;
-            color: #93c5fd;
-            font-weight: 800;
-            font-size: 0.82rem;
-            border-bottom: 2px solid rgba(59,130,246,0.25);
-        }
-
-        .risk-table td {
-            padding: 14px 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            color: #cbd5e1;
-            font-size: 0.83rem;
-            vertical-align: top;
-            line-height: 1.7;
-        }
-
-    .risk-level {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-size: 0.68rem;
-        font-weight: 800;
-    }
-
-        .risk-level.high {
-            background: rgba(248,113,113,0.15);
-            color: #f87171;
-            border: 1px solid rgba(248,113,113,0.3);
-        }
-
-        .risk-level.medium {
-            background: rgba(251,191,36,0.15);
-            color: #fbbf24;
-            border: 1px solid rgba(251,191,36,0.3);
-        }
-
-        .risk-level.low {
-            background: rgba(52,211,153,0.15);
-            color: #34d399;
-            border: 1px solid rgba(52,211,153,0.3);
-        }
-
-    .risk-table tbody tr:hover {
-        background: rgba(59,130,246,0.03);
-    }
-
-    .code-review-wrapper {
-        max-width: 900px;
-        margin: 0 auto;
-        background: #0d1320;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 18px;
-        overflow: hidden;
-    }
-
-    .code-review-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 20px;
-        background: rgba(59,130,246,0.05);
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .code-review-header-title {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.85rem;
-        color: #cbd5e1;
-    }
-
-        .code-review-header-title i {
-            color: #60a5fa;
-        }
-
-    .code-review-badge {
-        font-size: 0.7rem;
-        padding: 3px 10px;
-        border-radius: 20px;
-        background: rgba(52,211,153,0.15);
-        color: #34d399;
-        border: 1px solid rgba(52,211,153,0.3);
-        font-weight: 700;
-    }
-
-    .code-review-comment {
-        padding: 18px 22px;
-        border-bottom: 1px solid rgba(255,255,255,0.04);
-    }
-
-    .code-review-comment-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    .code-review-comment-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        color: #fff;
-        font-size: 0.8rem;
-        font-weight: 800;
-        flex-shrink: 0;
-    }
-
-    .code-review-comment-author {
-        font-size: 0.82rem;
-        font-weight: 700;
-        color: #fff;
-    }
-
-    .code-review-comment-time {
-        font-size: 0.7rem;
-        color: #64748b;
-    }
-
-    .code-review-comment-body {
-        color: #cbd5e1;
-        font-size: 0.85rem;
-        line-height: 1.85;
-        padding-right: 42px;
-    }
-
-    .code-review-code {
-        background: rgba(248,113,113,0.06);
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin: 10px 0 10px 42px;
-        font-family: 'Fira Code', monospace;
-        font-size: 0.78rem;
-        color: #cbd5e1;
-        direction: ltr;
-        text-align: left;
-        overflow-x: auto;
-        white-space: pre;
-        border-right: 3px solid #f87171;
-    }
-
-    .code-review-suggestion {
-        background: rgba(52,211,153,0.06);
-        border-right: 3px solid #34d399;
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin: 10px 0 10px 42px;
-        font-family: 'Fira Code', monospace;
-        font-size: 0.78rem;
-        color: #cbd5e1;
-        direction: ltr;
-        text-align: left;
-        overflow-x: auto;
-        white-space: pre;
-    }
-
-    .adr-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 20px;
-        max-width: 1100px;
-        margin: 0 auto;
-    }
-
-    .adr-card {
-        background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 18px;
-        padding: 24px 22px;
-        position: relative;
-        overflow: hidden;
-    }
-
-        .adr-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 3px;
-            height: 100%;
-            background: linear-gradient(180deg, #60a5fa, #8b5cf6);
-        }
-
-        .adr-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(59,130,246,0.35);
-        }
-
-    .adr-num {
-        display: inline-block;
-        font-size: 0.68rem;
-        font-weight: 800;
-        padding: 3px 12px;
-        border-radius: 20px;
-        background: rgba(59,130,246,0.15);
-        color: #60a5fa;
-        border: 1px solid rgba(59,130,246,0.3);
-        margin-bottom: 12px;
-        font-family: 'Fira Code', monospace;
-    }
-
-    .adr-card h3 {
-        font-size: 1rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 10px;
-        line-height: 1.5;
-    }
-
-    .adr-status {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 0.65rem;
-        font-weight: 800;
-        margin-bottom: 12px;
-    }
-
-        .adr-status.accepted {
-            background: rgba(52,211,153,0.15);
-            color: #34d399;
-            border: 1px solid rgba(52,211,153,0.3);
-        }
-
-        .adr-status.rejected {
-            background: rgba(248,113,113,0.15);
-            color: #f87171;
-            border: 1px solid rgba(248,113,113,0.3);
-        }
-
-    .adr-block {
-        margin-bottom: 12px;
-    }
-
-    .adr-block-label {
-        font-size: 0.68rem;
-        font-weight: 800;
-        color: #8b5cf6;
-        margin-bottom: 4px;
-    }
-
-    .adr-block p {
-        color: #94a3b8;
-        font-size: 0.83rem;
-        line-height: 1.85;
-        margin: 0;
-    }
-
-    .journey-story-wrapper {
-        max-width: 1000px;
-        margin: 0 auto;
-    }
-
-    .journey-story-intro {
-        text-align: center;
-        margin-bottom: 40px;
-        max-width: 700px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-        .journey-story-intro p {
-            color: #cbd5e1;
-            font-size: 1rem;
-            line-height: 2;
-        }
-
-    .journey-story-chapters {
-        display: flex;
-        flex-direction: column;
-        gap: 30px;
-    }
-
-    .journey-story-chapter {
-        display: grid;
-        grid-template-columns: 100px 1fr;
-        gap: 24px;
-        align-items: start;
-        position: relative;
-    }
-
-        .journey-story-chapter:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            right: 50px;
-            top: 100px;
-            bottom: -30px;
-            width: 2px;
-            background: linear-gradient(180deg, rgba(59,130,246,0.3), rgba(139,92,246,0.1));
-        }
-
-    .journey-story-chapter-num {
-        width: 100px;
-        height: 100px;
-        border-radius: 24px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        position: relative;
-        z-index: 2;
-    }
-
-        .journey-story-chapter-num .num {
-            font-size: 1.8rem;
-            font-weight: 900;
-            font-family: 'Fira Code', monospace;
-            line-height: 1;
-        }
-
-        .journey-story-chapter-num .lbl {
-            font-size: 0.65rem;
-            font-weight: 700;
-        }
-
-    .journey-story-chapter:nth-child(1) .journey-story-chapter-num {
-        background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(59,130,246,0.1));
-        color: #34d399;
-        border: 1.5px solid rgba(52,211,153,0.3);
-    }
-
-    .journey-story-chapter:nth-child(2) .journey-story-chapter-num {
-        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.1));
-        color: #60a5fa;
-        border: 1.5px solid rgba(59,130,246,0.3);
-    }
-
-    .journey-story-chapter:nth-child(3) .journey-story-chapter-num {
-        background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(236,72,153,0.1));
-        color: #c4b5fd;
-        border: 1.5px solid rgba(139,92,246,0.3);
-    }
-
-    .journey-story-chapter:nth-child(4) .journey-story-chapter-num {
-        background: linear-gradient(135deg, rgba(236,72,153,0.15), rgba(251,146,60,0.1));
-        color: #f9a8d4;
-        border: 1.5px solid rgba(236,72,153,0.3);
-    }
-
-    .journey-story-chapter:nth-child(5) .journey-story-chapter-num {
-        background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(251,146,60,0.1));
-        color: #fbbf24;
-        border: 1.5px solid rgba(251,191,36,0.3);
-    }
-
-    .journey-story-chapter-body {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 18px;
-        padding: 22px 24px;
-    }
-
-        .journey-story-chapter-body:hover {
-            transform: translateX(-6px);
-            border-color: rgba(59,130,246,0.35);
-            background: rgba(59,130,246,0.03);
-        }
-
-        .journey-story-chapter-body h3 {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 8px;
-        }
-
-        .journey-story-chapter-body p {
-            color: #cbd5e1;
-            font-size: 0.9rem;
-            line-height: 1.95;
-            margin: 0;
-        }
-
-    /* BATCH 5 */
-    .fpd-wrapper {
-        max-width: 1100px;
-        margin: 0 auto;
-    }
-
-    .fpd-hero {
-        background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.06));
-        border: 1.5px solid rgba(59,130,246,0.25);
-        border-radius: 24px;
-        padding: 36px 32px;
-        margin-bottom: 26px;
-    }
-
-    .fpd-hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.68rem;
-        font-weight: 800;
-        padding: 5px 14px;
-        border-radius: 20px;
-        background: rgba(251,191,36,0.15);
-        color: #fbbf24;
-        border: 1px solid rgba(251,191,36,0.35);
-        margin-bottom: 16px;
-    }
-
-    .fpd-hero h3 {
-        font-size: 1.6rem;
-        font-weight: 900;
-        color: #fff;
-        margin-bottom: 10px;
-        line-height: 1.4;
-    }
-
-    .fpd-hero p.fpd-summary {
-        color: #cbd5e1;
-        font-size: 1rem;
-        line-height: 1.95;
-        margin-bottom: 20px;
-    }
-
-    .fpd-hero-metrics {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 14px;
-    }
-
-    .fpd-hero-metric {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 14px;
-        padding: 16px 12px;
-        text-align: center;
-    }
-
-        .fpd-hero-metric .val {
-            font-size: 1.4rem;
-            font-weight: 900;
-            color: #60a5fa;
-            font-family: 'Fira Code', monospace;
-            line-height: 1;
-        }
-
-        .fpd-hero-metric .lbl {
-            font-size: 0.7rem;
-            color: #94a3b8;
-            margin-top: 6px;
-        }
-
-    .fpd-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-
-    .fpd-card {
-        background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 18px;
-        padding: 24px 22px;
-    }
-
-    .fpd-card-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-        .fpd-card-header i {
-            font-size: 1rem;
-            color: #60a5fa;
-        }
-
-        .fpd-card-header h4 {
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: #fff;
-        }
-
-    .fpd-card p, .fpd-card li {
-        color: #cbd5e1;
-        font-size: 0.88rem;
-        line-height: 1.9;
-    }
-
-    .fpd-card ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .fpd-card li {
-        padding: 5px 0;
-        padding-right: 20px;
-        position: relative;
-    }
-
-        .fpd-card li::before {
-            content: '▸';
-            position: absolute;
-            right: 0;
-            color: #60a5fa;
-        }
-
-    .workshops-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 22px;
-    }
-
-    .workshop-card {
-        background: linear-gradient(180deg, rgba(236,72,153,0.05), rgba(139,92,246,0.02));
-        border: 1.5px solid rgba(236,72,153,0.2);
-        border-radius: 22px;
-        padding: 28px 24px;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-    }
-
-        .workshop-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(236,72,153,0.45);
-        }
-
-    .workshop-level {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.65rem;
-        font-weight: 800;
-        padding: 4px 12px;
-        border-radius: 20px;
-        background: rgba(236,72,153,0.15);
-        color: #f9a8d4;
-        border: 1px solid rgba(236,72,153,0.3);
-        margin-bottom: 14px;
-    }
-
-    .workshop-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.6rem;
-        margin-bottom: 16px;
-        background: linear-gradient(135deg, rgba(236,72,153,0.18), rgba(139,92,246,0.12));
-        color: #f9a8d4;
-        border: 1px solid rgba(236,72,153,0.3);
-    }
-
-    .workshop-card h3 {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 10px;
-        line-height: 1.5;
-    }
-
-    .workshop-card > p {
-        color: #94a3b8;
-        font-size: 0.86rem;
-        line-height: 1.9;
-        margin-bottom: 16px;
-        flex: 1;
-    }
-
-    .workshop-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        padding: 12px 0;
-        border-top: 1px dashed rgba(255,255,255,0.08);
-        border-bottom: 1px dashed rgba(255,255,255,0.08);
-        margin-bottom: 14px;
-    }
-
-        .workshop-meta span {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.75rem;
-            color: #cbd5e1;
-        }
-
-        .workshop-meta i {
-            color: #f472b6;
-            font-size: 0.75rem;
-        }
-
-    .workshop-price {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-        margin-bottom: 14px;
-    }
-
-        .workshop-price .num {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #f9a8d4;
-            font-family: 'Fira Code', monospace;
-        }
-
-        .workshop-price .unit {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
-    .workshop-card .btn-workshop {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        width: 100%;
-        padding: 11px 18px;
-        border-radius: 40px;
-        font-weight: 700;
-        font-size: 0.86rem;
-        background: linear-gradient(135deg, #ec4899, #8b5cf6);
-        color: #fff;
-        border: none;
-        cursor: pointer;
-        font-family: inherit;
-        text-decoration: none;
     }
 
     .security-wrapper {
@@ -4764,677 +2794,6 @@
             border: 1.5px solid rgba(255,255,255,0.15);
         }
 
-    .intl-wrapper {
-        max-width: 1100px;
-        margin: 0 auto;
-    }
-
-    .intl-map {
-        background: linear-gradient(180deg, rgba(59,130,246,0.04), rgba(139,92,246,0.02));
-        border: 1px solid rgba(59,130,246,0.15);
-        border-radius: 22px;
-        padding: 32px 28px;
-        margin-bottom: 26px;
-        text-align: center;
-    }
-
-        .intl-map h3 {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 8px;
-        }
-
-        .intl-map p {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            margin-bottom: 24px;
-        }
-
-    .intl-countries {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 14px;
-    }
-
-    .intl-country {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        padding: 16px 22px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 16px;
-        min-width: 100px;
-    }
-
-        .intl-country .flag {
-            font-size: 2rem;
-            line-height: 1;
-        }
-
-        .intl-country .name {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .intl-country .tag {
-            font-size: 0.65rem;
-            color: #94a3b8;
-        }
-
-    .intl-projects {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 18px;
-    }
-
-    .intl-project {
-        background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 16px;
-        padding: 22px 20px;
-    }
-
-    .intl-project-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 12px;
-    }
-
-    .intl-project-flag {
-        font-size: 1.5rem;
-    }
-
-    .intl-project-header h4 {
-        font-size: 0.95rem;
-        font-weight: 800;
-        color: #fff;
-    }
-
-    .intl-project-header .country {
-        font-size: 0.7rem;
-        color: #94a3b8;
-    }
-
-    .intl-project p {
-        color: #cbd5e1;
-        font-size: 0.86rem;
-        line-height: 1.85;
-        margin: 0 0 12px 0;
-    }
-
-    .intl-project-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-
-        .intl-project-tags span {
-            font-size: 0.65rem;
-            padding: 2px 10px;
-            border-radius: 20px;
-            background: rgba(59,130,246,0.1);
-            color: #93c5fd;
-            border: 1px solid rgba(59,130,246,0.2);
-            font-weight: 600;
-        }
-
-    .qstack-wrapper {
-        max-width: 1000px;
-        margin: 0 auto;
-    }
-
-    .qstack-header {
-        text-align: center;
-        margin-bottom: 28px;
-    }
-
-    .qstack-quarter {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 20px;
-        border-radius: 30px;
-        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.1));
-        border: 1px solid rgba(59,130,246,0.35);
-        color: #93c5fd;
-        font-size: 0.85rem;
-        font-weight: 800;
-        font-family: 'Fira Code', monospace;
-        margin-bottom: 12px;
-    }
-
-    .qstack-header p {
-        color: #94a3b8;
-        font-size: 0.9rem;
-    }
-
-    .qstack-cats {
-        display: grid;
-        gap: 18px;
-    }
-
-    .qstack-cat {
-        background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 16px;
-        padding: 20px 22px;
-    }
-
-    .qstack-cat-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-    }
-
-        .qstack-cat-header i {
-            font-size: 1.1rem;
-            color: #60a5fa;
-        }
-
-        .qstack-cat-header h4 {
-            font-size: 0.92rem;
-            font-weight: 800;
-            color: #fff;
-            flex: 1;
-        }
-
-    .qstack-change {
-        font-size: 0.68rem;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-weight: 700;
-    }
-
-        .qstack-change.new {
-            background: rgba(52,211,153,0.15);
-            color: #34d399;
-            border: 1px solid rgba(52,211,153,0.3);
-        }
-
-        .qstack-change.dropped {
-            background: rgba(248,113,113,0.15);
-            color: #f87171;
-            border: 1px solid rgba(248,113,113,0.3);
-        }
-
-    .qstack-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .qstack-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 14px;
-        border-radius: 30px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        color: #cbd5e1;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-        .qstack-chip i {
-            font-size: 0.85rem;
-            color: #60a5fa;
-        }
-
-    .wrs-wrapper {
-        max-width: 900px;
-        margin: 0 auto;
-        background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 20px;
-        overflow: hidden;
-    }
-
-    .wrs-toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 22px;
-        background: rgba(59,130,246,0.06);
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .wrs-toolbar-left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.82rem;
-        color: #94a3b8;
-    }
-
-        .wrs-toolbar-left i {
-            color: #60a5fa;
-        }
-
-    .wrs-toolbar-badge {
-        font-size: 0.68rem;
-        padding: 3px 10px;
-        border-radius: 20px;
-        background: rgba(52,211,153,0.15);
-        color: #34d399;
-        border: 1px solid rgba(52,211,153,0.3);
-        font-weight: 700;
-    }
-
-    .wrs-body {
-        padding: 26px 28px;
-    }
-
-    .wrs-header {
-        padding-bottom: 18px;
-        margin-bottom: 20px;
-        border-bottom: 2px solid rgba(59,130,246,0.15);
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 14px;
-    }
-
-        .wrs-header h3 {
-            font-size: 1.15rem;
-            font-weight: 900;
-            color: #fff;
-        }
-
-        .wrs-header .wrs-week {
-            font-size: 0.82rem;
-            color: #94a3b8;
-            font-family: 'Fira Code', monospace;
-        }
-
-    .wrs-summary {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 12px;
-        margin-bottom: 22px;
-    }
-
-    .wrs-summary-item {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 12px;
-        padding: 14px 12px;
-        text-align: center;
-    }
-
-        .wrs-summary-item .val {
-            font-size: 1.4rem;
-            font-weight: 900;
-            color: #60a5fa;
-            font-family: 'Fira Code', monospace;
-            line-height: 1;
-        }
-
-        .wrs-summary-item .lbl {
-            font-size: 0.7rem;
-            color: #94a3b8;
-            margin-top: 6px;
-        }
-
-    .wrs-section {
-        margin-bottom: 20px;
-    }
-
-    .wrs-section-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.92rem;
-        font-weight: 800;
-        color: #60a5fa;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
-        border-bottom: 1px dashed rgba(59,130,246,0.15);
-    }
-
-        .wrs-section-title i {
-            color: #8b5cf6;
-            font-size: 0.85rem;
-        }
-
-    .wrs-tasks {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .wrs-task {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 10px 14px;
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 10px;
-    }
-
-    .wrs-task-status {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.65rem;
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-        .wrs-task-status.done {
-            background: rgba(52,211,153,0.2);
-            color: #34d399;
-            border: 1px solid rgba(52,211,153,0.4);
-        }
-
-        .wrs-task-status.progress {
-            background: rgba(251,191,36,0.2);
-            color: #fbbf24;
-            border: 1px solid rgba(251,191,36,0.4);
-        }
-
-    .wrs-task-body h5 {
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 3px;
-    }
-
-    .wrs-task-body p {
-        color: #94a3b8;
-        font-size: 0.78rem;
-        margin: 0;
-        line-height: 1.6;
-    }
-
-    .wrs-next {
-        background: rgba(59,130,246,0.05);
-        border: 1px dashed rgba(59,130,246,0.25);
-        border-radius: 12px;
-        padding: 14px 16px;
-    }
-
-        .wrs-next p {
-            color: #cbd5e1;
-            font-size: 0.85rem;
-            margin: 0;
-            line-height: 1.85;
-        }
-
-    .concerns-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 18px;
-        max-width: 1080px;
-        margin: 0 auto;
-    }
-
-    .concern-card {
-        background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 18px;
-        padding: 24px 22px;
-        position: relative;
-    }
-
-        .concern-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(180deg, #fbbf24, #fb923c);
-            border-radius: 0 18px 18px 0;
-        }
-
-        .concern-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(251,191,36,0.35);
-        }
-
-    .concern-q {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        font-size: 0.95rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 14px;
-        line-height: 1.6;
-    }
-
-    .concern-q-icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        font-weight: 900;
-        background: rgba(251,191,36,0.15);
-        color: #fbbf24;
-        border: 1px solid rgba(251,191,36,0.35);
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    .concern-a {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        color: #cbd5e1;
-        font-size: 0.87rem;
-        line-height: 1.95;
-    }
-
-    .concern-a-icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        font-weight: 900;
-        background: rgba(52,211,153,0.15);
-        color: #34d399;
-        border: 1px solid rgba(52,211,153,0.35);
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    .concern-a-body {
-        flex: 1;
-    }
-
-    .ltc-wrapper {
-        max-width: 1080px;
-        margin: 0 auto;
-    }
-
-    .ltc-header {
-        background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.04));
-        border: 1.5px solid rgba(59,130,246,0.25);
-        border-radius: 22px;
-        padding: 30px 28px;
-        margin-bottom: 24px;
-    }
-
-        .ltc-header h3 {
-            font-size: 1.4rem;
-            font-weight: 900;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-
-        .ltc-header p {
-            color: #cbd5e1;
-            font-size: 0.95rem;
-            line-height: 1.95;
-        }
-
-    .ltc-benefits {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 16px;
-        margin-bottom: 22px;
-    }
-
-    .ltc-benefit {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 14px;
-        padding: 20px 18px;
-        text-align: center;
-    }
-
-    .ltc-benefit-icon {
-        width: 48px;
-        height: 48px;
-        margin: 0 auto 12px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        background: rgba(52,211,153,0.15);
-        color: #34d399;
-        border: 1px solid rgba(52,211,153,0.3);
-    }
-
-    .ltc-benefit h4 {
-        font-size: 0.9rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 6px;
-    }
-
-    .ltc-benefit p {
-        color: #94a3b8;
-        font-size: 0.78rem;
-        line-height: 1.7;
-        margin: 0;
-    }
-
-    .ltc-plans {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 18px;
-    }
-
-    .ltc-plan {
-        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.005));
-        border: 1.5px solid rgba(255,255,255,0.08);
-        border-radius: 18px;
-        padding: 24px 22px;
-        display: flex;
-        flex-direction: column;
-    }
-
-        .ltc-plan.highlight {
-            border-color: rgba(59,130,246,0.4);
-            background: linear-gradient(180deg, rgba(59,130,246,0.06), rgba(139,92,246,0.02));
-        }
-
-        .ltc-plan h4 {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 6px;
-        }
-
-    .ltc-plan-sub {
-        color: #94a3b8;
-        font-size: 0.78rem;
-        margin-bottom: 16px;
-    }
-
-    .ltc-plan-hours {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-        padding: 12px 0;
-        border-top: 1px dashed rgba(255,255,255,0.08);
-        border-bottom: 1px dashed rgba(255,255,255,0.08);
-        margin-bottom: 16px;
-    }
-
-        .ltc-plan-hours .num {
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: #60a5fa;
-            font-family: 'Fira Code', monospace;
-            line-height: 1;
-        }
-
-        .ltc-plan-hours .unit {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
-    .ltc-plan-features {
-        list-style: none;
-        padding: 0;
-        flex: 1;
-        margin-bottom: 16px;
-    }
-
-        .ltc-plan-features li {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            padding: 5px 0;
-            font-size: 0.82rem;
-            color: #cbd5e1;
-            line-height: 1.7;
-        }
-
-            .ltc-plan-features li i {
-                color: #34d399;
-                font-size: 0.7rem;
-                margin-top: 5px;
-                flex-shrink: 0;
-            }
-
-    .ltc-plan .btn-ltc {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        width: 100%;
-        padding: 10px 16px;
-        border-radius: 40px;
-        font-weight: 700;
-        font-size: 0.84rem;
-        text-decoration: none;
-        border: 1.5px solid rgba(59,130,246,0.4);
-        background: transparent;
-        color: #93c5fd;
-        cursor: pointer;
-        font-family: inherit;
-    }
-
-    .ltc-plan.highlight .btn-ltc {
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        color: #fff;
-        border-color: transparent;
-    }
-
     .edu-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -5589,7 +2948,7 @@
     }
 
     @@media (max-width: 992px) {
-        .about-grid, .contact-wrapper, .request-grid, .ideal-role-wrapper {
+        .about-grid, .contact-wrapper, .request-grid {
             grid-template-columns: 1fr;
         }
 
@@ -5610,10 +2969,6 @@
                 display: none;
             }
 
-        .consult-card.featured {
-            transform: scale(1);
-        }
-
         .trust-grid {
             grid-template-columns: repeat(2, 1fr);
         }
@@ -5622,28 +2977,12 @@
             display: none;
         }
 
-        .capacity-grid {
-            grid-template-columns: repeat(6, 1fr);
-        }
-
         .interview-sim-wrapper {
             grid-template-columns: 1fr;
         }
 
         .interview-questions {
             max-height: 240px;
-        }
-
-        .pricing-card.featured {
-            transform: scale(1);
-        }
-
-        .fpd-hero-metrics {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .fpd-grid {
-            grid-template-columns: 1fr;
         }
 
         .qs-wrapper {
@@ -5680,30 +3019,6 @@
         .cost-breakdown-label {
             font-size: 0.78rem;
         }
-
-        .journey-story-chapter {
-            grid-template-columns: 70px 1fr;
-            gap: 16px;
-        }
-
-        .journey-story-chapter-num {
-            width: 70px;
-            height: 70px;
-            border-radius: 18px;
-        }
-
-            .journey-story-chapter-num .num {
-                font-size: 1.3rem;
-            }
-
-            .journey-story-chapter-num .lbl {
-                font-size: 0.55rem;
-            }
-
-        .journey-story-chapter:not(:last-child)::after {
-            right: 34px;
-            top: 70px;
-        }
     }
 
     @@media (max-width: 600px) {
@@ -5738,31 +3053,7 @@
             height: 16px;
         }
 
-        .capacity-grid {
-            grid-template-columns: repeat(4, 1fr);
-        }
-
-        .arch-layer::before {
-            display: none;
-        }
-
-        .fpd-hero {
-            padding: 24px 20px;
-        }
-
-            .fpd-hero h3 {
-                font-size: 1.3rem;
-            }
-
         .security-hero {
-            padding: 24px 20px;
-        }
-
-        .wrs-body {
-            padding: 20px 18px;
-        }
-
-        .intl-map {
             padding: 24px 20px;
         }
     }
@@ -5907,44 +3198,6 @@
     </div>
 </section>
 
-<!-- FEATURED PROJECT -->
-@* <section class="section" id="featured-project">
-    <div class="container">
-        <h2 class="section-title fade-up">پروژه <span>برجسته</span></h2>
-        <p class="section-subtitle fade-up">تحلیل عمیق یک پروژه واقعی — از چالش تا نتیجه</p>
-        <div class="fpd-wrapper">
-            @if (featuredProject != null)
-            {
-                <div class="fpd-hero fade-up">
-                    <span class="fpd-hero-badge"><i class="fas fa-star"></i> @featuredProject.Badge</span>
-                    <h3>@featuredProject.Title</h3>
-                    <p class="fpd-summary">@featuredProject.Summary</p>
-                    <div class="fpd-hero-metrics">
-                        @foreach (var m in featuredProject.Metrics)
-                        {
-                            <div class="fpd-hero-metric"><div class="val">@m.Value</div><div class="lbl">@m.Label</div></div>
-                        }
-                    </div>
-                </div>
-                <div class="fpd-grid">
-                    <div class="fpd-card fade-up"><div class="fpd-card-header"><i class="fas fa-exclamation-triangle"></i><h4>چالش</h4></div><p>@featuredProject.Challenge</p></div>
-                    <div class="fpd-card fade-up"><div class="fpd-card-header"><i class="fas fa-lightbulb"></i><h4>راه‌حل</h4></div><p>@featuredProject.Solution</p></div>
-                    <div class="fpd-card fade-up"><div class="fpd-card-header"><i class="fas fa-layer-group"></i><h4>معماری</h4></div><ul>@foreach (var a in featuredProject.Architecture) {
-                        <li>@a</li>
-                    }
-                </ul></div>
-                <div class="fpd-card fade-up"><div class="fpd-card-header"><i class="fas fa-check-circle"></i><h4>نتایج</h4></div><ul>@foreach (var r in featuredProject.Results) {
-                    <li>@r</li>
-                }
-            </ul></div>
-        </div>
-    }
-</div>
-</div>
-</section> *@
-
-
-
 <!-- PHILOSOPHY -->
 <section class="section" id="philosophy">
     <div class="container">
@@ -5964,88 +3217,75 @@
     </div>
 </section>
 
-<!-- CERTIFICATIONS -->
+<!-- CERTIFICATIONS (DYNAMIC) -->
 <section class="section" id="certifications">
     <div class="container">
         <h2 class="section-title fade-up">مدارک <span>تخصصی</span></h2>
         <p class="section-subtitle fade-up">مدارک تخصصی دریافت‌شده</p>
         <div class="cert-grid">
-            @foreach (var c in certifications)
+            @if (dbQualifications.Any())
             {
-                <div class="cert-card fade-up">
-                    <div class="cert-icon"><i class="@c.Icon"></i></div>
-                    <div class="cert-body"><h3>@c.Title</h3><div class="issuer">@c.Issuer</div><div class="cert-meta"><span>@c.Year</span><span>@c.Level</span></div></div>
-                </div>
+                @foreach (var cert in dbQualifications)
+                {
+                    <div class="cert-card fade-up">
+                        <div class="cert-icon">
+                            @if (!string.IsNullOrWhiteSpace(cert.Icon) && (cert.Icon.StartsWith("http") || cert.Icon.StartsWith("/")))
+                            {
+                                <img src="@cert.Icon" alt="@cert.Title" />
+                            }
+                            else
+                            {
+                                <i class="@(string.IsNullOrWhiteSpace(cert.Icon) ? "fas fa-certificate" : cert.Icon)"></i>
+                            }
+                        </div>
+                        <div class="cert-body">
+                            <h3>@cert.Title</h3>
+                            <div class="issuer">@cert.Provider</div>
+                            <div class="cert-meta">
+                                @if (cert.Tags != null && cert.Tags.Any())
+                                {
+                                    @foreach (var tag in cert.Tags.Take(3))
+                                    {
+                                        <span>@tag</span>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p style="text-align:center; grid-column: 1/-1; color:#94a3b8;">مدرکی ثبت نشده است.</p>
             }
         </div>
     </div>
 </section>
 
-
-<!-- ARCHITECTURE -->
-@* <section class="section" id="architecture">
-    <div class="container">
-        <h2 class="section-title fade-up">معماری <span>Clean</span></h2>
-        <p class="section-subtitle fade-up">معماری با لایه‌های مستقل و قابل تست</p>
-        <div class="arch-diagram">
-            @foreach (var layer in archLayers)
-            {
-                <div class="arch-layer @layer.CssClass fade-up" data-num="@layer.Number">
-                    <div class="layer-info"><h4>@layer.Title</h4><p>@layer.Desc</p></div>
-                    <div class="layer-icon"><i class="@layer.Icon"></i></div>
-                </div>
-                @if (!layer.IsLast)
-                {
-                    <div class="arch-arrow"><i class="fas fa-arrow-down"></i></div>
-                }
-            }
-        </div>
-    </div>
-</section> *@
-
-
-<!-- SERVICES -->
+<!-- SERVICES (DYNAMIC) -->
 <section class="section" id="services">
     <div class="container">
         <h2 class="section-title fade-up">خدمات <span>برنامه نویسی</span></h2>
         <p class="section-subtitle fade-up">طراحی سایت، توسعه API و ساخت داشبورد</p>
         <div class="services-grid">
-            <div class="service-card fade-up"><div class="service-icon"><i class="fas fa-globe"></i></div><h3>طراحی سایت</h3><p>ساخت وب‌سایت‌های سریع، امن و مقیاس‌پذیر با ASP.NET Core و Blazor.</p></div>
-            <div class="service-card fade-up"><div class="service-icon"><i class="fas fa-code"></i></div><h3>توسعه API</h3><p>طراحی APIهای مقیاس‌پذیر با احراز هویت JWT و مستندات Swagger.</p></div>
-            <div class="service-card fade-up"><div class="service-icon"><i class="fas fa-chart-line"></i></div><h3>داشبورد مدیریتی</h3><p>ساخت داشبوردهای تحلیلی با نمودار و گزارش‌گیری پیشرفته.</p></div>
-            <div class="service-card fade-up"><div class="service-icon"><i class="fas fa-cubes"></i></div><h3>پروژه‌های Blazor</h3><p>ساخت اپلیکیشن‌های وب مدرن و تعاملی با Blazor Server و WASM.</p></div>
-            <div class="service-card fade-up"><div class="service-icon"><i class="fas fa-database"></i></div><h3>پایگاه داده</h3><p>طراحی و بهینه‌سازی پایگاه داده SQL Server و PostgreSQL.</p></div>
-            <div class="service-card fade-up"><div class="service-icon"><i class="fas fa-cloud"></i></div><h3>میکروسرویس</h3><p>طراحی معماری میکروسرویس، Dockerize و استقرار ابری.</p></div>
-        </div>
-    </div>
-</section>
-
-<!-- WAR STORIES -->
-@* <section class="section" id="war-stories">
-    <div class="container">
-        <h2 class="section-title fade-up">موارد <span>واقعی</span></h2>
-        <p class="section-subtitle fade-up">۳ مشکل واقعی که در production حل کردم — با عدد و نتیجه</p>
-        <div class="war-stories-grid">
-            @foreach (var ws in warStories)
+            @if (dbProgrammingServices.Any())
             {
-                <div class="war-story-card fade-up">
-                    <span class="war-story-badge"><i class="fas fa-fire"></i> @ws.Badge</span>
-                    <h3>@ws.Title</h3>
-                    <div class="war-story-section"><div class="war-story-section-label">مشکل</div><p>@ws.Problem</p></div>
-                    <div class="war-story-section"><div class="war-story-section-label">راه‌حل</div><p>@ws.Solution</p></div>
-                    <div class="war-story-section"><div class="war-story-section-label">نتیجه</div><p>@ws.Result</p></div>
-                    <div class="war-story-metrics">
-                        @foreach (var m in ws.Metrics)
-                        {
-                            <span class="war-story-metric"><i class="fas fa-arrow-trend-up"></i> @m</span>
-                        }
+                @foreach (var service in dbProgrammingServices)
+                {
+                    <div class="service-card fade-up">
+                        <div class="service-icon"><i class="@(string.IsNullOrEmpty(service.Icon) ? "fas fa-code" : service.Icon)"></i></div>
+                        <h3>@service.Title</h3>
+                        <p>@service.Description</p>
                     </div>
-                </div>
+                }
+            }
+            else
+            {
+                <p style="text-align:center; grid-column: 1/-1; color:#94a3b8;">خدماتی ثبت نشده است.</p>
             }
         </div>
     </div>
 </section>
- *@
 
 <!-- SECURITY PROTOCOL -->
 <section class="section" id="security-protocol">
@@ -6062,15 +3302,17 @@
                 {
                     <div class="security-cat fade-up">
                         <div class="security-cat-header"><div class="security-cat-header-icon"><i class="@cat.Icon"></i></div><h4>@cat.Title</h4></div>
-                        <ul class="security-items">@foreach (var item in cat.Items) {
-                            <li><i class="fas fa-check"></i> @item</li>
-                        }
-                    </ul>
-                </div>
-            }
+                        <ul class="security-items">
+                            @foreach (var item in cat.Items)
+                            {
+                                <li><i class="fas fa-check"></i> @item</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
         </div>
     </div>
-</div>
 </section>
 
 <!-- PROCESS -->
@@ -6107,25 +3349,6 @@
     </div>
 </section>
 
-<!-- RISK -->
-<section class="section" id="risk-register">
-    <div class="container">
-        <h2 class="section-title fade-up">ریسک‌ها و <span>مدیریت آن‌ها</span></h2>
-        <p class="section-subtitle fade-up">ریسک‌های فعال و برنامه کاهش آن‌ها</p>
-        <div class="risk-wrapper fade-up">
-            <table class="risk-table">
-                <thead><tr><th>ریسک</th><th>سطح</th><th>راهکار کاهش</th><th>مالک</th></tr></thead>
-                <tbody>
-                    @foreach (var r in riskRegister)
-                    {
-                        <tr><td>@r.Risk</td><td><span class="risk-level @r.Level">@r.LevelLabel</span></td><td>@r.Mitigation</td><td>@r.Owner</td></tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
-
 <!-- QUICK START -->
 <section class="section" id="quick-start">
     <div class="container">
@@ -6152,79 +3375,37 @@
     </div>
 </section>
 
-<!-- INTERNATIONAL -->
-@* <section class="section" id="international">
-    <div class="container">
-        <h2 class="section-title fade-up">تجربه <span>بین‌المللی</span></h2>
-        <p class="section-subtitle fade-up">همکاری با کارفرمایان خارج از ایران</p>
-        <div class="intl-wrapper">
-            <div class="intl-map fade-up">
-                <h3>همکاری با کارفرمایان از</h3>
-                <p>تجربه همکاری Remote با تیم‌ها و کارفرمایان بین‌المللی</p>
-                <div class="intl-countries">
-                    @foreach (var c in intlCountries)
-                    {
-                        <div class="intl-country"><span class="flag">@c.Flag</span><span class="name">@c.Name</span><span class="tag">@c.Tag</span></div>
-                    }
-                </div>
-            </div>
-            <div class="intl-projects">
-                @foreach (var p in intlProjects)
-                {
-                    <div class="intl-project fade-up">
-                        <div class="intl-project-header"><span class="intl-project-flag">@p.Flag</span><div><h4>@p.Title</h4><span class="country">@p.Country</span></div></div>
-                        <p>@p.Description</p>
-                        <div class="intl-project-tags">@foreach (var t in p.Tags) {
-                            <span>@t</span>
-                        }
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-</div>
-</section>
- *@
-
-
-
-<!-- TESTIMONIALS -->
+<!-- TESTIMONIALS (DYNAMIC) -->
 <section class="section" id="testimonials">
     <div class="container">
         <h2 class="section-title fade-up">نظرات <span>همکاران</span></h2>
         <p class="section-subtitle fade-up">آنچه همکاران درباره همکاری با من می‌گویند</p>
         <div class="testi-grid">
-            @foreach (var t in testimonials)
+            @if (testimonials != null && testimonials.Any())
             {
-                <div class="testi-card fade-up">
-                    <div class="testi-stars">@for (int i = 0; i < t.Rating; i++) {
-                        <i class="fas fa-star"></i>
-                    }
-                    @for (int i = t.Rating; i < 5; i++)
-                    {
-                        <i class="far fa-star"></i>
-                    }
-                </div>
-                <p class="testi-text">@t.Text</p>
-                <div class="testi-author"><div class="testi-avatar">@t.Initial</div><div class="testi-info"><div class="name">@t.Name</div><div class="role">@t.Role</div></div></div>
-            </div>
-        }
-    </div>
-</div>
-</section>
-
-
-<!-- CONCERNS -->
-<section class="section" id="concerns">
-    <div class="container">
-        <h2 class="section-title fade-up">پاسخ به <span>نگرانی‌ها</span></h2>
-        <p class="section-subtitle fade-up">پاسخ صادقانه به دغدغه‌های رایج پیش از همکاری</p>
-        <div class="concerns-grid">
-            @foreach (var c in commonConcerns)
+                @foreach (var t in testimonials)
+                {
+                    <div class="testi-card fade-up">
+                        <div class="testi-stars">
+                            @for (int i = 0; i < t.Rating; i++)
+                            {
+                                <i class="fas fa-star"></i>
+                            }
+                            @for (int i = t.Rating; i < 5; i++)
+                            {
+                                <i class="far fa-star"></i>
+                            }
+                        </div>
+                        <p class="testi-text">@t.Text</p>
+                        <div class="testi-author"><div class="testi-avatar">@t.Initial</div><div class="testi-info"><div class="name">@t.Name</div><div class="role">@t.Role</div></div></div>
+                    </div>
+                }
+            }
+            else
             {
-                <div class="concern-card fade-up">
-                    <div class="concern-q"><span class="concern-q-icon">Q</span><span>@c.Question</span></div>
-                    <div class="concern-a"><span class="concern-a-icon">A</span><div class="concern-a-body">@c.Answer</div></div>
+                <div style="grid-column: 1/-1; text-align:center; padding: 40px; color: #64748b;">
+                    <i class="fas fa-comment-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                    <p>هنوز نظری ثبت نشده است.</p>
                 </div>
             }
         </div>
@@ -6278,36 +3459,39 @@
     </div>
 </section>
 
-<!-- TECH -->
+<!-- TECH (DYNAMIC) -->
 <section class="section" id="tech">
     <div class="container">
         <h2 class="section-title fade-up">تکنولوژی‌های <span>تخصصی</span></h2>
         <p class="section-subtitle fade-up">ابزارها و پایگاه داده‌هایی که در پروژه‌های واقعی استفاده می‌کنم</p>
-        <div class="tech-category">
-            <div class="tech-category-title"><i class="fas fa-server"></i> بک‌اند و API</div>
-            <div class="tech-grid">
-                <div class="tech-item fade-up"><span class="tech-years">۵ سال</span><i class="devicon-csharp-plain colored"></i><span>C#</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۵ سال</span><i class="devicon-dotnetcore-plain colored"></i><span>.NET Core</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۴ سال</span><i class="fas fa-fire" style="color:#a855f7;"></i><span>ASP.NET Core</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۴ سال</span><i class="fas fa-database" style="color:#60a5fa;"></i><span>EF Core</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۴ سال</span><i class="fas fa-plug" style="color:#34d399;"></i><span>REST API</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۳ سال</span><i class="fas fa-bolt" style="color:#fbbf24;"></i><span>SignalR</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۳ سال</span><i class="fas fa-cubes" style="color:#8b5cf6;"></i><span>Blazor</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۲ سال</span><i class="fas fa-exchange-alt" style="color:#06b6d4;"></i><span>gRPC</span></div>
-            </div>
-        </div>
-        <div class="tech-category">
-            <div class="tech-category-title"><i class="fas fa-database"></i> پایگاه داده</div>
-            <div class="tech-grid">
-                <div class="tech-item fade-up"><span class="tech-years">۵ سال</span><i class="devicon-microsoftsqlserver-plain colored"></i><span>SQL Server</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۳ سال</span><i class="devicon-postgresql-plain colored"></i><span>PostgreSQL</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۲ سال</span><i class="devicon-redis-plain colored"></i><span>Redis</span></div>
-                <div class="tech-item fade-up"><span class="tech-years">۲ سال</span><i class="devicon-mongodb-plain colored"></i><span>MongoDB</span></div>
-            </div>
-        </div>
+        
+        @if (dbTechCategories.Any())
+        {
+            @foreach (var category in dbTechCategories)
+            {
+                <div class="tech-category">
+                    <div class="tech-category-title">
+                        <i class="@(string.IsNullOrEmpty(category.Icon) ? "fas fa-layer-group" : category.Icon)"></i>
+                        @category.Title
+                    </div>
+                    <div class="tech-grid">
+                        @foreach (var tech in dbTechnologies.Where(t => t.CategoryId == category.Id))
+                        {
+                            <div class="tech-item fade-up">
+                                <i class="@(string.IsNullOrEmpty(tech.Icon) ? "fas fa-code" : tech.Icon)" style="@(tech.Icon != null && !tech.Icon.StartsWith("devicon") ? "color:#60a5fa;" : "")"></i>
+                                <span>@tech.Title</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p style="text-align:center; color:#94a3b8;">تکنولوژی‌ای ثبت نشده است.</p>
+        }
     </div>
 </section>
-
 
 <!-- CODE QUALITY -->
 <section class="section" id="quality">
@@ -6390,7 +3574,6 @@
                         }
                         else
                         {
-
                             <video controls style="width:100%; max-height:200px; background:#111;"><source src="@(Directories.GetPortfolioVideo(item.PortfolioFile.FileAddress))" type="video/mp4" /></video>
                         }
                         <div class="info">
@@ -6492,25 +3675,27 @@
                     <p>@b.Desc</p>
                     <div class="building-progress-label"><span>پیشرفت</span><span>@b.Progress%</span></div>
                     <div class="building-bar"><div class="fill" style="width: @(b.Progress)%"></div></div>
-                    <div class="building-tags">@foreach (var t in b.Tags) {
-                        <span>@t</span>
-                    }
+                    <div class="building-tags">
+                        @foreach (var t in b.Tags)
+                        {
+                            <span>@t</span>
+                        }
+                    </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
     </div>
-</div>
 </section>
 
 <!-- COST BREAKDOWN -->
 <section class="section" id="cost-breakdown">
     <div class="container">
         <h2 class="section-title fade-up">تفکیک <span>شفاف هزینه</span></h2>
-        <p class="section-subtitle fade-up">یک پروژه متوسط چه هزینه‌هایی دارد</p>
+        <p class="section-subtitle fade-up">توزیع زمان و هزینه در یک پروژه استاندارد</p>
         <div class="cost-breakdown-wrapper fade-up">
             <div class="cost-breakdown-header">
-                <div class="cost-breakdown-total">۱۸M</div>
-                <div class="cost-breakdown-total-label">تومان — نمونه پروژه کامل</div>
+                <div class="cost-breakdown-total">۱۰۰٪</div>
+                <div class="cost-breakdown-total-label">توزیع تخصصی زمان و انرژی در پروژه</div>
             </div>
             <div class="cost-breakdown-items">
                 @foreach (var ci in costBreakdownItems)
@@ -6518,14 +3703,13 @@
                     <div class="cost-breakdown-row">
                         <div class="cost-breakdown-label"><i class="@ci.Icon"></i> @ci.Label</div>
                         <div class="cost-breakdown-bar"><div class="cost-breakdown-fill @ci.ColorClass" style="width: @(ci.Percent)%;"></div></div>
-                        <div class="cost-breakdown-value">@ci.Value</div>
+                        <div class="cost-breakdown-value">@(ci.Percent)٪</div>
                     </div>
                 }
             </div>
         </div>
     </div>
 </section>
-
 
 <!-- COMMUNICATION -->
 <section class="section" id="communication">
@@ -6543,48 +3727,6 @@
         </div>
     </div>
 </section>
-
-<!-- WEEKLY RHYTHM -->
-@* <section class="section" id="weekly-rhythm">
-    <div class="container">
-        <h2 class="section-title fade-up">ریتم <span>هفتگی</span></h2>
-        <p class="section-subtitle fade-up">یک هفته کاری معمولی</p>
-        <div class="weekly-rhythm-wrapper fade-up">
-            <table class="weekly-rhythm-table">
-                <thead>
-                    <tr>
-                        <th>بازه زمانی</th>
-                        @foreach (var d in new[] { "شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه" })
-                        {
-                            <th class="day-header">@d</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var slot in weeklyRhythm)
-                    {
-                        <tr>
-                            <td><strong style="color:#cbd5e1;">@slot.TimeRange</strong></td>
-                            @foreach (var s in slot.Slots)
-                            {
-                                var slotClass = s.ToLower() switch { "deep" => "deep-work", "meet" => "meeting", "learn" => "learning", "personal" => "personal", _ => "off" };
-                                var slotLabel = s.ToLower() switch { "deep" => "Deep Work", "meet" => "جلسه", "learn" => "یادگیری", "personal" => "شخصی", _ => "—" };
-                                <td><span class="weekly-rhythm-slot @slotClass">@slotLabel</span></td>
-                            }
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            <div class="weekly-rhythm-legend">
-                <span><span class="dot deep-work"></span> Deep Work</span>
-                <span><span class="dot meeting"></span> جلسه</span>
-                <span><span class="dot learning"></span> یادگیری</span>
-                <span><span class="dot personal"></span> شخصی</span>
-                <span><span class="dot off"></span> خارج از دسترس</span>
-            </div>
-        </div>
-    </div>
-</section> *@
 
 <!-- LIVE RESPONSE -->
 <section class="section" id="live-response">
@@ -6604,32 +3746,6 @@
     </div>
 </section>
 
-<!-- CAPACITY -->
-@* <section class="section" id="capacity">
-    <div class="container">
-        <h2 class="section-title fade-up">تقویم <span>ظرفیت ۱۴۰۴</span></h2>
-        <p class="section-subtitle fade-up">ظرفیت پروژه‌های سال ۱۴۰۴</p>
-        <div class="capacity-wrapper fade-up">
-            <div class="capacity-legend">
-                <span class="capacity-legend-item"><span class="swatch available"></span> آزاد</span>
-                <span class="capacity-legend-item"><span class="swatch partial"></span> محدود</span>
-                <span class="capacity-legend-item"><span class="swatch booked"></span> رزرو</span>
-                <span class="capacity-legend-item"><span class="swatch past"></span> گذشته</span>
-            </div>
-            <div class="capacity-grid">
-                @foreach (var m in annualCapacity)
-                {
-                    <div class="capacity-month @m.StatusClass" title="@m.Tooltip"><div class="m-name">@m.MonthName</div><div class="m-status">@m.StatusLabel</div></div>
-                }
-            </div>
-            <div class="capacity-footer">
-                <div class="info"><i class="fas fa-info-circle"></i> ظرفیت فعلی: ۲ پروژه فعال همزمان</div>
-                <div class="info"><i class="fas fa-calendar-alt"></i> به‌روزرسانی: هر ماه</div>
-            </div>
-        </div>
-    </div>
-</section> *@
-
 <!-- GUARANTEE -->
 <section class="section" id="guarantee">
     <div class="container">
@@ -6645,62 +3761,6 @@
         </div>
     </div>
 </section>
-
-<!-- QUICK SERVICES -->
-<section class="section" id="quick-services">
-    <div class="container">
-        <h2 class="section-title fade-up">خدمات <span>ساعتی</span></h2>
-        <p class="section-subtitle fade-up">پروژه‌های کوچک، رفع باگ و کارهای ضربتی</p>
-        <div class="quick-services-grid">
-            @foreach (var qs in quickServices)
-            {
-                <div class="quick-service fade-up">
-                    @if (!string.IsNullOrEmpty(qs.Badge))
-                    {
-                        <span class="quick-service-badge">@qs.Badge</span>
-                    }
-                    <div class="quick-service-icon"><i class="@qs.Icon"></i></div>
-                    <h3>@qs.Title</h3>
-                    <span class="duration"><i class="far fa-clock"></i> @qs.Duration</span>
-                    <p>@qs.Desc</p>
-                    <div class="quick-service-price"><span class="amount">@qs.Price</span><span style="font-size:0.78rem; color:#64748b;">@qs.Unit</span></div>
-                    <a href="/#contact" class="btn-quick"><i class="fas fa-paper-plane"></i> درخواست</a>
-                </div>
-            }
-        </div>
-    </div>
-</section>
-
-
-<!-- IDEAL ROLE -->
-@* <section class="section" id="ideal-role">
-    <div class="container">
-        <h2 class="section-title fade-up">شرایط <span>همکاری</span></h2>
-        <p class="section-subtitle fade-up">شرایطی که با آن همکاری می‌کنم و شرایطی که نمی‌کنم</p>
-        <div class="ideal-role-wrapper">
-            <div class="ideal-role-col looking fade-up">
-                <div class="ideal-role-header">
-                    <div class="ideal-role-header-icon"><i class="fas fa-check-double"></i></div>
-                    <div><h3>شرایط مطلوب</h3><p>شرایطی که ترجیح می‌دهم</p></div>
-                </div>
-                <ul class="ideal-role-list">@foreach (var l in idealRoleLooking) {
-                    <li><i class="fas fa-check"></i> @l</li>
-                }
-            </ul>
-        </div>
-        <div class="ideal-role-col avoiding fade-up">
-            <div class="ideal-role-header">
-                <div class="ideal-role-header-icon"><i class="fas fa-times"></i></div>
-                <div><h3>شرایط نامطلوب</h3><p>شرایطی که نمی‌پذیرم</p></div>
-            </div>
-            <ul class="ideal-role-list">@foreach (var a in idealRoleAvoiding) {
-                <li><i class="fas fa-times"></i> @a</li>
-            }
-        </ul>
-    </div>
-</div>
-</div>
-</section> *@
 
 <!-- INTERVIEW SIM -->
 <section class="section" id="interview-sim">
@@ -6725,10 +3785,14 @@
                 <div class="interview-answer">
                     <div class="interview-answer-header"><div class="interview-answer-num">Q@(intSelectedQuestion + 1)</div><h3>@current.Question</h3></div>
                     <span class="interview-answer-tag"><i class="fas fa-tag"></i> @current.Tag</span>
-                    <div class="interview-answer-body"><p>@current.AnswerIntro</p><ul>@foreach (var pt in current.BulletPoints) {
-                        <li>@pt</li>
-                    }
-                </ul></div>
+                    <div class="interview-answer-body">
+                        <p>@current.AnswerIntro</p><ul>
+                        @foreach (var pt in current.BulletPoints)
+                        {
+                            <li>@pt</li>
+                        }
+                    </ul>
+                </div>
             </div>
         }
     </div>
@@ -6765,13 +3829,28 @@
             }
             else
             {
-                <div class="quiz-result">
-                    <span class="quiz-result-emoji">@(quizScore >= 3 ? "🎯" : quizScore >= 2 ? "📊" : "🔄")</span>
-                    <div class="quiz-result-title">@(quizScore >= 3 ? "هماهنگی بالا" : quizScore >= 2 ? "هماهنگی متوسط" : "رویکردهای متفاوت")</div>
-                    <p class="quiz-result-desc">@(quizScore >= 3 ? "اولویت‌های ما هم‌راستاست. برای شروع همکاری یک جلسه ۳۰ دقیقه‌ای هماهنگ کنیم." : quizScore >= 2 ? "تا حدودی هماهنگی وجود دارد. یک جلسه آشنایی برای بررسی دقیق‌تر پیشنهاد می‌شود." : "رویکردهای ما متفاوت است. هر پروژه‌ای منحصر به فرد است — گفتگو در مورد جزئیات مفید است.")</p>
-                    <div class="quiz-result-score"><i class="fas fa-star"></i> @quizScore از @quizQuestions.Count</div>
-                    <div><button class="quiz-restart" @onclick="ResetQuiz"><i class="fas fa-redo"></i> شروع دوباره</button></div>
-                    <div style="margin-top:16px;"><a href="/#contact" class="btn-primary ripple"><i class="fas fa-paper-plane"></i> درخواست جلسه</a></div>
+                <div class="quiz-result" style="animation: fadeIn 0.5s ease;">
+                    <span class="quiz-result-emoji">@GetQuizEmoji()</span>
+                    <div class="quiz-result-title" style="color: @GetQuizColor();">@GetQuizTitle()</div>
+                    
+                    <!-- نوار پیشرفت داینامیک -->
+                    <div style="max-width: 320px; margin: 0 auto 22px; background: rgba(255,255,255,0.08); height: 10px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
+                        <div style="width: @(QuizPercentage)%; height: 100%; background: @GetQuizColor(); border-radius: 10px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px @(GetQuizColor() + "80");"></div>
+                    </div>
+
+                    <p class="quiz-result-desc">
+                        @GetQuizDesc()
+                    </p>
+                    
+                    <div class="quiz-result-score" style="border-color: @(GetQuizColor() + "60"); color: @GetQuizColor();">
+                        <i class="fas fa-star"></i> @quizScore از @MaxQuizScore امتیاز (@QuizPercentage٪)
+                    </div>
+                    
+                    <!-- دکمه‌های عملیات (شروع دوباره و درخواست جلسه) -->
+                    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:20px;">
+                        <button class="quiz-restart" @onclick="ResetQuiz"><i class="fas fa-redo"></i> شرکت دوباره در آزمون</button>
+                        <a href="/#contact" class="btn-primary ripple" style="padding:11px 24px; border-radius:30px; font-size:0.88rem; text-decoration:none; background: @GetQuizColor(); border-color: @GetQuizColor();"><i class="fas fa-paper-plane"></i> درخواست جلسه</a>
+                    </div>
                 </div>
             }
         </div>
@@ -6883,7 +3962,6 @@
     </div>
 </section>
 
-
 <!-- LATEST BLOG -->
 <section class="section" id="latest-blog">
     <div class="container">
@@ -6985,6 +4063,42 @@
     private int computedMatchScore => selectedTechs.Count == 0 ? 0 : (int)Math.Round((double)selectedTechs.Count(t => myTechs.Contains(t)) / selectedTechs.Count * 100);
     private void ToggleTech(string tech) { if (selectedTechs.Contains(tech)) selectedTechs.Remove(tech); else selectedTechs.Add(tech); }
 
+    // محاسبات داینامیک آزمون
+    private int MaxQuizScore => quizQuestions.Count * 3;
+    private int QuizPercentage => MaxQuizScore == 0 ? 0 : (int)Math.Round((double)quizScore / MaxQuizScore * 100);
+
+    private string GetQuizEmoji() => quizScore switch
+    {
+        >= 10 => "🎯",
+        >= 7 => "🌟",
+        >= 4 => "📊",
+        _ => "🔄"
+    };
+
+    private string GetQuizTitle() => quizScore switch
+    {
+        >= 10 => "هماهنگی کامل",
+        >= 7 => "هماهنگی بالا",
+        >= 4 => "هماهنگی متوسط",
+        _ => "تفاوت در رویکردها"
+    };
+
+    private string GetQuizDesc() => quizScore switch
+    {
+        >= 10 => "عالی! دیدگاه ما به توسعه نرم‌افزار کاملاً هم‌راستاست. کیفیت، شفافیت و معماری برای هر دو ما اولویت دارد. بیایید یک جلسه هماهنگ کنیم.",
+        >= 7 => "هماهنگی بسیار خوبی وجود دارد! شما برای کیفیت و نتیجه ارزش قائل هستید. با یک جلسه کوتاه می‌توانیم جزئیات همکاری و زمان‌بندی را دقیق‌تر بررسی کنیم.",
+        >= 4 => "تا حدودی هماهنگی وجود دارد، اما در برخی اولویت‌ها (مثل سرعت در برابر کیفیت) ممکن است اختلاف نظر داشته باشیم. یک جلسه آشنایی برای یافتن نقاط مشترک پیشنهاد می‌شود.",
+        _ => "رویکردهای ما تفاوت‌های اساسی دارد. اگر برای شما تحویل سریع یا هزینه پایین اولویت مطلق است، شاید نتوانیم همکاری موفقی داشته باشیم. اما اگر برای بررسی راه‌حل‌های اصولی باز هستید، گفتگو کنیم."
+    };
+
+    private string GetQuizColor() => quizScore switch
+    {
+        >= 10 => "#34d399", // سبز (عالی)
+        >= 7 => "#3b82f6",  // آبی (خوب)
+        >= 4 => "#fbbf24",  // زرد (متوسط)
+        _ => "#f87171"      // قرمز (ضعیف)
+    };
+
     // DATA
     private List<TrustStat> trustStats = new() { new() { Number = "۵+", Label = "سال تجربه" }, new() { Number = "۲۰+", Label = "پروژه" }, new() { Number = "۱۵+", Label = "همکاری موفق" }, new() { Number = "۲۴h", Label = "پاسخگویی" } };
     private List<Achievement> achievements = new()
@@ -6996,13 +4110,6 @@
         new() { Icon = "fas fa-star", Number = "۴.۹", Label = "میانگین رضایت", Desc = "از همکاری‌های گذشته" },
         new() { Icon = "fas fa-trophy", Number = "۱۰۰٪", Label = "تحویل به‌موقع", Desc = "بدون تاخیر" }
     };
-    private List<CareerStep> careerSteps = new()
-    {
-        new() { Year = "۱۴۰۴ - الان", Icon = "fas fa-rocket", Title = "توسعه‌دهنده ارشد و فریلنسر", Company = "پروژه‌های شخصی", Desc = "طراحی پروژه‌های SaaS و APIهای پرترافیک." },
-        new() { Year = "۱۴۰۳", Icon = "fas fa-users-cog", Title = "توسعه‌دهنده بک‌اند", Company = "استارتاپ فین‌تک (Remote)", Desc = "معماری میکروسرویس با MediatR و Rate Limiting." },
-        new() { Year = "۱۴۰۲", Icon = "fas fa-user-tie", Title = "فریلنسر تمام‌وقت", Company = "پروژه‌های متعدد", Desc = "بیش از ۱۰ پروژه کوچک و متوسط." },
-        new() { Year = "۱۴۰۱", Icon = "fas fa-graduation-cap", Title = "یادگیری", Company = "خودآموز", Desc = "شروع یادگیری C#، OOP، SQL." }
-    };
     private List<PhilosophyPrinciple> philosophy = new()
     {
         new() { Icon = "fas fa-broom", Title = "کد تمیز", Desc = "کدی که هر توسعه‌دهنده دیگری بتواند بفهمد.", Quote = "Code should be readable." },
@@ -7012,22 +4119,14 @@
         new() { Icon = "fas fa-comments", Title = "ارتباط شفاف", Desc = "دموی هفتگی با کارفرما.", Quote = "Communication is key." },
         new() { Icon = "fas fa-sync-alt", Title = "یادگیری مستمر", Desc = "هر پروژه فرصت یادگیری.", Quote = "Stay hungry." }
     };
-    private List<CertItem> certifications = new()
-    {
-        new() { Icon = "fab fa-microsoft", Title = "Azure Fundamentals", Issuer = "Microsoft", Year = "۲۰۲۴", Level = "AZ-900" },
-        new() { Icon = "fab fa-microsoft", Title = "Azure Developer Associate", Issuer = "Microsoft", Year = "۲۰۲۴", Level = "AZ-204" },
-        new() { Icon = "fas fa-code", Title = "ASP.NET Core Web API", Issuer = "Udemy", Year = "۲۰۲۳", Level = "Advanced" },
-        new() { Icon = "fas fa-sitemap", Title = "Clean Architecture in .NET", Issuer = "Pluralsight", Year = "۲۰۲۳", Level = "Expert" },
-        new() { Icon = "fas fa-shield-halved", Title = "OWASP Top 10", Issuer = "OWASP", Year = "۲۰۲۴", Level = "Security" },
-        new() { Icon = "fas fa-database", Title = "SQL Server Performance", Issuer = "Microsoft Learn", Year = "۲۰۲۴", Level = "Advanced" }
-    };
-    private List<ArchLayer> archLayers = new()
-    {
-        new() { Number = "۱", CssClass = "presentation", Icon = "fas fa-window-maximize", Title = "Presentation", Desc = "Controllers، Razor Pages، ViewModels" },
-        new() { Number = "۲", CssClass = "application", Icon = "fas fa-cogs", Title = "Application", Desc = "Use Cases، MediatR Handlers، DTOs" },
-        new() { Number = "۳", CssClass = "domain", Icon = "fas fa-gem", Title = "Domain", Desc = "Entities، Value Objects، Business Rules" },
-        new() { Number = "۴", CssClass = "infrastructure", Icon = "fas fa-server", Title = "Infrastructure", Desc = "EF Core، External APIs، Storage", IsLast = true }
-    };
+    
+    // متغیرهای دریافت اطلاعات از دیتابیس
+    private List<SpecializedQualification> dbQualifications = new();
+    private List<ProgrammingServices> dbProgrammingServices = new();
+    private List<SpecializedTechnologyCategory> dbTechCategories = new();
+    private List<SpecializedTechnology> dbTechnologies = new(); // برای حل مشکل lack of navigation property
+    private List<Testimonial> testimonials = new();
+
     private List<KpiItem> workKpis = new()
     {
         new() { Icon = "fas fa-clock", Value = "< ۲۴h", Label = "زمان پاسخ", Desc = "پاسخگویی سریع" },
@@ -7037,30 +4136,7 @@
         new() { Icon = "fas fa-star", Value = "۴.۹/۵", Label = "رضایت", Desc = "میانگین امتیاز" },
         new() { Icon = "fas fa-code-branch", Value = "۹۲٪", Label = "پوشش تست", Desc = "Coverage بالا" }
     };
-    private List<AgilePractice> agilePractices = new()
-    {
-        new() { Icon = "fas fa-sync-alt", Title = "Scrum & Sprint", Desc = "اسپرینت‌های ۲ هفته‌ای." },
-        new() { Icon = "fas fa-tasks", Title = "Jira / Trello", Desc = "پیگیری شفاف تسک‌ها." },
-        new() { Icon = "fas fa-code-branch", Title = "Git Flow", Desc = "Feature Branch و Pull Request." },
-        new() { Icon = "fas fa-comments", Title = "Retrospective", Desc = "بهبود مستمر هفتگی." },
-        new() { Icon = "fas fa-file-alt", Title = "مستندسازی", Desc = "Wiki و Swagger." },
-        new() { Icon = "fas fa-user-check", Title = "منتورینگ", Desc = "راهنمایی جونیورها." }
-    };
-    private List<Testimonial> testimonials = new()
-    {
-        new() { Name = "علی رضایی", Role = "مدیر فنی، فین‌تک", Initial = "ع", Rating = 5, Text = "کد تمیز، مستندسازی عالی و تحویل به‌موقع. کیفیت کار در سطح بالایی بود." },
-        new() { Name = "سارا محمدی", Role = "بنیان‌گذار SaaS", Initial = "س", Rating = 5, Text = "یک معماری کامل و مقیاس‌پذیر طراحی شد. سرعت و امنیت API چند برابر شد." },
-        new() { Name = "محمد حسینی", Role = "مدیر محصول", Initial = "م", Rating = 5, Text = "داشبورد فراتر از انتظار بود. SignalR طوری پیاده شد که تجربه Real-time شد." },
-        new() { Name = "رضا کریمی", Role = "مدیرعامل", Initial = "ر", Rating = 5, Text = "از مشاوره تا تحویل، همه‌چیز شفاف و حرفه‌ای بود." },
-        new() { Name = "نیلوفر احمدی", Role = "توسعه‌دهنده ارشد", Initial = "ن", Rating = 5, Text = "تسلط بر Clean Architecture الگوی کل تیم شد." },
-        new() { Name = "امیر تهرانی", Role = "مدیر فناوری", Initial = "ا", Rating = 5, Text = "پروژه احراز هویت استانداردهای OWASP را کامل رعایت کرد." }
-    };
-    private List<ToolCategory> dailyTools = new()
-    {
-        new() { Icon = "fas fa-code", Name = "IDE", Tools = new List<ToolItem> { new() { Icon = "fas fa-laptop-code", Name = "Visual Studio 2022" }, new() { Icon = "fas fa-keyboard", Name = "JetBrains Rider" }, new() { Icon = "fas fa-terminal", Name = "VS Code" } } },
-        new() { Icon = "fas fa-vial", Name = "تست", Tools = new List<ToolItem> { new() { Icon = "fas fa-check-double", Name = "xUnit" }, new() { Icon = "fas fa-bug", Name = "Postman" } } },
-        new() { Icon = "fas fa-database", Name = "DevOps", Tools = new List<ToolItem> { new() { Icon = "fab fa-docker", Name = "Docker" }, new() { Icon = "fas fa-database", Name = "SSMS" } } }
-    };
+
     private List<QualityMetric> codeQuality = new()
     {
         new() { Icon = "fas fa-check-circle", Title = "Unit Test", Percent = 85, Desc = "پوشش تست Domain و Application" },
@@ -7091,19 +4167,6 @@
         new() { Status = "در حال توسعه", Title = "General JWT Utility", Desc = "کتابخانه مدیریت JWT.", Progress = 62, Tags = new[] { "C#", "JWT", "NuGet" } },
         new() { Status = "پایان فاز اول", Title = "سیستم رزرواسیون", Desc = "بک‌اند با CQRS و PostgreSQL.", Progress = 92, Tags = new[] { "PostgreSQL", "MediatR" } }
     };
-    private List<PricingPackage> pricingPackages = new()
-    {
-        new() { Icon = "fas fa-seedling", Name = "Starter", Desc = "پروژه‌های کوچک", Price = "۸M", Unit = "تومان", Features = new() { new() { Text = "سایت تک‌صفحه", IsAvailable = true }, new() { Text = "تا ۵ صفحه", IsAvailable = true }, new() { Text = "پشتیبانی ۱۵ روز", IsAvailable = true }, new() { Text = "API اختصاصی", IsAvailable = false } }, ButtonText = "شروع", IsFeatured = false },
-        new() { Icon = "fas fa-rocket", Name = "Professional", Desc = "محبوب‌ترین", Price = "۱۸M", Unit = "تومان", Features = new() { new() { Text = "سایت + داشبورد", IsAvailable = true }, new() { Text = "صفحات نامحدود", IsAvailable = true }, new() { Text = "JWT + 2FA", IsAvailable = true }, new() { Text = "پشتیبانی ۳۰ روز", IsAvailable = true } }, ButtonText = "انتخاب", IsFeatured = true },
-        new() { Icon = "fas fa-building", Name = "Enterprise", Desc = "سازمانی", Price = "توافقی", Unit = "/ پروژه", Features = new() { new() { Text = "میکروسرویس", IsAvailable = true }, new() { Text = "Kubernetes", IsAvailable = true }, new() { Text = "CI/CD", IsAvailable = true }, new() { Text = "پشتیبانی ۹۰ روز", IsAvailable = true } }, ButtonText = "تماس", IsFeatured = false }
-    };
-    private List<OnboardingStep> onboardingPlan = new()
-    {
-        new() { Week = "هفته ۱", Icon = "fas fa-search", Title = "شناخت تیم", Desc = "آشنایی با ساختار و فرآیندها", Checklist = new[] { "مطالعه مستندات", "Setup محیط", "اولین PR" } },
-        new() { Week = "هفته ۲", Icon = "fas fa-tasks", Title = "کار مستقل", Desc = "برداشتن اولین تسک‌ها", Checklist = new[] { "اولین تسک", "Code Review", "Sprint Planning" } },
-        new() { Week = "هفته ۳", Icon = "fas fa-rocket", Title = "افزایش سرعت", Desc = "کار روی تسک‌های متوسط", Checklist = new[] { "اولین فیچر", "پیشنهاد بهبود", "مستندسازی" } },
-        new() { Week = "هفته ۴", Icon = "fas fa-chart-line", Title = "ارزیابی", Desc = "بازخورد و برنامه‌ریزی", Checklist = new[] { "بازخورد", "KPI ماه دوم", "برنامه رشد" } }
-    };
     private List<CommStep> communicationSteps = new()
     {
         new() { Time = "۰ - ۲۴ ساعت", Title = "پاسخ اولیه", Desc = "پاسخ سریع و هماهنگی جلسه" },
@@ -7113,132 +4176,13 @@
         new() { Time = "طول پروژه", Title = "گزارش هفتگی", Desc = "دموی هفتگی" },
         new() { Time = "تحویل + ۳۰ روز", Title = "پشتیبانی", Desc = "رفع باگ و آموزش" }
     };
-    private List<AvailabilitySlot> availabilitySlots = new()
-    {
-        new() { StatusClass = "available", StatusText = "آماده", Icon = "fas fa-briefcase", Title = "همکاری پروژه‌ای", Desc = "آماده شروع پروژه‌های جدید.", Hours = "شنبه تا پنجشنبه", Timezone = "GMT+3:30" },
-        new() { StatusClass = "partial", StatusText = "محدود", Icon = "fas fa-user-tie", Title = "همکاری تمام‌وقت", Desc = "بررسی پیشنهاد Full-Time با نوتیس.", Hours = "۴۰ ساعت", Timezone = "انعطاف‌پذیر" },
-        new() { StatusClass = "available", StatusText = "پاسخ سریع", Icon = "fas fa-headset", Title = "پشتیبانی", Desc = "پاسخگویی سریع به سؤالات.", Hours = "۹ صبح - ۱۰ شب", Timezone = "GMT+3:30" }
-    };
-    private List<AnnualCapacity> annualCapacity = new()
-    {
-        new() { MonthName = "فرو", StatusClass = "past", StatusLabel = "گذشته", Tooltip = "فروردین" },
-        new() { MonthName = "ارد", StatusClass = "past", StatusLabel = "گذشته", Tooltip = "اردیبهشت" },
-        new() { MonthName = "خرد", StatusClass = "past", StatusLabel = "گذشته", Tooltip = "خرداد" },
-        new() { MonthName = "تیر", StatusClass = "past", StatusLabel = "گذشته", Tooltip = "تیر" },
-        new() { MonthName = "مرد", StatusClass = "booked", StatusLabel = "رزرو", Tooltip = "مرداد" },
-        new() { MonthName = "شهر", StatusClass = "booked", StatusLabel = "رزرو", Tooltip = "شهریور" },
-        new() { MonthName = "مهر", StatusClass = "partial", StatusLabel = "محدود", Tooltip = "مهر" },
-        new() { MonthName = "آبا", StatusClass = "available", StatusLabel = "آزاد", Tooltip = "آبان" },
-        new() { MonthName = "آذر", StatusClass = "available", StatusLabel = "آزاد", Tooltip = "آذر" },
-        new() { MonthName = "دی", StatusClass = "partial", StatusLabel = "محدود", Tooltip = "دی" },
-        new() { MonthName = "بهم", StatusClass = "available", StatusLabel = "آزاد", Tooltip = "بهمن" },
-        new() { MonthName = "اسف", StatusClass = "available", StatusLabel = "آزاد", Tooltip = "اسفند" }
-    };
-    private List<QuickService> quickServices = new()
-    {
-        new() { Badge = "۲۴ ساعته", Icon = "fas fa-bug", Title = "رفع باگ", Duration = "۲۴-۴۸ ساعت", Desc = "رفع سریع باگ.", Price = "۵۰۰K", Unit = "شروع" },
-        new() { Badge = "محبوب", Icon = "fas fa-search-plus", Title = "Code Review", Duration = "۳ روز", Desc = "بازبینی کامل کد.", Price = "۱.۵M", Unit = "شروع" },
-        new() { Icon = "fas fa-chalkboard-teacher", Title = "مشاوره", Duration = "۱ ساعت", Desc = "جلسه مشاوره عمیق.", Price = "۵۰۰K", Unit = "جلسه" },
-        new() { Badge = "پرفروش", Icon = "fas fa-tachometer-alt", Title = "بهینه‌سازی", Duration = "۵ روز", Desc = "افزایش Performance.", Price = "۲.۵M", Unit = "شروع" }
-    };
-    private List<ContentPlatform> contentPlatforms = new()
-    {
-        new() { BadgeClass = "blog", BadgeText = "وبلاگ", Title = "مقالات ASP.NET Core", Desc = "مقالات فنی درباره معماری.", Stats = new() { new() { Icon = "fas fa-file-alt", Label = "۲۵+ مقاله" } } },
-        new() { BadgeClass = "video", BadgeText = "ویدیو", Title = "آموزش ویدیویی", Desc = "ویدیوهای آموزشی.", Stats = new() { new() { Icon = "fas fa-video", Label = "۳۰+ ویدیو" } } },
-        new() { BadgeClass = "course", BadgeText = "دوره", Title = "دوره‌های آموزشی", Desc = "دوره‌های عملی.", Stats = new() { new() { Icon = "fas fa-graduation-cap", Label = "۳ دوره" } } },
-        new() { BadgeClass = "social", BadgeText = "منتورینگ", Title = "منتورینگ", Desc = "جلسات یک‌به‌یک.", Stats = new() { new() { Icon = "fas fa-user-friends", Label = "۵۰+ جلسه" } } }
-    };
-    private List<string> idealRoleLooking = new() { "تیم‌های چابک و حرفه‌ای", "Remote یا Hybrid", "پروژه‌های .NET مدرن", "یادگیری مستمر", "کیفیت کد مهم", "ارتباط شفاف", "Clean Architecture" };
-    private List<string> idealRoleAvoiding = new() { "بدون Code Review", "Legacy بدون مهاجرت", "Overwork", "تحمیل تکنولوژی", "بدون Version Control", "بدون مستندات", "ارتباط ضعیف" };
-    private List<QuizQuestion> quizQuestions = new()
-    {
-        new() { Question = "مهم‌ترین چیز در پروژه؟", Options = new() { new() { Text = "کیفیت کد", Points = 1 }, new() { Text = "سرعت", Points = 0 }, new() { Text = "هزینه", Points = 0 } } },
-        new() { Question = "گزارش پیشرفت؟", Options = new() { new() { Text = "هفتگی با دمو", Points = 1 }, new() { Text = "در پایان", Points = 0 }, new() { Text = "مهم نیست", Points = 0 } } },
-        new() { Question = "مشکل فنی؟", Options = new() { new() { Text = "ارتباط و راه‌حل", Points = 1 }, new() { Text = "خودم حل", Points = 0 }, new() { Text = "تغییر", Points = 0 } } },
-        new() { Question = "پشتیبانی؟", Options = new() { new() { Text = "حداقل ماه", Points = 1 }, new() { Text = "هفته", Points = 0 }, new() { Text = "نیاز نیست", Points = 0 } } }
-    };
-    private List<QuickContactChannel> quickContactChannels = new()
-    {
-        new() { Icon = "fab fa-telegram", Label = "تلگرام", Sub = "پاسخ < ۲ ساعت", Link = "https://t.me/mohammad_Parsa_dev", Target = "_blank", IsPrimary = true },
-        new() { Icon = "fas fa-phone-alt", Label = "تلفن", Sub = "۹ صبح تا ۱۰ شب", Link = "tel:+989368823398", Target = "_self", IsPrimary = false },
-        new() { Icon = "fas fa-envelope", Label = "ایمیل", Sub = "پاسخ < ۲۴ ساعت", Link = "mailto:parsa9601m@gmail.com", Target = "_self", IsPrimary = false },
-        new() { Icon = "fab fa-whatsapp", Label = "واتساپ", Sub = "فقط پیام", Link = "https://wa.me/989368823398", Target = "_blank", IsPrimary = false }
-    };
-    private List<HiringFaq> hiringFaqs = new()
-    {
-        new() { Question = "همکاری تمام‌وقت امکان‌پذیر است؟", Answer = "بله، برای Remote یا حضوری در تهران." },
-        new() { Question = "با چه تیم‌هایی سازگار هستید؟", Answer = "تیم‌های ۳ تا ۱۵ نفره." },
-        new() { Question = "سابقه خارج از ایران؟", Answer = "بله، ترکیه و آلمان." },
-        new() { Question = "سطح حقوق؟", Answer = "متغیر بر اساس پروژه." },
-        new() { Question = "زمان شروع؟", Answer = "۲ تا ۴ هفته." },
-        new() { Question = "رزومه تکمیلی؟", Answer = "بله، در جلسه اول." }
-    };
-    private List<PopularPost> popularPosts = new()
-    {
-        new() { Topic = "Clean Architecture", Title = "چطور Clean Architecture را در ASP.NET Core پیاده کنیم؟", Views = "۴.۸K", Date = "۱۴۰۳/۰۷", Link = "/Blogs" },
-        new() { Topic = "Performance", Title = "۷ تکنیک افزایش سرعت API", Views = "۳.۹K", Date = "۱۴۰۳/۰۸", Link = "/Blogs" },
-        new() { Topic = "SignalR", Title = "ساخت Real-time با SignalR و Blazor", Views = "۳.۲K", Date = "۱۴۰۳/۰۶", Link = "/Blogs" },
-        new() { Topic = "Security", Title = "پیاده‌سازی JWT با Refresh Token", Views = "۲.۸K", Date = "۱۴۰۳/۰۵", Link = "/Blogs" },
-        new() { Topic = "EF Core", Title = "بهینه‌سازی Query در EF Core", Views = "۲.۱K", Date = "۱۴۰۳/۰۴", Link = "/Blogs" }
-    };
-    private List<JourneyChapter> journeyChapters = new()
-    {
-        new() { Num = "۰۱", Label = "شروع", Title = "کنجکاوی و اولین خط کد", Text = "همه چیز از یک کنجکاوی ساده شروع شد. اولین برنامه کنسولی C# را در ۱۶ سالگی نوشتم. آن روز فهمیدم برنامه‌نویسی برای من فقط یک شغل نیست." },
-        new() { Num = "۰۲", Label = "یادگیری", Title = "سال‌های یادگیری خودآموز", Text = "بدون استاد، بدون کلاس، فقط با مستندات و YouTube. شب‌های زیادی بیدار می‌ماندم تا یک باگ را حل کنم. صبر، پشتکار و روش حل مسئله را یاد گرفتم." },
-        new() { Num = "۰۳", Label = "پیشرفت", Title = "ورود به پروژه‌های واقعی", Text = "اولین پروژه واقعی برای یک مشتری، تجربه‌ای کاملاً متفاوت بود. یاد گرفتم کد خوب فقط کامپایل شدن نیست — باید قابل نگهداری و از نظر کسب و کار ارزشمند باشد." },
-        new() { Num = "۰۴", Label = "تخصص", Title = "معماری و کیفیت حرفه‌ای", Text = "وقتی به Clean Architecture و DDD رسیدم، دیدگاهم به نرم‌افزار کاملاً عوض شد. از آن به بعد، نه فقط کد نوشتم بلکه معماری طراحی کردم." },
-        new() { Num = "۰۵", Label = "امروز", Title = "همکاری با تیم‌ها و کارفرمایان", Text = "امروز به عنوان توسعه‌دهنده ارشد و فریلنسر، با تیم‌های مختلف همکاری می‌کنم. آموزش می‌دهم، منتور می‌کنم و هر روز یاد می‌گیرم." }
-    };
-    private List<CodeReviewComment> codeReviewComments = new()
-    {
-        new() { Author = "محمد پارسا کریمی", Time = "۲ روز پیش", Comment = "در ProcessPayment، استفاده از string concatenation برای کوئری خطرناک است. از Parameterized Query استفاده شود:", CodeSnippet = "var query = \"SELECT * FROM Payments WHERE Id = '\" + paymentId + \"'\";", Suggestion = "var query = \"SELECT * FROM Payments WHERE Id = @paymentId\";\nvar result = await _db.QueryAsync<Payment>(query, new { paymentId });" },
-        new() { Author = "محمد پارسا کریمی", Time = "۲ روز پیش", Comment = "این Loop باعث N+1 Query می‌شود. بهتر است داده‌ها یکجا واکشی شوند:", CodeSnippet = "foreach (var order in orders)\n{\n    order.Customer = await _db.Customers.FindAsync(order.CustomerId);\n}", Suggestion = "var customerIds = orders.Select(o => o.CustomerId).Distinct();\nvar customers = await _db.Customers.Where(c => customerIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id);" },
-        new() { Author = "محمد پارسا کریمی", Time = "۱ روز پیش", Comment = "این متد بیش از ۸۰ خط شده. به چند متد کوچکتر شکسته شود:", Suggestion = "private async Task<Result> ValidateOrderAsync(Order o) { ... }\nprivate async Task<Result> ReserveInventoryAsync(Order o) { ... }\nprivate async Task<Result> ProcessPaymentAsync(Order o) { ... }" },
-        new() { Author = "محمد پارسا کریمی", Time = "امروز", Comment = "کد به‌طور کلی خوب است. برای Exception Handling بهتر است از Result Pattern استفاده شود. ماژول Payment آماده Merge است ✅" }
-    };
-    private List<AdrItem> adrRecords = new()
-    {
-        new() { Number = "001", Title = "استفاده از Clean Architecture در پروژه فین‌تک", Status = "accepted", StatusLabel = "پذیرفته شده", Context = "پروژه‌ای با پیچیدگی کسب و کار بالا و نیاز به تست‌پذیری و قابلیت نگهداری بلندمدت.", Decision = "استفاده از Clean Architecture با ۴ لایه اصلی.", Consequences = "کد قابل نگهداری و تست‌پذیرتر. Setup اولیه زمان بیشتری می‌برد." },
-        new() { Number = "002", Title = "مهاجرت از EF Core به Dapper برای گزارش‌گیری", Status = "accepted", StatusLabel = "پذیرفته شده", Context = "Queryهای پیچیده گزارش‌گیری با EF Core کند بود.", Decision = "استفاده از Dapper برای Queryهای Read-only سنگین.", Consequences = "زمان Query از ۵ ثانیه به ۲۰۰ms کاهش یافت." },
-        new() { Number = "003", Title = "استفاده از RabbitMQ برای Event-Driven", Status = "accepted", StatusLabel = "پذیرفته شده", Context = "ارتباط Synchronous باعث Coupling بالا می‌شد.", Decision = "استفاده از RabbitMQ برای ارتباط Async.", Consequences = "کاهش Coupling. پیچیدگی Debugging افزایش یافت." },
-        new() { Number = "004", Title = "رد استفاده از Microservices در فاز اول", Status = "rejected", StatusLabel = "رد شده", Context = "پیشنهاد شده بود از روز اول با Microservices شروع کنیم.", Decision = "تصمیم بر شروع با Modular Monolith.", Consequences = "پیچیدگی عملیاتی کمتر. مسیر مهاجرت آماده است." }
-    };
-    private List<WarStory> warStories = new()
-    {
-        new() { Badge = "Performance", Title = "کاهش زمان پاسخ API از ۸ ثانیه به ۲۰۰ms", Problem = "API گزارش‌گیری در پروژه فین‌تک، روی دیتابیس ۵ میلیون رکورد، ۸ ثانیه طول می‌کشید.", Solution = "Query به ۳ بخش شکسته شد، Indexes مناسب، Dapper برای خواندن مستقیم، Redis Cache.", Result = "زمان پاسخ از ۸ ثانیه به ۲۰۰ میلی‌ثانیه کاهش یافت.", Metrics = new[] { "۴۰x سریع‌تر", "۰ خطا", "۸۵٪ کاهش بار DB" } },
-        new() { Badge = "Security", Title = "رفع آسیب‌پذیری SQL Injection", Problem = "در پروژه قدیمی، کوئری‌های String Concatenation مستعد SQL Injection بود.", Solution = "همه کوئری‌ها به Parameterized Queries تبدیل شد.", Result = "پروژه در Audit امنیتی نمره A گرفت.", Metrics = new[] { "۱۰۰٪ رفع", "۴۷ Endpoint", "۰ باگ جدید" } },
-        new() { Badge = "Memory Leak", Title = "تشخیص Memory Leak در Worker Service", Problem = "Background Service هر ۳ روز Out of Memory می‌شد.", Solution = "با dotMemory تحلیل شد، Event Handlerهای Unsubscribe نشده پیدا شد.", Result = "مصرف حافظه از ۲GB به ۱۵۰MB کاهش یافت.", Metrics = new[] { "۹۳٪ کاهش RAM", "پایدار", "۰ Restart" } }
-    };
-    private List<WeeklyDay> weeklyRhythm = new()
-    {
-        new() { TimeRange = "۹:۰۰ - ۱۲:۰۰", Slots = new[] { "deep", "deep", "deep", "deep", "meet", "deep" } },
-        new() { TimeRange = "۱۲:۰۰ - ۱۳:۰۰", Slots = new[] { "off", "off", "off", "off", "off", "off" } },
-        new() { TimeRange = "۱۳:۰۰ - ۱۶:۰۰", Slots = new[] { "deep", "meet", "deep", "meet", "deep", "deep" } },
-        new() { TimeRange = "۱۶:۰۰ - ۱۸:۰۰", Slots = new[] { "learn", "learn", "learn", "learn", "learn", "learn" } },
-        new() { TimeRange = "۱۸:۰۰ - ۲۱:۰۰", Slots = new[] { "personal", "personal", "personal", "personal", "personal", "personal" } }
-    };
     private List<CostItem> costBreakdownItems = new()
     {
-        new() { Icon = "fas fa-code", Label = "توسعه و کدنویسی", Percent = 55, Value = "۹.۹M", ColorClass = "c1" },
-        new() { Icon = "fas fa-drafting-compass", Label = "طراحی معماری", Percent = 15, Value = "۲.۷M", ColorClass = "c2" },
-        new() { Icon = "fas fa-vial", Label = "تست و QA", Percent = 12, Value = "۲.۱M", ColorClass = "c3" },
-        new() { Icon = "fas fa-book", Label = "مستندسازی", Percent = 10, Value = "۱.۸M", ColorClass = "c4" },
-        new() { Icon = "fas fa-rocket", Label = "استقرار و آموزش", Percent = 8, Value = "۱.۵M", ColorClass = "c5" }
-    };
-    private List<ReferenceClient> referenceClients = new()
-    {
-        new() { Name = "علی رضایی", Role = "مدیر فنی، استارتاپ فین‌تک", Initial = "ع", Project = "سیستم پرداخت اشتراکی", Text = "کیفیت کار پارسا در سطح بالایی بود. کمتر برنامه‌نویسی با این سطح از تعهد و مهارت دیده‌ام." },
-        new() { Name = "سارا محمدی", Role = "بنیان‌گذار، پلتفرم SaaS", Initial = "س", Project = "معماری API و داشبورد", Text = "پارسا کد ننوشت، بلکه کل معماری محصول ما را طراحی کرد. نتیجه، پایداری و مقیاس‌پذیری بود." },
-        new() { Name = "محمد حسینی", Role = "مدیر محصول", Initial = "م", Project = "داشبورد Real-time", Text = "داشبورد بعد از ۱ سال بدون مشکل کار می‌کند." },
-        new() { Name = "نیلوفر احمدی", Role = "توسعه‌دهنده ارشد", Initial = "ن", Project = "همکاری تیمی", Text = "پارسا یکی از دقیق‌ترین و منظم‌ترین توسعه‌دهندگانی است که با او کار کرده‌ام." }
-    };
-    private List<RiskItem> riskRegister = new()
-    {
-        new() { Risk = "تغییر Scope در میانه کار", Level = "medium", LevelLabel = "متوسط", Mitigation = "تعریف دقیق Scope در قرارداد + فرآیند Change Request", Owner = "کارفرما + توسعه‌دهنده" },
-        new() { Risk = "تاخیر در تامین زیرساخت", Level = "high", LevelLabel = "بالا", Mitigation = "شروع روی محیط ابری موقت", Owner = "کارفرما" },
-        new() { Risk = "مشکل در اتصال به Third-party", Level = "medium", LevelLabel = "متوسط", Mitigation = "Mock Service اول + تست Integration زودهنگام", Owner = "توسعه‌دهنده" },
-        new() { Risk = "کمبود دانش تیم در نگهداری", Level = "low", LevelLabel = "پایین", Mitigation = "مستندسازی کامل + جلسه آموزش + ۳۰ روز پشتیبانی", Owner = "توسعه‌دهنده" },
-        new() { Risk = "تغییر در نیازمندی‌های امنیتی", Level = "medium", LevelLabel = "متوسط", Mitigation = "پیروی از OWASP از روز اول", Owner = "توسعه‌دهنده" }
+        new() { Icon = "fas fa-code", Label = "توسعه و کدنویسی", Percent = 55, ColorClass = "c1" },
+        new() { Icon = "fas fa-drafting-compass", Label = "طراحی معماری", Percent = 15, ColorClass = "c2" },
+        new() { Icon = "fas fa-vial", Label = "تست و QA", Percent = 12, ColorClass = "c3" },
+        new() { Icon = "fas fa-book", Label = "مستندسازی", Percent = 8, ColorClass = "c4" },
+        new() { Icon = "fas fa-rocket", Label = "استقرار و آموزش", Percent = 10, ColorClass = "c5" }
     };
     private List<InterviewQA> interviewBank = new()
     {
@@ -7258,25 +4202,6 @@
         new() { Icon = "fas fa-cloud", Name = "DevOps", Techs = new() { "Docker", "Kubernetes", "Git", "GitHub Actions", "Azure DevOps", "Linux", "Nginx", "RabbitMQ", "AWS", "Azure" } },
         new() { Icon = "fas fa-palette", Name = "Frontend", Techs = new() { "HTML5", "CSS3", "JavaScript", "TypeScript", "React", "Vue.js", "Bootstrap", "Tailwind" } }
     };
-
-    // BATCH 5 DATA
-    private FeaturedProject featuredProject = new()
-    {
-        Badge = "پروژه فین‌تک ۱۴۰۳",
-        Title = "پلتفرم SaaS پرداخت اشتراکی با معماری میکروسرویس",
-        Summary = "پلتفرم فروش اشتراک API با اتصال به درگاه‌های ایرانی. طراحی و پیاده‌سازی از صفر تا تحویل — شامل معماری، بک‌اند، پنل ادمین و استقرار.",
-        Metrics = new() { new() { Value = "۴۰٪", Label = "افزایش سرعت" }, new() { Value = "۱۰K", Label = "کاربر فعال" }, new() { Value = "۹۹.۵٪", Label = "Uptime" }, new() { Value = "۸ هفته", Label = "زمان تحویل" } },
-        Challenge = "پلتفرم باید ۱۰,۰۰۰ کاربر همزمان را مدیریت کند و اتصال امن به ۲ درگاه پرداخت ایرانی و مدیریت Rate Limiting حیاتی بود.",
-        Solution = "معماری Modular Monolith اولیه با مسیر مهاجرت آماده به Microservices. Redis برای Cache و Rate Limiting، PostgreSQL برای داده‌های تراکنشی، JWT + Refresh Token.",
-        Architecture = new() { "Clean Architecture + CQRS با MediatR", "PostgreSQL برای داده‌های اصلی", "Redis برای Cache و Rate Limit", "Docker Compose برای استقرار", "CI/CD با GitHub Actions", "Application Insights برای Monitoring" },
-        Results = new() { "زمان پاسخ API زیر ۲۰۰ms", "پوشش تست ۸۵٪", "صفر رخنه امنیتی در Audit", "هزینه زیرساخت ۳۰٪ کمتر از برآورد" }
-    };
-    private List<Workshop> workshops = new()
-    {
-        new() { Level = "متوسط", Icon = "fas fa-sitemap", Title = "Clean Architecture در ASP.NET Core", Description = "کارگاه عملی ۲ روزه — پیاده‌سازی Clean Architecture، CQRS با MediatR و DDD در یک پروژه واقعی.", Duration = "۱۶ ساعت", Participants = "۵-۱۵ نفر", Format = "آنلاین/حضوری", Price = "۱۲M", Unit = "تومان" },
-        new() { Level = "پیشرفته", Icon = "fas fa-tachometer-alt", Title = "Performance Tuning در .NET", Description = "یادگیری Profiling، BenchmarkDotNet، بهینه‌سازی EF Core و کش استراتژی‌ها برای APIهای پرترافیک.", Duration = "۱۲ ساعت", Participants = "۵-۱۰ نفر", Format = "آنلاین", Price = "۱۰M", Unit = "تومان" },
-        new() { Level = "مقدماتی-متوسط", Icon = "fas fa-shield-halved", Title = "امنیت در ASP.NET Core", Description = "پیاده‌سازی امنیت کامل بر اساس OWASP Top 10 — از احراز هویت تا Audit Logging.", Duration = "۱۰ ساعت", Participants = "۵-۲۰ نفر", Format = "آنلاین/حضوری", Price = "۸M", Unit = "تومان" }
-    };
     private List<SecurityCategory> securityCategories = new()
     {
         new() { Icon = "fas fa-key", Title = "احراز هویت و مجوز", Items = new() { "JWT با Refresh Token", "2FA برای نقش‌های حساس", "Role-based و Policy-based Authorization", "Session Management امن", "Rate Limiting روی Login" } },
@@ -7288,21 +4213,14 @@
     };
     private List<QuickStartOption> quickStartOptions = new()
     {
-        new() { Icon = "fas fa-bolt", Title = "Express MVP", Description = "برای اعتبارسنجی سریع ایده — یک MVP کاربردی در ۲ هفته.", Steps = new() { "روز ۱-۳: طراحی و Setup", "روز ۴-۱۰: توسعه اصلی", "روز ۱۱-۱۴: تست و تحویل" }, Price = "۱۵M", Unit = "تومان — شروع", ButtonText = "شروع Express", IsFeatured = true },
+        new() { Icon = "fas fa-bolt", Title = "Express MVP", Description = "برای اعتبارسنجی سریع ایده — یک MVP کاربردی در ۲ هفته.", Steps = new() { "روز ۱-۳: طراحی و Setup", "روز ۴-۱۰: توسعه اصلی", "روز ۱۱-۱۴: تست و تحویل" }, Price = "توافقی", Unit = "تومان — شروع", ButtonText = "شروع Express", IsFeatured = true },
         new() { Icon = "fas fa-cog", Title = "Standard Start", Description = "برای پروژه‌هایی که نیاز به معماری کامل دارند.", Steps = new() { "هفته ۱: تحلیل و معماری", "هفته ۲-۵: توسعه", "هفته ۶: تست و استقرار" }, Price = "توافقی", Unit = "بر اساس Scope", ButtonText = "مشاوره رایگان", IsFeatured = false }
     };
-    private List<IntlCountry> intlCountries = new()
+    private List<Workshop> workshops = new()
     {
-        new() { Flag = "🇹🇷", Name = "ترکیه", Tag = "۲ پروژه" },
-        new() { Flag = "🇩🇪", Name = "آلمان", Tag = "۱ پروژه" },
-        new() { Flag = "🇦🇪", Name = "امارات", Tag = "۱ مشاوره" },
-        new() { Flag = "🇬🇧", Name = "بریتانیا", Tag = "همکاری جزئی" }
-    };
-    private List<IntlProject> intlProjects = new()
-    {
-        new() { Flag = "🇹🇷", Title = "پلتفرم مدیریت رستوران", Country = "ترکیه — Istanbul", Description = "سیستم مدیریت رستوران زنجیره‌ای با ASP.NET Core و React. تمرکز روی Real-time order tracking.", Tags = new[] { "ASP.NET Core", "SignalR", "PostgreSQL" } },
-        new() { Flag = "🇩🇪", Title = "داشبورد تحلیل داده", Country = "آلمان — Berlin", Description = "داشبورد Real-time برای استارتاپ Fintech با Blazor و Chart.js — استفاده از Dapper برای Queryهای سنگین.", Tags = new[] { "Blazor", "Dapper", "SQL Server" } },
-        new() { Flag = "🇹🇷", Title = "API فروشگاهی", Country = "ترکیه — Ankara", Description = "REST API برای اپلیکیشن موبایل — JWT + Refresh Token، Rate Limiting با Redis و مستندات Swagger کامل.", Tags = new[] { "REST API", "JWT", "Redis" } }
+        new() { Level = "متوسط", Icon = "fas fa-sitemap", Title = "Clean Architecture در ASP.NET Core", Description = "کارگاه عملی ۲ روزه — پیاده‌سازی Clean Architecture، CQRS با MediatR و DDD در یک پروژه واقعی.", Duration = "۱۶ ساعت", Participants = "۵-۱۵ نفر", Format = "آنلاین/حضوری", Price = "۱۲M", Unit = "تومان" },
+        new() { Level = "پیشرفته", Icon = "fas fa-tachometer-alt", Title = "Performance Tuning در .NET", Description = "یادگیری Profiling، BenchmarkDotNet، بهینه‌سازی EF Core و کش استراتژی‌ها برای APIهای پرترافیک.", Duration = "۱۲ ساعت", Participants = "۵-۱۰ نفر", Format = "آنلاین", Price = "۱۰M", Unit = "تومان" },
+        new() { Level = "مقدماتی-متوسط", Icon = "fas fa-shield-halved", Title = "امنیت در ASP.NET Core", Description = "پیاده‌سازی امنیت کامل بر اساس OWASP Top 10 — از احراز هویت تا Audit Logging.", Duration = "۱۰ ساعت", Participants = "۵-۲۰ نفر", Format = "آنلاین/حضوری", Price = "۸M", Unit = "تومان" }
     };
     private string currentQuarter = "بهار ۱۴۰۴";
     private List<QStackCategory> quarterlyStack = new()
@@ -7340,6 +4258,57 @@
         new() { TypeIcon = "fas fa-key", TypeText = "کتابخانه", Title = "JWT Helper Library", Description = "کتابخانه ساده و شفاف برای مدیریت JWT و Refresh Token — همراه با مستندات کامل.", Stars = "۴۸", Level = "مقدماتی-متوسط", Language = "انگلیسی", Link = "https://github.com/prsa9601" },
         new() { TypeIcon = "fas fa-bolt", TypeText = "آموزشی", Title = "Redis Cache Patterns", Description = "پیاده‌سازی الگوهای Cache-Aside، Write-Through و Distributed Lock با Redis.", Stars = "۲۱", Level = "متوسط", Language = "فارسی", Link = "https://github.com/prsa9601" },
         new() { TypeIcon = "fas fa-shield-halved", TypeText = "Security", Title = "OWASP Implementation Guide", Description = "پیاده‌سازی عملی OWASP Top 10 در ASP.NET Core — همراه با تست‌های امنیتی.", Stars = "۱۵", Level = "پیشرفته", Language = "فارسی/انگلیسی", Link = "https://github.com/prsa9601" }
+    };
+
+    private List<QuizQuestion> quizQuestions = new()
+    {
+        new() {
+            Question = "مهم‌ترین اولویت شما در یک پروژه نرم‌افزاری چیست؟",
+            Options = new() {
+                new() { Text = "کیفیت کد و قابلیت نگهداری بلندمدت", Points = 3 },
+                new() { Text = "تحویل سریع (MVP) برای تست ایده", Points = 1 },
+                new() { Text = "کمترین هزینه ممکن، حتی با کدهای موقت", Points = 0 }
+            }
+        },
+        new() {
+            Question = "نگاه شما به معماری (Architecture) و زمان‌بندی پروژه چیست؟",
+            Options = new() {
+                new() { Text = "سرمایه‌گذاری اولیه روی معماری برای جلوگیری از بدهی فنی", Points = 3 },
+                new() { Text = "فقط کار کند، بعداً می‌توانیم بهینه‌سازی کنیم", Points = 1 },
+                new() { Text = "معماری اتلاف وقت است، فقط سریع کد بزنیم", Points = 0 }
+            }
+        },
+        new() {
+            Question = "بهترین شکل گزارش پیشرفت و ارتباط در طول پروژه؟",
+            Options = new() {
+                new() { Text = "گزارش هفتگی، دموی عملی و شفافیت کامل", Points = 3 },
+                new() { Text = "فقط در پایان پروژه نتیجه نهایی را ببینم", Points = 1 },
+                new() { Text = "تماس روزانه و کنترل تمام جزئیات توسط من", Points = 0 }
+            }
+        },
+        new() {
+            Question = "نگاه شما به پشتیبانی و رفع باگ پس از تحویل چیست؟",
+            Options = new() {
+                new() { Text = "پشتیبانی و گارانتی بخش جدایی‌ناپذیر یک کار حرفه‌ای است", Points = 3 },
+                new() { Text = "فقط انتظار دارم بدون کرش کار کند", Points = 1 },
+                new() { Text = "انتظار دارم برای همیشه و بدون هزینه، همه‌چیز را تغییر دهید", Points = 0 }
+            }
+        }
+    };
+    private List<QuickContactChannel> quickContactChannels = new()
+    {
+        new() { Icon = "fab fa-telegram", Label = "تلگرام", Sub = "پاسخ < ۲ ساعت", Link = "https://t.me/mohammad_Parsa_dev", Target = "_blank", IsPrimary = true },
+        new() { Icon = "fas fa-phone-alt", Label = "تلفن", Sub = "۹ صبح تا ۱۰ شب", Link = "tel:+989368823398", Target = "_self", IsPrimary = false },
+        new() { Icon = "fas fa-envelope", Label = "ایمیل", Sub = "پاسخ < ۲۴ ساعت", Link = "mailto:parsa9601m@gmail.com", Target = "_self", IsPrimary = false },
+        new() { Icon = "fab fa-whatsapp", Label = "واتساپ", Sub = "فقط پیام", Link = "https://wa.me/989368823398", Target = "_blank", IsPrimary = false }
+    };
+    private List<PopularPost> popularPosts = new()
+    {
+        new() { Topic = "Clean Architecture", Title = "چطور Clean Architecture را در ASP.NET Core پیاده کنیم؟", Views = "۴.۸K", Date = "۱۴۰۳/۰۷", Link = "/Blogs" },
+        new() { Topic = "Performance", Title = "۷ تکنیک افزایش سرعت API", Views = "۳.۹K", Date = "۱۴۰۳/۰۸", Link = "/Blogs" },
+        new() { Topic = "SignalR", Title = "ساخت Real-time با SignalR و Blazor", Views = "۳.۲K", Date = "۱۴۰۳/۰۶", Link = "/Blogs" },
+        new() { Topic = "Security", Title = "پیاده‌سازی JWT با Refresh Token", Views = "۲.۸K", Date = "۱۴۰۳/۰۵", Link = "/Blogs" },
+        new() { Topic = "EF Core", Title = "بهینه‌سازی Query در EF Core", Views = "۲.۱K", Date = "۱۴۰۳/۰۴", Link = "/Blogs" }
     };
 
     // JSON-LD + Helpers
@@ -7393,10 +4362,44 @@
         else { await JSRuntime.InvokeVoidAsync("showUserAlert", result.Message, "error", "❌ خطا", 5000); }
         StateHasChanged();
     }
+    
     protected override async Task OnInitializedAsync()
     {
-        await GetUserPermission(Permissions.AccessToAdminPanel); await GetUser();
+        await GetUserPermission(Permissions.AccessToAdminPanel);
+        await GetUser();
+        
+        // بارگذاری داده‌های داینامیک از دیتابیس
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            
+            // 1. نظرات
+            var dbComments = await db.Comments.AsNoTracking().OrderByDescending(c => c.CreationDate).Take(6).ToListAsync();
+            testimonials = dbComments.Select(c => new Testimonial
+            {
+                Name = c.UserName,
+                Role = c.JobTitle,
+                Initial = string.IsNullOrWhiteSpace(c.UserName) ? "؟" : c.UserName.Trim()[0].ToString(),
+                Rating = c.Score,
+                Text = c.Text
+            }).ToList();
+
+            // 2. مدارک تخصصی
+            dbQualifications = await db.SpecializedQualifications.AsNoTracking().Where(q => q.IsActive).OrderByDescending(q => q.CreationDate).ToListAsync();
+
+            // 3. خدمات برنامه‌نویسی
+            dbProgrammingServices = await db.ProgrammingServices.AsNoTracking().Where(s => s.IsActive).ToListAsync();
+
+            // 4. تکنولوژی‌های تخصصی
+            dbTechCategories = await db.SpecializedTechnologyCategories.AsNoTracking().ToListAsync();
+            dbTechnologies = await db.SpecializedTechnologies.AsNoTracking().ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Home] DB Dynamic Data Error: {ex.Message}");
+        }
     }
+    
     private async Task GetUserPermission(Permissions permissions)
     {
         try { _hasAdminAccess = await _getUserPermission.CheckAccess(permissions); } catch { _hasAdminAccess = false; }
@@ -7446,13 +4449,14 @@
             await JSRuntime.InvokeVoidAsync("eval", @"
                 document.querySelectorAll('.ripple').forEach(btn => {
                     btn.addEventListener('click', function(e) {
-                        const rect = this.getBoundingClientRect();
+                        const el = e.currentTarget;
+                        const rect = el.getBoundingClientRect();
                         const ripple = document.createElement('span');
                         ripple.className = 'ripple-effect';
                         ripple.style.left = (e.clientX - rect.left) + 'px';
                         ripple.style.top = (e.clientY - rect.top) + 'px';
                         ripple.style.width = '40px'; ripple.style.height = '40px';
-                        this.appendChild(ripple);
+                        el.appendChild(ripple);
                         setTimeout(() => ripple.remove(), 600);
                     });
                 });
@@ -7536,55 +4540,31 @@
     public class FaqItem { public string Question { get; set; } = ""; public string Answer { get; set; } = ""; public bool IsActive { get; set; } public int Sequense { get; set; } }
     public class TrustStat { public string Number { get; set; } = ""; public string Label { get; set; } = ""; }
     public class Achievement { public string Icon { get; set; } = ""; public string Number { get; set; } = ""; public string Label { get; set; } = ""; public string Desc { get; set; } = ""; }
-    public class CareerStep { public string Year { get; set; } = ""; public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Company { get; set; } = ""; public string Desc { get; set; } = ""; }
     public class PhilosophyPrinciple { public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; public string Quote { get; set; } = ""; }
     public class CertItem { public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Issuer { get; set; } = ""; public string Year { get; set; } = ""; public string Level { get; set; } = ""; }
-    public class ArchLayer { public string Number { get; set; } = ""; public string CssClass { get; set; } = ""; public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; public bool IsLast { get; set; } = false; }
     public class KpiItem { public string Icon { get; set; } = ""; public string Value { get; set; } = ""; public string Label { get; set; } = ""; public string Desc { get; set; } = ""; }
-    public class AgilePractice { public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; }
     public class Testimonial { public string Name { get; set; } = ""; public string Role { get; set; } = ""; public string Initial { get; set; } = ""; public int Rating { get; set; } = 5; public string Text { get; set; } = ""; }
-    public class ToolCategory { public string Icon { get; set; } = ""; public string Name { get; set; } = ""; public List<ToolItem> Tools { get; set; } = new(); }
-    public class ToolItem { public string Icon { get; set; } = ""; public string Name { get; set; } = ""; }
     public class QualityMetric { public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public int Percent { get; set; } public string Desc { get; set; } = ""; }
     public class Repo { public string Name { get; set; } = ""; public string Icon { get; set; } = ""; public string Description { get; set; } = ""; public string Language { get; set; } = ""; public string LangColor { get; set; } = "#a855f7"; public string Stars { get; set; } = "0"; public string Forks { get; set; } = "0"; public string Link { get; set; } = ""; }
     public class EnterpriseFeature { public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; }
     public class CurrentlyBuildingProject { public string Status { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; public int Progress { get; set; } public string[] Tags { get; set; } = Array.Empty<string>(); }
-    public class PricingPackage { public string Icon { get; set; } = ""; public string Name { get; set; } = ""; public string Desc { get; set; } = ""; public string Price { get; set; } = ""; public string Unit { get; set; } = ""; public List<PricingFeature> Features { get; set; } = new(); public string ButtonText { get; set; } = ""; public bool IsFeatured { get; set; } = false; }
-    public class PricingFeature { public string Text { get; set; } = ""; public bool IsAvailable { get; set; } = true; }
-    public class OnboardingStep { public string Week { get; set; } = ""; public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; public string[] Checklist { get; set; } = Array.Empty<string>(); }
     public class CommStep { public string Time { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; }
-    public class AvailabilitySlot { public string StatusClass { get; set; } = "available"; public string StatusText { get; set; } = ""; public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; public string Hours { get; set; } = ""; public string Timezone { get; set; } = ""; }
-    public class AnnualCapacity { public string MonthName { get; set; } = ""; public string StatusClass { get; set; } = "available"; public string StatusLabel { get; set; } = ""; public string Tooltip { get; set; } = ""; }
-    public class QuickService { public string Badge { get; set; } public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Duration { get; set; } = ""; public string Desc { get; set; } = ""; public string Price { get; set; } = ""; public string Unit { get; set; } = ""; }
-    public class ContentPlatform { public string BadgeClass { get; set; } = ""; public string BadgeText { get; set; } = ""; public string Title { get; set; } = ""; public string Desc { get; set; } = ""; public List<StatItemLite> Stats { get; set; } = new(); }
-    public class StatItemLite { public string Icon { get; set; } = ""; public string Label { get; set; } = ""; }
-    public class QuizQuestion { public string Question { get; set; } = ""; public List<QuizOption> Options { get; set; } = new(); }
-    public class QuizOption { public string Text { get; set; } = ""; public int Points { get; set; } = 0; }
-    public class QuickContactChannel { public string Icon { get; set; } = ""; public string Label { get; set; } = ""; public string Sub { get; set; } = ""; public string Link { get; set; } = ""; public string Target { get; set; } = "_self"; public bool IsPrimary { get; set; } = false; }
-    public class HiringFaq { public string Question { get; set; } = ""; public string Answer { get; set; } = ""; }
-    public class PopularPost { public string Topic { get; set; } = ""; public string Title { get; set; } = ""; public string Views { get; set; } = ""; public string Date { get; set; } = ""; public string Link { get; set; } = "/Blogs"; }
-    public class JourneyChapter { public string Num { get; set; } = ""; public string Label { get; set; } = ""; public string Title { get; set; } = ""; public string Text { get; set; } = ""; }
-    public class CodeReviewComment { public string Author { get; set; } = ""; public string Time { get; set; } = ""; public string Comment { get; set; } = ""; public string CodeSnippet { get; set; } = ""; public string Suggestion { get; set; } = ""; }
-    public class AdrItem { public string Number { get; set; } = ""; public string Title { get; set; } = ""; public string Status { get; set; } = ""; public string StatusLabel { get; set; } = ""; public string Context { get; set; } = ""; public string Decision { get; set; } = ""; public string Consequences { get; set; } = ""; }
-    public class WarStory { public string Badge { get; set; } = ""; public string Title { get; set; } = ""; public string Problem { get; set; } = ""; public string Solution { get; set; } = ""; public string Result { get; set; } = ""; public string[] Metrics { get; set; } = Array.Empty<string>(); }
-    public class WeeklyDay { public string TimeRange { get; set; } = ""; public string[] Slots { get; set; } = Array.Empty<string>(); }
-    public class CostItem { public string Icon { get; set; } = ""; public string Label { get; set; } = ""; public int Percent { get; set; } public string Value { get; set; } = ""; public string ColorClass { get; set; } = ""; }
-    public class ReferenceClient { public string Name { get; set; } = ""; public string Role { get; set; } = ""; public string Initial { get; set; } = ""; public string Text { get; set; } = ""; public string Project { get; set; } = ""; }
-    public class RiskItem { public string Risk { get; set; } = ""; public string Level { get; set; } = ""; public string LevelLabel { get; set; } = ""; public string Mitigation { get; set; } = ""; public string Owner { get; set; } = ""; }
+    public class CostItem { public string Icon { get; set; } = ""; public string Label { get; set; } = ""; public int Percent { get; set; } public string ColorClass { get; set; } = ""; }
     public class InterviewQA { public string Question { get; set; } = ""; public string Tag { get; set; } = ""; public string AnswerIntro { get; set; } = ""; public List<string> BulletPoints { get; set; } = new(); }
     public class TechMatchCategory { public string Icon { get; set; } = ""; public string Name { get; set; } = ""; public List<string> Techs { get; set; } = new(); }
-    public class FeaturedProject { public string Badge { get; set; } = ""; public string Title { get; set; } = ""; public string Summary { get; set; } = ""; public string Challenge { get; set; } = ""; public string Solution { get; set; } = ""; public List<FpdMetric> Metrics { get; set; } = new(); public List<string> Architecture { get; set; } = new(); public List<string> Results { get; set; } = new(); }
-    public class FpdMetric { public string Value { get; set; } = ""; public string Label { get; set; } = ""; }
     public class Workshop { public string Level { get; set; } = ""; public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Description { get; set; } = ""; public string Duration { get; set; } = ""; public string Participants { get; set; } = ""; public string Format { get; set; } = ""; public string Price { get; set; } = ""; public string Unit { get; set; } = ""; }
     public class SecurityCategory { public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public List<string> Items { get; set; } = new(); }
     public class QuickStartOption { public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Description { get; set; } = ""; public List<string> Steps { get; set; } = new(); public string Price { get; set; } = ""; public string Unit { get; set; } = ""; public string ButtonText { get; set; } = ""; public bool IsFeatured { get; set; } = false; }
-    public class IntlCountry { public string Flag { get; set; } = ""; public string Name { get; set; } = ""; public string Tag { get; set; } = ""; }
-    public class IntlProject { public string Flag { get; set; } = ""; public string Title { get; set; } = ""; public string Country { get; set; } = ""; public string Description { get; set; } = ""; public string[] Tags { get; set; } = Array.Empty<string>(); }
     public class QStackCategory { public string Icon { get; set; } = ""; public string Category { get; set; } = ""; public string ChangeType { get; set; } = ""; public string ChangeLabel { get; set; } = ""; public List<QStackItem> Items { get; set; } = new(); }
     public class QStackItem { public string Icon { get; set; } = ""; public string Name { get; set; } = ""; }
     public class CommonConcern { public string Question { get; set; } = ""; public string Answer { get; set; } = ""; }
     public class RetainerBenefit { public string Icon { get; set; } = ""; public string Title { get; set; } = ""; public string Description { get; set; } = ""; }
     public class RetainerPlan { public string Name { get; set; } = ""; public string Description { get; set; } = ""; public string Hours { get; set; } = ""; public string HoursUnit { get; set; } = ""; public List<string> Features { get; set; } = new(); public string ButtonText { get; set; } = ""; public bool IsHighlight { get; set; } = false; }
     public class EducationalProject { public string TypeIcon { get; set; } = ""; public string TypeText { get; set; } = ""; public string Title { get; set; } = ""; public string Description { get; set; } = ""; public string Stars { get; set; } = ""; public string Level { get; set; } = ""; public string Language { get; set; } = ""; public string Link { get; set; } = ""; }
+    
+    public class QuizQuestion { public string Question { get; set; } = ""; public List<QuizOption> Options { get; set; } = new(); }
+    public class QuizOption { public string Text { get; set; } = ""; public int Points { get; set; } = 0; }
+    public class QuickContactChannel { public string Icon { get; set; } = ""; public string Label { get; set; } = ""; public string Sub { get; set; } = ""; public string Link { get; set; } = ""; public string Target { get; set; } = "_self"; public bool IsPrimary { get; set; } = false; }
+    public class PopularPost { public string Topic { get; set; } = ""; public string Title { get; set; } = ""; public string Views { get; set; } = ""; public string Date { get; set; } = ""; public string Link { get; set; } = "/Blogs"; }
 }
 <script src="../../../../../js/user-alert.js"></script>

@@ -8,6 +8,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>پنل مدیریت</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<!-- آپدیت FontAwesome به نسخه پایدار 6.5.1 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<!-- اضافه کردن کتابخانه Devicon برای آیکون‌های تکنولوژی (Docker, Git, AWS, ...) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
+<!-- لینک استاندارد و کامل Devicon برای نمایش صحیح آیکون‌های تکنولوژی -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
 
 <style>
     * {
@@ -662,16 +669,18 @@
         }),
         new("محتوا", new()
         {
-            new("/Admin/Blogs",          "بلاگ‌ها"),
-            new("/Admin/Tutorials",      "آموزش‌ها"),
-            new("/Admin/FAQ",            "سوالات متداول"),
-            new("/Admin/PageManagement", "مدیریت صفحات"),
+            new("/Admin/Blogs",           "بلاگ‌ها"),
+            new("/Admin/Tutorials",       "آموزش‌ها"),
+            new("/Admin/FAQ",             "سوالات متداول"),
+            new("/Admin/PageManagement",  "مدیریت صفحات"),
+            new("/Admin/Comments",        "نظرات کاربران"), // ← جدید
         }),
-        new("تخصص‌ها و خدمات", new()   // ← گروه جدید
+        new("تخصص‌ها و خدمات", new()
         {
-            new("/Admin/Skills",                   "مهارت‌ها"),
-            new("/Admin/ProgrammingServices",      "خدمات برنامه‌نویسی"),
-            new("/Admin/SpecializedTechnologies",  "تکنولوژی‌های تخصصی"),
+            new("/Admin/Skills",                    "مهارت‌ها"),
+            new("/Admin/ProgrammingServices",       "خدمات برنامه‌نویسی"),
+            new("/Admin/SpecializedTechnologies",   "تکنولوژی‌های تخصصی"),
+            new("/Admin/SpecializedQualifications", "مدارک تخصصی"),   // ← جدید
         }),
         new("سیستم", new()
         {

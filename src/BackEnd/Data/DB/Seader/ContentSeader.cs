@@ -261,7 +261,7 @@ namespace BackEnd.Data.DB.Seeders
             // ===== ۱. بک‌اند و API =====
             Add("C#", "devicon-csharp-plain colored", "بک‌اند و API");
             Add(".NET Core", "devicon-dotnetcore-plain colored", "بک‌اند و API");
-            Add(".NET 8 / 9", "devicon-dotnetcore-plain colored", "بک‌اند و API");
+            Add(".NET 9 / 10", "devicon-dotnetcore-plain colored", "بک‌اند و API");
             Add("ASP.NET Core", "fas fa-fire", "بک‌اند و API");
             Add("ASP.NET MVC", "fas fa-window-maximize", "بک‌اند و API");
             Add("Web API", "fas fa-plug", "بک‌اند و API");
@@ -405,7 +405,7 @@ namespace BackEnd.Data.DB.Seeders
             Add("Event Sourcing", "fas fa-history", "معماری و الگوها");
             Add("Microservices", "fas fa-network-wired", "معماری و الگوها");
             Add("Modular Monolith", "fas fa-th-large", "معماری و الگوها");
-            Add("Hexagonal Architecture", "fas fa-hexagon-nodes", "معماری و الگوها");
+            Add("Hexagonal Architecture", "fas fa-cubes", "معماری و الگوها");
             Add("SOLID Principles", "fas fa-th", "معماری و الگوها");
             Add("Repository Pattern", "fas fa-database", "معماری و الگوها");
             Add("Unit of Work", "fas fa-tasks", "معماری و الگوها");

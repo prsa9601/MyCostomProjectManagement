@@ -1,4 +1,6 @@
-﻿using BackEnd.Data.DB.Seeders;
+﻿using BackEnd.Data.DB.Seader;
+using BackEnd.Data.DB.Seeder;
+using BackEnd.Data.DB.Seeders;
 using BackEnd.Data.Entities.FAQ;
 using BackEnd.Data.Entities.Portfolio;
 using BackEnd.Data.Entities.Role;
@@ -205,6 +207,18 @@ namespace BackEnd.Data.DB.Initializer
                 !context.SpecializedTechnologies.Any() && !context.ProgrammingServices.Any())
             {
                 await serviceProvider.SeedContentAsync();
+            }
+
+            if (!context.SpecializedQualifications.Any() &&
+                !context.SpecializedQualifications.Any() && !context.SpecializedQualifications.Any())
+            {
+                await serviceProvider.SeedQualificationsAsync();
+            }
+          
+            if (!context.Comments.Any() &&
+                !context.Comments.Any() && !context.Comments.Any())
+            {
+                await serviceProvider.SeedCommentsAsync();
             }
 
 

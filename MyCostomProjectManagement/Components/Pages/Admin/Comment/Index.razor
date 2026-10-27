@@ -1,0 +1,1273 @@
+﻿@page "/Admin/Comments"
+@layout AdminLayout
+@rendermode InteractiveServer
+@inject IDbContextFactory<BackEnd.Data.DB.Context> DbFactory
+@inject NavigationManager Navigation
+@using BackEnd.Data.Entities.Comment
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>مدیریت نظرات | پنل ادمین</PageTitle>
+
+<style>
+    .comment-page {
+        padding-top: 100px;
+        padding-bottom: 40px;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+        .comment-header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .comment-header h1 i {
+                color: #e8a838;
+            }
+
+        .comment-header .subtitle {
+            color: rgba(232,240,241,0.55);
+            font-size: 0.88rem;
+            margin-top: 4px;
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e8a838, #d4952e);
+        color: #fff;
+        border: none;
+        padding: 11px 22px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(232,168,56,0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+    .btn-ghost {
+        background: rgba(255,255,255,0.04);
+        color: #e8f0f1;
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.88rem;
+        transition: 0.2s;
+    }
+
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+    .toolbar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+    }
+
+        .search-box i {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(232,240,241,0.4);
+            font-size: 0.9rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 11px 44px 11px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            color: #e8f0f1;
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+            .search-box input:focus {
+                border-color: rgba(232,168,56,0.4);
+                background: rgba(255,255,255,0.06);
+            }
+
+            .search-box input::placeholder {
+                color: rgba(232,240,241,0.35);
+            }
+
+    .filter-select {
+        padding: 11px 16px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px;
+        color: #e8f0f1;
+        font-family: inherit;
+        font-size: 0.88rem;
+        outline: none;
+        cursor: pointer;
+        min-width: 150px;
+    }
+
+        .filter-select option {
+            background: #13505b;
+            color: #e8f0f1;
+        }
+
+    .stats-mini {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+
+    .stat-mini {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 16px;
+        padding: 16px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+        .stat-mini .sm-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+    .sm-icon.blue {
+        background: rgba(26,122,138,0.1);
+        color: #4ec3d4;
+    }
+
+    .sm-icon.green {
+        background: rgba(82,183,136,0.1);
+        color: #52b788;
+    }
+
+    .sm-icon.gold {
+        background: rgba(232,168,56,0.1);
+        color: #e8a838;
+    }
+
+    .stat-mini .sm-info .num {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.2;
+    }
+
+    .stat-mini .sm-info .lbl {
+        font-size: 0.78rem;
+        color: rgba(232,240,241,0.55);
+    }
+
+    .comment-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 18px;
+    }
+
+    .comment-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 18px;
+        padding: 22px;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.2,0.9,0.3,1);
+        display: flex;
+        flex-direction: column;
+    }
+
+        .comment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #e8a838, #52b788);
+            opacity: 0.5;
+        }
+
+        .comment-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.06);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+        }
+
+    .qc-status {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        font-size: 0.68rem;
+        padding: 3px 12px;
+        border-radius: 30px;
+        font-weight: 600;
+    }
+
+        .qc-status.active {
+            background: rgba(82,183,136,0.12);
+            color: #52b788;
+            border: 1px solid rgba(82,183,136,0.2);
+        }
+
+        .qc-status.inactive {
+            background: rgba(127,140,141,0.12);
+            color: rgba(232,240,241,0.55);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+    .qc-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .qc-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(232,168,56,0.2), rgba(82,183,136,0.2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #e8a838;
+        flex-shrink: 0;
+    }
+
+    .qc-title-wrap {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .qc-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+    }
+
+    .qc-provider {
+        font-size: 0.78rem;
+        color: rgba(232,240,241,0.5);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .qc-body {
+        font-size: 0.88rem;
+        color: rgba(232,240,241,0.85);
+        line-height: 1.8;
+        margin-bottom: 16px;
+        flex: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .qc-stars {
+        color: #e8a838;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+        display: flex;
+        gap: 3px;
+    }
+
+        .qc-stars .empty {
+            color: rgba(255,255,255,0.15);
+        }
+
+    .qc-actions {
+        display: flex;
+        gap: 8px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        margin-top: auto;
+    }
+
+    .qc-btn {
+        flex: 1;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        color: rgba(232,240,241,0.75);
+        padding: 8px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: 0.2s;
+    }
+
+        .qc-btn:hover {
+            background: rgba(255,255,255,0.07);
+            color: #fff;
+        }
+
+        .qc-btn.edit:hover {
+            color: #e8a838;
+            border-color: rgba(232,168,56,0.25);
+        }
+
+        .qc-btn.delete:hover {
+            color: #ff6b6b;
+            border-color: rgba(220,53,69,0.25);
+        }
+
+    .empty-state, .loading-state {
+        text-align: center;
+        padding: 70px 20px;
+        background: rgba(255,255,255,0.03);
+        border: 1px dashed rgba(255,255,255,0.08);
+        border-radius: 20px;
+        color: rgba(232,240,241,0.5);
+    }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: rgba(232,168,56,0.4);
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            color: #fff;
+            margin-bottom: 6px;
+            font-size: 1.05rem;
+        }
+
+        .empty-state p {
+            font-size: 0.85rem;
+        }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(232,168,56,0.15);
+        border-top-color: #e8a838;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 14px;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        backdrop-filter: blur(6px);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.2s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .modal-box {
+        background: #0f3e48;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 520px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        animation: slideUp 0.3s cubic-bezier(0.2,0.9,0.3,1);
+    }
+
+    @@keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+        .modal-header h3 {
+            font-size: 1.05rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .modal-header h3 i {
+                color: #e8a838;
+            }
+
+    .modal-close {
+        background: none;
+        border: none;
+        color: rgba(232,240,241,0.6);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 8px;
+        transition: 0.2s;
+    }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+
+    .modal-body {
+        padding: 22px 24px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.82rem;
+        color: rgba(232,240,241,0.75);
+        margin-bottom: 7px;
+        font-weight: 500;
+    }
+
+        .form-label .req {
+            color: #ff6b6b;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 11px 14px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 11px;
+        color: #e8f0f1;
+        font-family: inherit;
+        font-size: 0.88rem;
+        outline: none;
+        transition: 0.2s;
+        resize: vertical;
+    }
+
+        .form-control:focus {
+            border-color: rgba(232,168,56,0.5);
+            background: rgba(255,255,255,0.06);
+        }
+
+        .form-control::placeholder {
+            color: rgba(232,240,241,0.3);
+        }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 11px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+        .toggle-row .lbl {
+            font-size: 0.88rem;
+            color: #e8f0f1;
+        }
+
+            .toggle-row .lbl small {
+                display: block;
+                font-size: 0.72rem;
+                color: rgba(232,240,241,0.45);
+                margin-top: 2px;
+            }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 26px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: rgba(255,255,255,0.1);
+        border-radius: 30px;
+        transition: 0.3s;
+    }
+
+        .slider:before {
+            content: '';
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+    .switch input:checked + .slider {
+        background: #52b788;
+    }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+    .modal-footer {
+        padding: 18px 24px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .delete-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(220,53,69,0.1);
+        color: #ff6b6b;
+        font-size: 1.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+    .delete-title {
+        text-align: center;
+        color: #fff;
+        font-size: 1.05rem;
+        margin-bottom: 8px;
+    }
+
+    .delete-text {
+        text-align: center;
+        color: rgba(232,240,241,0.6);
+        font-size: 0.88rem;
+        line-height: 1.7;
+    }
+
+        .delete-text strong {
+            color: #e8a838;
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: #fff;
+        border: none;
+        padding: 10px 22px;
+        border-radius: 11px;
+        font-family: inherit;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        transition: 0.2s;
+    }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(220,53,69,0.3);
+        }
+
+        .btn-danger:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .toast {
+        position: fixed;
+        top: 90px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 13px 24px;
+        border-radius: 12px;
+        font-size: 0.88rem;
+        font-weight: 500;
+        z-index: 3000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        animation: toastIn 0.3s ease;
+    }
+
+        .toast.success {
+            background: #1b7a4b;
+            color: #fff;
+        }
+
+        .toast.error {
+            background: #b02a37;
+            color: #fff;
+        }
+
+    @@keyframes toastIn {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .comment-page {
+            padding-top: 82px;
+        }
+
+        .comment-header h1 {
+            font-size: 1.3rem;
+        }
+
+        .comment-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .comment-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+            .comment-header h1 {
+                font-size: 1.15rem;
+            }
+
+        .toolbar {
+            flex-direction: column;
+        }
+
+        .filter-select {
+            width: 100%;
+        }
+    }
+</style>
+
+<main class="comment-page">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="comment-header">
+            <div>
+                <h1><i class="fas fa-comments"></i> نظرات کاربران</h1>
+                <div class="subtitle">مدیریت نظرات و رضایت مشتریان</div>
+            </div>
+            <button class="btn-primary" @onclick="OpenCreateModal">
+                <i class="fas fa-plus"></i> افزودن نظر جدید
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-mini">
+            <div class="stat-mini">
+                <div class="sm-icon blue"><i class="fas fa-comment-dots"></i></div>
+                <div class="sm-info">
+                    <div class="num">@allItems.Count</div>
+                    <div class="lbl">کل نظرات</div>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="sm-icon gold"><i class="fas fa-star"></i></div>
+                <div class="sm-info">
+                    <div class="num">@(allItems.Any() ? allItems.Average(x => x.Score).ToString("0.0") : "0")</div>
+                    <div class="lbl">میانگین امتیاز</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="جستجو در نام، متن یا عنوان شغلی..."
+                       @bind="searchTerm" @bind:event="oninput" />
+            </div>
+            <select class="filter-select" @bind="scoreFilter">
+                <option value="all">همه امتیازها</option>
+                <option value="5">۵ ستاره</option>
+                <option value="4">۴ ستاره</option>
+                <option value="3">۳ ستاره</option>
+                <option value="2">۲ ستاره</option>
+                <option value="1">۱ ستاره</option>
+            </select>
+        </div>
+
+        <!-- Content -->
+        @if (isLoading)
+        {
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>در حال بارگذاری...</p>
+            </div>
+        }
+        else if (!FilteredItems.Any())
+        {
+            <div class="empty-state">
+                <i class="fas fa-comment-slash"></i>
+                <h3>نظری یافت نشد</h3>
+                <p>
+                    @(string.IsNullOrEmpty(searchTerm) && scoreFilter == "all"
+                        ? "برای شروع، اولین نظر را اضافه کنید."
+                        : "هیچ نتیجه‌ای با فیلترهای فعلی پیدا نشد.")
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="comment-grid">
+                @foreach (var c in FilteredItems)
+                {
+                    <div class="comment-card">
+                        <span class="qc-status @(c.IsActive ? "active" : "inactive")">
+                            <i class="fas @(c.IsActive ? "fa-check" : "fa-pause")"></i>
+                            @(c.IsActive ? "فعال" : "غیرفعال")
+                        </span>
+
+                        <div class="qc-top">
+                            <div class="qc-avatar">
+                                @(string.IsNullOrWhiteSpace(c.UserName) ? "؟" : c.UserName.Trim()[0])
+                            </div>
+                            <div class="qc-title-wrap">
+                                <div class="qc-title">@c.UserName</div>
+                                <div class="qc-provider">
+                                    <i class="fas fa-briefcase"></i>
+                                    @(string.IsNullOrWhiteSpace(c.JobTitle) ? "—" : c.JobTitle)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="qc-stars">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fas fa-star @(i <= c.Score ? "" : "empty")"></i>
+                            }
+                        </div>
+
+                        <div class="qc-body">@c.Text</div>
+
+                        <div class="qc-actions">
+                            <button class="qc-btn edit" @onclick="() => OpenEditModal(c)">
+                                <i class="fas fa-edit"></i> ویرایش
+                            </button>
+                            <button class="qc-btn toggle" @onclick="() => ToggleActiveAsync(c)">
+                                <i class="fas @(c.IsActive ? "fa-pause" : "fa-play")"></i>
+                                @(c.IsActive ? "غیرفعال" : "فعال")
+                            </button>
+                            <button class="qc-btn delete" @onclick="() => OpenDeleteModal(c)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</main>
+
+<!-- Create / Edit Modal -->
+@if (showFormModal)
+{
+    <div class="modal-overlay" @onclick="CloseFormModal">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas @(editingId is null ? "fa-plus-circle" : "fa-edit")"></i>
+                    @(editingId is null ? "افزودن نظر جدید" : "ویرایش نظر")
+                </h3>
+                <button class="modal-close" @onclick="CloseFormModal"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">نام کاربر <span class="req">*</span></label>
+                        <input class="form-control" @bind="formModel.UserName" placeholder="مثلاً: علی رضایی" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">عنوان شغلی</label>
+                        <input class="form-control" @bind="formModel.JobTitle" placeholder="مثلاً: مدیرعامل" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">امتیاز <span class="req">*</span></label>
+                    <select class="form-control" @bind="formModel.Score">
+                        <option value="5">5 ستاره (عالی)</option>
+                        <option value="4">4 ستاره (خوب)</option>
+                        <option value="3">3 ستاره (متوسط)</option>
+                        <option value="2">2 ستاره (ضعیف)</option>
+                        <option value="1">1 ستاره (بد)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">متن نظر <span class="req">*</span></label>
+                    <textarea class="form-control" @bind="formModel.Text" rows="4" placeholder="متن نظر کاربر..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <div class="toggle-row">
+                        <div class="lbl">
+                            وضعیت فعال
+                            <small>نظرات غیرفعال در سایت نمایش داده نمی‌شوند</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" @bind="formModel.IsActive" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-ghost" @onclick="CloseFormModal" disabled="@isSaving">انصراف</button>
+                <button class="btn-primary" @onclick="SaveAsync" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>در حال ذخیره...</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-save"></i>
+                        <span>ذخیره</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete Modal -->
+@if (showDeleteModal && deletingItem is not null)
+{
+    <div class="modal-overlay" @onclick="CloseDeleteModal">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <div class="modal-body">
+                <div class="delete-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <h3 class="delete-title">حذف نظر</h3>
+                <p class="delete-text">
+                    آیا از حذف نظر <strong>«@deletingItem.UserName»</strong> مطمئن هستید؟
+                    <br />این عملیات قابل بازگشت نیست.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-ghost" @onclick="CloseDeleteModal" disabled="@isDeleting">انصراف</button>
+                <button class="btn-danger" @onclick="ConfirmDeleteAsync" disabled="@isDeleting">
+                    @if (isDeleting)
+                    {
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>در حال حذف...</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-trash"></i>
+                        <span>حذف</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Toast -->
+@if (toast is not null)
+{
+    <div class="toast @toast.Type">
+        <i class="fas @(toast.Type == "success" ? "fa-check-circle" : "fa-exclamation-circle")"></i>
+        <span>@toast.Message</span>
+    </div>
+}
+
+@code {
+    // ============================================================
+    // STATE
+    // ============================================================
+    private List<Comment> allItems = new();
+    private bool isLoading = true;
+
+    private string searchTerm = "";
+    private string scoreFilter = "all";
+
+    // Form
+    private bool showFormModal;
+    private bool isSaving;
+    private Guid? editingId;
+    private Comment formModel = new();
+    
+    // Delete
+    private bool showDeleteModal;
+    private bool isDeleting;
+    private Comment? deletingItem;
+
+    // Toast
+    private ToastMessage? toast;
+    private CancellationTokenSource? _toastCts;
+
+    // ============================================================
+    // FILTER
+    // ============================================================
+    private IEnumerable<Comment> FilteredItems
+    {
+        get
+        {
+            var query = allItems.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.Trim();
+                query = query.Where(c =>
+                    (c.UserName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Text?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.JobTitle?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            if (scoreFilter != "all" && int.TryParse(scoreFilter, out var score))
+            {
+                query = query.Where(c => c.Score == score);
+            }
+
+            return query;
+        }
+    }
+
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            allItems = await db.Comments
+                                .AsNoTracking()
+                                .OrderByDescending(x => x.CreationDate)
+                                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"خطا در بارگذاری: {ex.Message}", "error");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // ============================================================
+    // CREATE / EDIT
+    // ============================================================
+    private void OpenCreateModal()
+    {
+        editingId = null;
+        formModel = new Comment { IsActive = true, Score = 5 };
+        showFormModal = true;
+    }
+
+    private void OpenEditModal(Comment item)
+    {
+        editingId = item.Id;
+        formModel = new Comment
+        {
+            Id = item.Id,
+            CreationDate = item.CreationDate,
+            UserName = item.UserName,
+            Text = item.Text,
+            Score = item.Score,
+            JobTitle = item.JobTitle,
+            IsActive = item.IsActive
+        };
+        showFormModal = true;
+    }
+
+    private void CloseFormModal()
+    {
+        if (isSaving) return;
+        showFormModal = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(formModel.UserName))
+        {
+            ShowToast("نام کاربر الزامی است.", "error");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(formModel.Text))
+        {
+            ShowToast("متن نظر الزامی است.", "error");
+            return;
+        }
+        if (formModel.Score < 1 || formModel.Score > 5)
+        {
+            ShowToast("امتیاز باید بین ۱ تا ۵ باشد.", "error");
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+
+            if (editingId is null)
+            {
+                // CREATE
+                var entity = new Comment
+                {
+                    Id = Guid.NewGuid(),
+                    CreationDate = DateTime.Now,
+                    UserName = formModel.UserName,
+                    Text = formModel.Text,
+                    Score = formModel.Score,
+                    JobTitle = formModel.JobTitle,
+                    IsActive = formModel.IsActive
+                };
+                db.Comments.Add(entity);
+                await db.SaveChangesAsync();
+                allItems.Insert(0, entity);
+                ShowToast("نظر با موفقیت اضافه شد.", "success");
+            }
+            else
+            {
+                // UPDATE
+                var existing = await db.Comments.FindAsync(formModel.Id);
+                if (existing is null)
+                {
+                    ShowToast("نظر یافت نشد.", "error");
+                    return;
+                }
+                existing.UserName = formModel.UserName;
+                existing.Text = formModel.Text;
+                existing.Score = formModel.Score;
+                existing.JobTitle = formModel.JobTitle;
+                existing.IsActive = formModel.IsActive;
+                await db.SaveChangesAsync();
+
+                var idx = allItems.FindIndex(x => x.Id == existing.Id);
+                if (idx >= 0) allItems[idx] = existing;
+                ShowToast("تغییرات با موفقیت ذخیره شد.", "success");
+            }
+
+            showFormModal = false;
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"خطا: {ex.Message}", "error");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    // ============================================================
+    // TOGGLE ACTIVE
+    // ============================================================
+    private async Task ToggleActiveAsync(Comment item)
+    {
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var existing = await db.Comments.FindAsync(item.Id);
+            if (existing is null) return;
+
+            existing.IsActive = !existing.IsActive;
+            await db.SaveChangesAsync();
+
+            item.IsActive = existing.IsActive;
+            ShowToast(item.IsActive ? "نظر فعال شد." : "نظر غیرفعال شد.", "success");
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"خطا: {ex.Message}", "error");
+        }
+    }
+
+    // ============================================================
+    // DELETE
+    // ============================================================
+    private void OpenDeleteModal(Comment item)
+    {
+        deletingItem = item;
+        showDeleteModal = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        if (isDeleting) return;
+        showDeleteModal = false;
+        deletingItem = null;
+    }
+
+    private async Task ConfirmDeleteAsync()
+    {
+        if (deletingItem is null) return;
+        isDeleting = true;
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var existing = await db.Comments.FindAsync(deletingItem.Id);
+            if (existing is null)
+            {
+                ShowToast("نظر یافت نشد.", "error");
+                return;
+            }
+            db.Comments.Remove(existing);
+            await db.SaveChangesAsync();
+
+            allItems.RemoveAll(x => x.Id == deletingItem.Id);
+            ShowToast("نظر با موفقیت حذف شد.", "success");
+            showDeleteModal = false;
+            deletingItem = null;
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"خطا: {ex.Message}", "error");
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+    private void ShowToast(string message, string type)
+    {
+        _toastCts?.Cancel();
+        _toastCts = new CancellationTokenSource();
+        toast = new ToastMessage { Message = message, Type = type };
+
+        var token = _toastCts.Token;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(3500, token);
+                await InvokeAsync(() =>
+                {
+                    toast = null;
+                    StateHasChanged();
+                });
+            }
+            catch (TaskCanceledException) { }
+        });
+    }
+
+    private sealed class ToastMessage
+    {
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "success";
+    }
+}
