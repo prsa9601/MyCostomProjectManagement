@@ -9,6 +9,7 @@
 @using BackEnd.Data.Infrastructure.Tutorial
 @using BackEnd.Data.Infrastructure.Tutorial.DTOs
 @using Markdig
+@using Markdig.Extensions.AutoIdentifiers
 @using Microsoft.EntityFrameworkCore
 @using MyCostomProjectManagement.Helpers
 @inject ITutorialApiService TutorialService
@@ -56,15 +57,6 @@
             <meta property="article:tag" content="@tutorial.Topic" />
         }
     }
-
-    @* ═══════════ TWITTER CARD ═══════════ *@
-@*     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@TwitterHandle" />
-    <meta name="twitter:creator" content="@TwitterHandle" />
-    <meta name="twitter:title" content="@seoTitle" />
-    <meta name="twitter:description" content="@seoDescription" />
-    <meta name="twitter:image" content="@ogImage" />
-    <meta name="twitter:image:alt" content="@(tutorial?.Title ?? "آموزش")" /> *@
 
     @* ═══════════ HREFLANG ═══════════ *@
     <link rel="alternate" hreflang="fa-IR" href="@canonicalUrl" />
@@ -157,6 +149,7 @@
 
         await new Promise(function (r) { setTimeout(r, 30); });
 
+        // ── Wrap tables ──
         document.querySelectorAll('#contentArea > table').forEach(function (table) {
             if (table.parentElement.classList.contains('td-table-wrap')) return;
             var wrap = document.createElement('div');
@@ -165,6 +158,7 @@
             wrap.appendChild(table);
         });
 
+        // ── Summary boxes ──
         document.querySelectorAll('#contentArea blockquote').forEach(function (bq) {
             var text = (bq.textContent || '').trim();
             var firstStrong = bq.querySelector('strong');
@@ -182,6 +176,7 @@
             }
         });
 
+        // ── Code blocks: highlight + badge + copy ──
         var langMap = {
             'plaintext': 'smart-text',
             'text': 'smart-text',
@@ -275,13 +270,110 @@
                 pre.appendChild(btn);
             }
         });
+
+        // ══════════════════════════════════════════════════
+        // 🔗 HEADING ANCHORS — دکمه کپی لینک روی هر هدینگ
+        // ══════════════════════════════════════════════════
+        document.querySelectorAll('#contentArea h1[id], #contentArea h2[id], #contentArea h3[id], #contentArea h4[id]').forEach(function (h) {
+            if (h.querySelector('.td-heading-anchor')) return;
+
+            var a = document.createElement('a');
+            a.className = 'td-heading-anchor';
+            a.href = '#' + h.id;
+            a.setAttribute('aria-label', 'کپی لینک این بخش');
+            a.title = 'کپی لینک این بخش';
+            a.innerHTML = '<i class="fas fa-link"></i>';
+
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+                var url = window.location.origin + window.location.pathname + '#' + h.id;
+                navigator.clipboard.writeText(url).then(function () {
+                    a.classList.add('td-copied');
+                    a.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(function () {
+                        a.classList.remove('td-copied');
+                        a.innerHTML = '<i class="fas fa-link"></i>';
+                    }, 1500);
+                });
+                history.replaceState(null, '', '#' + h.id);
+                h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            h.appendChild(a);
+        });
+
+        // ── Deep link on load ──
+        if (window.location.hash.length > 1) {
+            var target = document.getElementById(decodeURIComponent(window.location.hash.substring(1)));
+            if (target) {
+                setTimeout(function () {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 120);
+            }
+        }
+
+        // ══════════════════════════════════════════════════
+        // 📑 TOC ACTIVE TRACKING
+        // ══════════════════════════════════════════════════
+        var tocLinks = document.querySelectorAll('.td-toc-link');
+        if (tocLinks.length) {
+            var heads = document.querySelectorAll('#contentArea h2[id], #contentArea h3[id], #contentArea h4[id]');
+            if (heads.length && 'IntersectionObserver' in window) {
+                var obs = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        var id = entry.target.id;
+                        tocLinks.forEach(function (l) {
+                            l.classList.toggle('active', l.getAttribute('data-id') === id);
+                        });
+                    });
+                }, { rootMargin: '-100px 0px -70% 0px', threshold: 0 });
+                heads.forEach(function (h) { obs.observe(h); });
+            }
+        }
+
+        // ══════════════════════════════════════════════════
+        // ⌨️ KEYBOARD SHORTCUTS
+        // ══════════════════════════════════════════════════
+        window.tdTutorial.initKeyboardShortcuts();
+    };
+
+    window.tdTutorial.initKeyboardShortcuts = function () {
+        if (window.tdTutorial._kb) return;
+        window.tdTutorial._kb = true;
+
+        document.addEventListener('keydown', function (e) {
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            var tag = (document.activeElement && document.activeElement.tagName) || '';
+            if (['INPUT', 'TEXTAREA', 'SELECT'].indexOf(tag) !== -1) return;
+
+            switch (e.key) {
+                case 'Home':
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    break;
+                case 't':
+                case 'T': {
+                    var toc = document.querySelector('.td-toc-card');
+                    if (toc) {
+                        e.preventDefault();
+                        toc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                    break;
+                }
+            }
+        });
     };
 </script>
 
 <style>
     /* ============================================================
-                           TUTORIAL DETAIL (FRONT) - پالت لندینگ #0a0e17
-                        ============================================================ */
+                               TUTORIAL DETAIL (FRONT) - پالت لندینگ #0a0e17
+                            ============================================================ */
 
     .td-hero {
         padding: 140px 0 40px;
@@ -422,6 +514,14 @@
         word-break: break-word;
     }
 
+        .td-content h1,
+        .td-content h2,
+        .td-content h3,
+        .td-content h4 {
+            scroll-margin-top: 100px;
+            position: relative;
+        }
+
         .td-content h1 {
             font-size: 1.6rem;
             font-weight: 800;
@@ -494,6 +594,9 @@
             font-weight: 600;
             color: #4dc9dd;
             margin: 18px 0 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .td-content p {
@@ -525,6 +628,12 @@
                 border-bottom-style: solid;
                 background: rgba(139,92,246,0.06);
                 border-radius: 4px;
+            }
+
+            .td-content a.td-heading-anchor {
+                border: none !important;
+                padding: 0 !important;
+                background: transparent !important;
             }
 
         /* ===== LISTS ===== */
@@ -623,7 +732,6 @@
             text-align: left;
             box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
             transition: border-color 0.3s, box-shadow 0.3s;
-            /* ----- Custom Scrollbar (Firefox) ----- */
             scrollbar-width: thin;
             scrollbar-color: rgba(96, 165, 250, 0.5) rgba(255, 255, 255, 0.03);
             scroll-behavior: smooth;
@@ -660,9 +768,6 @@
                 z-index: 2;
             }
 
-            /* ============================================================
-                   CODE BLOCK SCROLLBAR — Webkit
-                ============================================================ */
             .td-content pre::-webkit-scrollbar {
                 height: 10px;
                 width: 10px;
@@ -678,16 +783,11 @@
                 background: linear-gradient(90deg, #3b82f6, #8b5cf6);
                 border-radius: 10px;
                 border: 2px solid rgba(15, 20, 30, 0.9);
-                transition: background 0.25s ease;
             }
 
                 .td-content pre::-webkit-scrollbar-thumb:hover {
                     background: linear-gradient(90deg, #60a5fa, #a78bfa);
                     box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
-                }
-
-                .td-content pre::-webkit-scrollbar-thumb:active {
-                    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
                 }
 
             .td-content pre::-webkit-scrollbar-corner {
@@ -726,10 +826,6 @@
                     .td-content pre code.hljs span {
                         background: transparent;
                     }
-
-                    /* ============================================================
-                                           تقویت رنگ‌بندی کدها
-                                        ============================================================ */
 
                     .td-content pre code.hljs .hljs-keyword,
                     .td-content pre code.hljs .hljs-built_in,
@@ -796,7 +892,7 @@
                         color: #56b6c2 !important;
                     }
 
-        /* ===== BLOCKQUOTE معمولی ===== */
+        /* ===== BLOCKQUOTE ===== */
         .td-content blockquote {
             position: relative;
             border-right: 3px solid #3b82f6;
@@ -825,9 +921,7 @@
                 margin-bottom: 0;
             }
 
-            /* ============================================================
-                                   ⚡ خلاصه سریع — ترکیب تیره طلایی + تیتر وسط‌چین + شماره ساده
-                                ============================================================ */
+            /* ⚡ خلاصه سریع */
             .td-content blockquote.td-summary-box {
                 position: relative;
                 border: 1.5px solid rgba(232, 168, 56, 0.45);
@@ -955,11 +1049,6 @@
                     font-family: 'Fira Code', 'Consolas', monospace;
                 }
 
-                    .td-content blockquote.td-summary-box code:not(pre code):hover {
-                        background: rgba(0, 0, 0, 0.6);
-                        border-color: rgba(232, 168, 56, 0.4);
-                    }
-
                 .td-content blockquote.td-summary-box strong {
                     color: #f5c14a;
                     font-weight: 700;
@@ -1013,11 +1102,6 @@
                             line-height: 2;
                         }
 
-                        .td-content blockquote.td-summary-box ol li strong {
-                            color: #f5c14a;
-                            font-weight: 700;
-                        }
-
     /* ===== TABLE ===== */
     .td-table-wrap {
         width: 100%;
@@ -1027,15 +1111,11 @@
         border: 1px solid rgba(255,255,255,0.06);
         box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         background: rgba(255,255,255,0.01);
-        /* ----- Custom Scrollbar (Firefox) ----- */
         scrollbar-width: thin;
         scrollbar-color: rgba(96, 165, 250, 0.5) rgba(255, 255, 255, 0.03);
         scroll-behavior: smooth;
     }
 
-        /* ============================================================
-               TABLE SCROLLBAR — Webkit
-            ============================================================ */
         .td-table-wrap::-webkit-scrollbar {
             height: 10px;
             width: 10px;
@@ -1051,27 +1131,12 @@
             background: linear-gradient(90deg, #3b82f6, #8b5cf6);
             border-radius: 10px;
             border: 2px solid rgba(15, 20, 30, 0.9);
-            transition: background 0.25s ease;
         }
 
             .td-table-wrap::-webkit-scrollbar-thumb:hover {
                 background: linear-gradient(90deg, #60a5fa, #a78bfa);
                 box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
             }
-
-            .td-table-wrap::-webkit-scrollbar-thumb:active {
-                background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            }
-
-        .td-table-wrap::-webkit-scrollbar-corner {
-            background: transparent;
-        }
-
-        .td-table-wrap::-webkit-scrollbar-button {
-            display: none;
-            height: 0;
-            width: 0;
-        }
 
     .td-content table {
         width: 100%;
@@ -1135,6 +1200,121 @@
         opacity: 0.6;
     }
 
+    /* ============================================================
+                         🔗 HEADING ANCHORS
+                         ============================================================ */
+    .td-heading-anchor {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        margin-right: 8px;
+        vertical-align: middle;
+        border-radius: 6px;
+        color: rgba(96,165,250,0.35);
+        background: transparent;
+        text-decoration: none !important;
+        border: none !important;
+        opacity: 0;
+        transition: all 0.2s ease;
+        font-size: 0.72rem;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+
+        .td-content h1:hover .td-heading-anchor,
+        .td-content h2:hover .td-heading-anchor,
+        .td-content h3:hover .td-heading-anchor,
+        .td-content h4:hover .td-heading-anchor,
+        .td-heading-anchor:focus-visible {
+            opacity: 1;
+        }
+
+        .td-heading-anchor:hover {
+            color: #60a5fa;
+            background: rgba(59,130,246,0.15);
+        }
+
+        .td-heading-anchor.td-copied {
+            color: #34d399;
+            background: rgba(52,211,153,0.15);
+            opacity: 1;
+        }
+
+    /* ============================================================
+                         📑 TOC (فهرست مطالب)
+                         ============================================================ */
+    .td-toc-card {
+        max-height: 42vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(96,165,250,0.4) transparent;
+    }
+
+        .td-toc-card::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .td-toc-card::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .td-toc-card::-webkit-scrollbar-thumb {
+            background: rgba(96,165,250,0.35);
+            border-radius: 10px;
+        }
+
+            .td-toc-card::-webkit-scrollbar-thumb:hover {
+                background: rgba(96,165,250,0.6);
+            }
+
+    .td-toc {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .td-toc-link {
+        display: block;
+        padding: 7px 10px;
+        font-size: 0.85rem;
+        color: #94a3b8;
+        text-decoration: none;
+        border-radius: 8px;
+        border-right: 2px solid transparent;
+        transition: all 0.2s ease;
+        line-height: 1.5;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+        .td-toc-link:hover {
+            color: #60a5fa;
+            background: rgba(59,130,246,0.08);
+            border-right-color: rgba(59,130,246,0.4);
+        }
+
+        .td-toc-link.active {
+            color: #60a5fa;
+            background: rgba(59,130,246,0.12);
+            border-right-color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .td-toc-link.td-toc-l3 {
+            padding-right: 22px;
+            font-size: 0.8rem;
+        }
+
+        .td-toc-link.td-toc-l4 {
+            padding-right: 34px;
+            font-size: 0.76rem;
+            color: #64748b;
+        }
+
     /* ===== SIDEBAR ===== */
     .td-side {
         display: flex;
@@ -1142,7 +1322,25 @@
         gap: 18px;
         position: sticky;
         top: 100px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(96,165,250,0.35) transparent;
+        padding-left: 4px;
     }
+
+        .td-side::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .td-side::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .td-side::-webkit-scrollbar-thumb {
+            background: rgba(96,165,250,0.3);
+            border-radius: 10px;
+        }
 
     .td-side-card {
         background: rgba(255,255,255,0.03);
@@ -1152,6 +1350,7 @@
         border-radius: 20px;
         padding: 22px;
         transition: all 0.3s ease;
+        flex-shrink: 0;
     }
 
         .td-side-card:hover {
@@ -1326,10 +1525,20 @@
 
         .td-side {
             position: static;
+            max-height: none;
+            overflow-y: visible;
+        }
+
+        .td-toc-card {
+            max-height: none;
         }
 
         .td-main {
             padding: 24px;
+        }
+
+        .td-heading-anchor {
+            opacity: 0.6;
         }
     }
 
@@ -1431,16 +1640,12 @@
             }
     }
 
-    /* ═══════════════════════════════════════════════════════════
-                       PRINT HEADER — فقط در چاپ نشون داده می‌شه
-                       ═══════════════════════════════════════════════════════════ */
+    /* ═══════════ PRINT HEADER ═══════════ */
     .td-print-header {
         display: none;
     }
 
-    /* ═══════════════════════════════════════════════════════════
-                       🖨️ PRINT STYLES — حرفه‌ای
-                       ═══════════════════════════════════════════════════════════ */
+    /* ═══════════ PRINT STYLES ═══════════ */
     @@media print {
 
         @@page {
@@ -1461,7 +1666,7 @@
 
         header, nav, footer,
         .td-hero, .td-side, .td-toast, .td-back,
-        .td-copy-btn, .td-lang-badge,
+        .td-copy-btn, .td-lang-badge, .td-heading-anchor,
         .td-spinner {
             display: none !important;
         }
@@ -1679,8 +1884,6 @@
                 font-family: 'Consolas', monospace !important;
                 font-size: 9pt !important;
                 display: inline !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
             }
 
             .td-content pre {
@@ -1695,14 +1898,9 @@
                 overflow: visible !important;
                 white-space: pre-wrap !important;
                 word-break: break-word !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
             }
 
-                .td-content pre::before {
-                    display: none !important;
-                }
-
+                .td-content pre::before,
                 .td-content pre::after {
                     display: none !important;
                 }
@@ -1720,70 +1918,6 @@
                     display: block;
                 }
 
-                    .td-content pre code .hljs-keyword,
-                    .td-content pre code .hljs-built_in,
-                    .td-content pre code .hljs-selector-tag,
-                    .td-content pre code .hljs-literal {
-                        color: #8250df !important;
-                        font-weight: 600;
-                    }
-
-                    .td-content pre code .hljs-title,
-                    .td-content pre code .hljs-title.function_,
-                    .td-content pre code .hljs-function .hljs-title {
-                        color: #0550ae !important;
-                        font-weight: 600;
-                    }
-
-                    .td-content pre code .hljs-string,
-                    .td-content pre code .hljs-doctag,
-                    .td-content pre code .hljs-regexp {
-                        color: #0a7d3f !important;
-                    }
-
-                    .td-content pre code .hljs-number,
-                    .td-content pre code .hljs-symbol,
-                    .td-content pre code .hljs-bullet {
-                        color: #b45309 !important;
-                    }
-
-                    .td-content pre code .hljs-variable,
-                    .td-content pre code .hljs-template-variable,
-                    .td-content pre code .hljs-attr {
-                        color: #cf222e !important;
-                    }
-
-                    .td-content pre code .hljs-comment,
-                    .td-content pre code .hljs-quote {
-                        color: #6b7280 !important;
-                        font-style: italic;
-                    }
-
-                    .td-content pre code .hljs-type,
-                    .td-content pre code .hljs-class .hljs-title,
-                    .td-content pre code .hljs-params {
-                        color: #b45309 !important;
-                    }
-
-                    .td-content pre code .hljs-operator,
-                    .td-content pre code .hljs-punctuation {
-                        color: #1f2937 !important;
-                    }
-
-                    .td-content pre code .hljs-tag,
-                    .td-content pre code .hljs-name {
-                        color: #cf222e !important;
-                    }
-
-                    .td-content pre code .hljs-attribute {
-                        color: #0550ae !important;
-                    }
-
-                    .td-content pre code .hljs-meta,
-                    .td-content pre code .hljs-meta .hljs-keyword {
-                        color: #0969da !important;
-                    }
-
             .td-content blockquote {
                 background: #eff6ff !important;
                 border-right: 3px solid #3b82f6 !important;
@@ -1792,8 +1926,6 @@
                 margin: 4mm 0 !important;
                 border-radius: 3px !important;
                 page-break-inside: avoid;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
             }
 
                 .td-content blockquote::before {
@@ -1809,9 +1941,6 @@
                     color: #78350f !important;
                     box-shadow: none !important;
                     page-break-inside: avoid;
-                    position: relative;
-                    -webkit-print-color-adjust: exact;
-                    print-color-adjust: exact;
                 }
 
                     .td-content blockquote.td-summary-box::before {
@@ -1838,117 +1967,6 @@
                         font-family: inherit !important;
                     }
 
-                    .td-content blockquote.td-summary-box > p:first-child strong,
-                    .td-content blockquote.td-summary-box h2,
-                    .td-content blockquote.td-summary-box h3 {
-                        color: #92400e !important;
-                        font-size: 14pt !important;
-                        font-weight: 900 !important;
-                        text-align: right !important;
-                        text-shadow: none !important;
-                        margin: 0 0 3mm 0 !important;
-                        display: block !important;
-                        page-break-after: avoid;
-                    }
-
-                        .td-content blockquote.td-summary-box > p:first-child strong::before {
-                            content: '' !important;
-                        }
-
-                        .td-content blockquote.td-summary-box > p:first-child strong::after {
-                            content: '' !important;
-                        }
-
-                    .td-content blockquote.td-summary-box > p:nth-child(2) {
-                        color: #92400e !important;
-                        font-size: 9.5pt !important;
-                        font-weight: 500 !important;
-                        text-align: right !important;
-                        padding-bottom: 3mm !important;
-                        margin: 0 0 4mm 0 !important;
-                        border-bottom: 1px dashed #fcd34d !important;
-                        font-style: italic;
-                    }
-
-                    .td-content blockquote.td-summary-box ul {
-                        list-style: disc !important;
-                        padding-right: 6mm !important;
-                        margin: 0 0 3mm 0 !important;
-                    }
-
-                        .td-content blockquote.td-summary-box ul li {
-                            color: #374151 !important;
-                            font-size: 9.5pt !important;
-                            padding-right: 0 !important;
-                            margin-bottom: 1.5mm !important;
-                        }
-
-                            .td-content blockquote.td-summary-box ul li::before {
-                                content: none !important;
-                                display: none !important;
-                            }
-
-                            .td-content blockquote.td-summary-box ul li::marker {
-                                color: #d97706 !important;
-                            }
-
-                            .td-content blockquote.td-summary-box ul li strong {
-                                color: #92400e !important;
-                            }
-
-                    .td-content blockquote.td-summary-box ol {
-                        list-style: decimal !important;
-                        padding-right: 6mm !important;
-                        margin: 0 0 3mm 0 !important;
-                    }
-
-                        .td-content blockquote.td-summary-box ol li {
-                            color: #374151 !important;
-                            font-size: 9.5pt !important;
-                            padding-right: 0 !important;
-                            margin-bottom: 1.5mm !important;
-                        }
-
-                            .td-content blockquote.td-summary-box ol li::before {
-                                content: none !important;
-                                display: none !important;
-                            }
-
-                            .td-content blockquote.td-summary-box ol li::marker {
-                                color: #d97706 !important;
-                            }
-
-                            .td-content blockquote.td-summary-box ol li strong {
-                                color: #92400e !important;
-                            }
-
-                    .td-content blockquote.td-summary-box strong {
-                        color: #92400e !important;
-                        font-weight: 700 !important;
-                    }
-
-                    .td-content blockquote.td-summary-box code:not(pre code) {
-                        background: #fef3c7 !important;
-                        color: #78350f !important;
-                        border: 1px solid #fcd34d !important;
-                        padding: 0.3mm 1.2mm !important;
-                        font-size: 8.5pt !important;
-                    }
-
-                    .td-content blockquote.td-summary-box > p:not(:first-child):not(:nth-child(2)) {
-                        color: #c2410c !important;
-                        font-size: 10.5pt !important;
-                        font-weight: 800 !important;
-                        text-align: right !important;
-                        margin: 4mm 0 2mm !important;
-                        padding-top: 3mm !important;
-                        border-top: 1px dashed #fcd34d !important;
-                    }
-
-                        .td-content blockquote.td-summary-box > p:not(:first-child):not(:nth-child(2)) strong {
-                            color: #c2410c !important;
-                        }
-
             .td-content table {
                 width: 100% !important;
                 border-collapse: collapse !important;
@@ -1958,8 +1976,6 @@
                 font-size: 9.5pt !important;
                 background: #ffffff !important;
                 min-width: 0 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
             }
 
                 .td-content table thead {
@@ -2022,27 +2038,13 @@
                 box-shadow: none !important;
                 page-break-inside: avoid;
             }
-
-            .td-content h1 + p,
-            .td-content h2 + p,
-            .td-content h3 + p,
-            .td-content h4 + p {
-                page-break-before: avoid;
-            }
-
-            .td-content ul,
-            .td-content ol,
-            .td-content blockquote {
-                page-break-inside: avoid;
-            }
     }
 
-    /* ═══════════════════════════════════════════════════════════
-                       GLOBAL PAGE SCROLLBAR
-                       ═══════════════════════════════════════════════════════════ */
+    /* ═══════════ GLOBAL PAGE SCROLLBAR ═══════════ */
     html {
         scrollbar-width: thin;
         scrollbar-color: rgba(59, 130, 246, 0.4) transparent;
+        scroll-behavior: smooth;
     }
 
         html::-webkit-scrollbar {
@@ -2129,7 +2131,7 @@ else
 
     <section class="container">
 
-        @* ⬇️ هدر اختصاصی چاپ — فقط موقع پرینت نشون داده می‌شه *@
+        @* ⬇️ هدر اختصاصی چاپ *@
         <div class="td-print-header">
             <div class="td-print-brand">parsakarimidev.ir</div>
             <h1 class="td-print-title">@tutorial.Title</h1>
@@ -2156,6 +2158,26 @@ else
             </article>
 
             <aside class="td-side" aria-label="اطلاعات تکمیلی آموزش">
+
+                @* ═══════════ 📑 فهرست مطالب ═══════════ *@
+                @if (tocItems.Count > 0)
+                {
+                    <div class="td-side-card td-toc-card">
+                        <h4><i class="fas fa-list-ul" aria-hidden="true"></i> فهرست مطالب</h4>
+                        <nav class="td-toc" aria-label="فهرست مطالب">
+                            @foreach (var item in tocItems)
+                            {
+                                <a href="javascript:void(0);"
+                                   data-id="@item.Id"
+                                   @onclick:preventDefault="true"
+                                   @onclick="() => ScrollToHeading(item.Id)"
+                                   class="td-toc-link td-toc-l@item.Level"
+                                   title="@item.Text">@item.Text</a>
+                            }
+                        </nav>
+                    </div>
+                }
+
                 <div class="td-side-card">
                     <h4><i class="fas fa-info-circle" aria-hidden="true"></i> اطلاعات</h4>
 
@@ -2258,10 +2280,15 @@ else
     private System.Timers.Timer? toastTimer;
 
     /* ═══════════════════════════════════════════
-    SEO CONFIG
-       ═══════════════════════════════════════════ */
+       📑 TOC
+    ═══════════════════════════════════════════ */
+    public record TocItem(int Level, string Text, string Id);
+    private List<TocItem> tocItems = new();
+
+    /* ═══════════════════════════════════════════
+       SEO CONFIG
+    ═══════════════════════════════════════════ */
     private const string BaseUrl = "https://parsakarimidev.ir";
-    private const string TwitterHandle = "@parsakarimidev";
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -2363,14 +2390,15 @@ else
     private string ogImage => $"{BaseUrl}/images/og/tutorial-{tutorial?.Id ?? 0}.png";
 
     /* ═══════════════════════════════════════════
-       Markdown Renderer با Custom Containers
-       ═══════════════════════════════════════════ */
+       Markdown Renderer با Auto-Identifier
+    ═══════════════════════════════════════════ */
     private string RenderMarkdown(string md)
     {
         if (string.IsNullOrWhiteSpace(md)) return "";
 
         var pipeline = new MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
+            .UseAutoIdentifiers(AutoIdentifierOptions.Default) // 🔗 حفظ حروف فارسی در IDها
             .UseCustomContainers()
             .UseSoftlineBreakAsHardlineBreak()
             .Build();
@@ -2379,8 +2407,32 @@ else
     }
 
     /* ═══════════════════════════════════════════
-    HELPERS
-       ═══════════════════════════════════════════ */
+       📑 TOC EXTRACTION
+    ═══════════════════════════════════════════ */
+    private static List<TocItem> ExtractTocFromHtml(string html)
+    {
+        var items = new List<TocItem>();
+        if (string.IsNullOrWhiteSpace(html)) return items;
+
+        var rx = new Regex(
+            @"<h([2-4])[^>]*\bid=""([^""]+)""[^>]*>(.*?)</h\1>",
+            RegexOptions.Singleline);
+
+        foreach (Match m in rx.Matches(html))
+        {
+            var level = int.Parse(m.Groups[1].Value);
+            var id = m.Groups[2].Value;
+            var text = Regex.Replace(m.Groups[3].Value, "<[^>]+>", "").Trim();
+
+            if (!string.IsNullOrWhiteSpace(text))
+                items.Add(new TocItem(level, text, id));
+        }
+        return items;
+    }
+
+    /* ═══════════════════════════════════════════
+       HELPERS
+    ═══════════════════════════════════════════ */
     private string StripMarkdown(string md)
     {
         if (string.IsNullOrWhiteSpace(md)) return "";
@@ -2400,8 +2452,8 @@ else
     }
 
     /* ═══════════════════════════════════════════
-    JSON-LD BUILDERS
-       ═══════════════════════════════════════════ */
+       JSON-LD BUILDERS
+    ═══════════════════════════════════════════ */
     private string BuildArticleJsonLd()
     {
         if (tutorial == null) return "{}";
@@ -2551,7 +2603,7 @@ else
     }
 
     /* ═══════════════════════════════════════════
-    SEO METRICS
+       SEO METRICS
     ═══════════════════════════════════════════ */
     private static int CountWords(string? md)
     {
@@ -2568,11 +2620,11 @@ else
     }
 
     /* ═══════════════════════════════════════════
-    LIFECYCLE
+       LIFECYCLE
     ═══════════════════════════════════════════ */
     protected override async Task OnParametersSetAsync()
     {
-        if (Slug.Length <= 0)
+        if (string.IsNullOrEmpty(Slug))
         {
             tutorial = null;
             isLoading = false;
@@ -2630,6 +2682,7 @@ else
             if (!string.IsNullOrWhiteSpace(tutorial.Content))
             {
                 renderedContent = RenderMarkdown(tutorial.Content);
+                tocItems = ExtractTocFromHtml(renderedContent);
                 needsHighlight = true;
             }
         }
@@ -2658,8 +2711,24 @@ else
     }
 
     /* ═══════════════════════════════════════════
+       🎯 TOC SCROLL METHOD
+    ═══════════════════════════════════════════ */
+    private async Task ScrollToHeading(string id)
+    {
+        try
+        {
+            // با استفاده از encodeURIComponent از خطای کاراکترهای فارسی جلوگیری می‌کنیم
+            await JSRuntime.InvokeVoidAsync("eval",
+                $"history.pushState(null, '', '#' + encodeURIComponent('{id}'));" +
+                $"const el = document.getElementById('{id}');" +
+                $"if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});");
+        }
+        catch { }
+    }
+
+    /* ═══════════════════════════════════════════
        ACTIONS
-       ═══════════════════════════════════════════ */
+    ═══════════════════════════════════════════ */
     private async Task CopyLink()
     {
         try

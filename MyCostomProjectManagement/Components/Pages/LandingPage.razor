@@ -2343,12 +2343,13 @@
             font-weight: 700;
         }
 
-    .tech-matcher-wrapper {
+    /* ===== جدید: بخش تطبیق استک فنی ===== */
+    .ts-wrapper {
         max-width: 960px;
         margin: 0 auto;
     }
 
-    .tech-matcher-header {
+    .ts-header {
         background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.05));
         border: 1.5px solid rgba(59,130,246,0.2);
         border-radius: 20px;
@@ -2357,7 +2358,7 @@
         text-align: center;
     }
 
-    .tech-matcher-score {
+    .ts-score {
         font-size: 3.6rem;
         font-weight: 900;
         background: linear-gradient(135deg, #34d399, #3b82f6);
@@ -2368,13 +2369,13 @@
         margin-bottom: 8px;
     }
 
-    .tech-matcher-score-label {
+    .ts-score-label {
         font-size: 0.88rem;
         color: #94a3b8;
         margin-bottom: 12px;
     }
 
-    .tech-matcher-bar {
+    .ts-bar-bg {
         max-width: 400px;
         height: 10px;
         background: rgba(255,255,255,0.08);
@@ -2383,69 +2384,105 @@
         margin: 0 auto;
     }
 
-        .tech-matcher-bar .fill {
-            height: 100%;
-            background: linear-gradient(90deg, #34d399, #3b82f6);
-            border-radius: 10px;
-            transition: width 0.6s ease;
-        }
+    .ts-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #34d399, #3b82f6);
+        border-radius: 10px;
+        transition: width 0.6s ease;
+    }
 
-    .tech-matcher-cats {
+    .ts-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 16px;
     }
 
-    .tech-matcher-cat {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.06);
+    .ts-card {
+        background: rgba(22, 30, 45, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.04);
         border-radius: 16px;
-        padding: 18px;
+        padding: 20px;
+        transition: transform 0.3s ease, border-color 0.3s ease;
     }
 
-        .tech-matcher-cat h4 {
-            font-size: 0.82rem;
-            font-weight: 800;
-            color: #60a5fa;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .ts-card:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
 
-            .tech-matcher-cat h4 i {
-                color: #8b5cf6;
-            }
+    .ts-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
 
-    .tech-matcher-items {
+        .ts-card-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+            color: #e2e8f0;
+        }
+
+        .ts-card-header i {
+            font-size: 1.1rem;
+        }
+
+    .ts-card-body {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
     }
 
-    .tech-matcher-item {
-        padding: 7px 14px;
-        border-radius: 30px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+    .ts-pill {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
         color: #94a3b8;
-        font-size: 0.78rem;
-        font-weight: 600;
-        cursor: pointer;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
         font-family: inherit;
-        transition: all 0.3s;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        outline: none;
     }
 
-        .tech-matcher-item:hover {
-            border-color: rgba(59,130,246,0.4);
-            color: #fff;
+        .ts-pill:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
         }
 
-        .tech-matcher-item.selected {
-            background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15));
-            border-color: rgba(59,130,246,0.6);
-            color: #93c5fd;
+        .ts-pill.selected {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.5);
+            color: #60a5fa;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
         }
+
+    .frontend-card {
+        grid-column: 3;
+    }
+    /* تنظیم جایگیری */
+    @@media (max-width: 900px) {
+        .ts-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .frontend-card {
+            grid-column: auto;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .ts-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .ts-bar-bg {
+            width: 100%;
+        }
+    }
 
     .cost-breakdown-wrapper {
         max-width: 900px;
@@ -3179,25 +3216,6 @@
     </div>
 </section>
 
-<!-- CAREER -->
-<section class="section" id="achievements">
-    <div class="container">
-        <h2 class="section-title fade-up">کارنامه <span>حرفه‌ای</span></h2>
-        <p class="section-subtitle fade-up">خلاصه‌ای از فعالیت‌های حرفه‌ای</p>
-        <div class="achievements-grid">
-            @foreach (var a in achievements)
-            {
-                <div class="achievement-card fade-up">
-                    <div class="achievement-icon"><i class="@a.Icon"></i></div>
-                    <div class="achievement-number">@a.Number</div>
-                    <div class="achievement-label">@a.Label</div>
-                    <div class="achievement-desc">@a.Desc</div>
-                </div>
-            }
-        </div>
-    </div>
-</section>
-
 <!-- PHILOSOPHY -->
 <section class="section" id="philosophy">
     <div class="container">
@@ -3217,14 +3235,15 @@
     </div>
 </section>
 
-<!-- CERTIFICATIONS (DYNAMIC) -->
-<section class="section" id="certifications">
-    <div class="container">
-        <h2 class="section-title fade-up">مدارک <span>تخصصی</span></h2>
-        <p class="section-subtitle fade-up">مدارک تخصصی دریافت‌شده</p>
-        <div class="cert-grid">
-            @if (dbQualifications.Any())
-            {
+@if (dbQualifications.Any())
+{
+    <!-- CERTIFICATIONS (DYNAMIC) -->
+    <section class="section" id="certifications">
+        <div class="container">
+            <h2 class="section-title fade-up">مدارک <span>تخصصی</span></h2>
+            <p class="section-subtitle fade-up">مدارک تخصصی دریافت‌شده</p>
+            <div class="cert-grid">
+            
                 @foreach (var cert in dbQualifications)
                 {
                     <div class="cert-card fade-up">
@@ -3253,14 +3272,11 @@
                         </div>
                     </div>
                 }
-            }
-            else
-            {
-                <p style="text-align:center; grid-column: 1/-1; color:#94a3b8;">مدرکی ثبت نشده است.</p>
-            }
+              
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+}
 
 <!-- SERVICES (DYNAMIC) -->
 <section class="section" id="services">
@@ -3375,43 +3391,6 @@
     </div>
 </section>
 
-<!-- TESTIMONIALS (DYNAMIC) -->
-<section class="section" id="testimonials">
-    <div class="container">
-        <h2 class="section-title fade-up">نظرات <span>همکاران</span></h2>
-        <p class="section-subtitle fade-up">آنچه همکاران درباره همکاری با من می‌گویند</p>
-        <div class="testi-grid">
-            @if (testimonials != null && testimonials.Any())
-            {
-                @foreach (var t in testimonials)
-                {
-                    <div class="testi-card fade-up">
-                        <div class="testi-stars">
-                            @for (int i = 0; i < t.Rating; i++)
-                            {
-                                <i class="fas fa-star"></i>
-                            }
-                            @for (int i = t.Rating; i < 5; i++)
-                            {
-                                <i class="far fa-star"></i>
-                            }
-                        </div>
-                        <p class="testi-text">@t.Text</p>
-                        <div class="testi-author"><div class="testi-avatar">@t.Initial</div><div class="testi-info"><div class="name">@t.Name</div><div class="role">@t.Role</div></div></div>
-                    </div>
-                }
-            }
-            else
-            {
-                <div style="grid-column: 1/-1; text-align:center; padding: 40px; color: #64748b;">
-                    <i class="fas fa-comment-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
-                    <p>هنوز نظری ثبت نشده است.</p>
-                </div>
-            }
-        </div>
-    </div>
-</section>
-
 <!-- SKILLS -->
 <section class="section" id="skills">
     <div class="container">
@@ -3429,31 +3408,85 @@
     </div>
 </section>
 
-<!-- TECH MATCHER -->
+<!-- TECH MATCHER (بخش جدید مطابق تصویر) -->
 <section class="section" id="tech-matcher">
     <div class="container">
         <h2 class="section-title fade-up">تطبیق <span>استک فنی</span></h2>
         <p class="section-subtitle fade-up">تکنولوژی‌های پروژه خود را انتخاب کنید تا درصد تطبیق را ببینید</p>
-        <div class="tech-matcher-wrapper fade-up">
-            <div class="tech-matcher-header">
-                <div class="tech-matcher-score">@computedMatchScore%</div>
-                <div class="tech-matcher-score-label">تطبیق با استک شما (@selectedTechs.Count از @totalAvailableTechs تکنولوژی)</div>
-                <div class="tech-matcher-bar"><div class="fill" style="width: @(computedMatchScore)%;"></div></div>
+        
+        <div class="ts-wrapper fade-up">
+            <!-- نوار پیشرفت و درصد -->
+            <div class="ts-header">
+                <div class="ts-score">@MatchPercentage%</div>
+                <div class="ts-score-label">تطبیق شما با استک انتخابی (@TotalMatched از @TotalSelected تکنولوژی)</div>
+                <div class="ts-bar-bg"><div class="ts-bar-fill" style="width: @MatchPercentage%;"></div></div>
             </div>
-            <div class="tech-matcher-cats">
-                @foreach (var cat in techMatchCategories)
-                {
-                    <div class="tech-matcher-cat">
-                        <h4><i class="@cat.Icon"></i> @cat.Name</h4>
-                        <div class="tech-matcher-items">
-                            @foreach (var tech in cat.Techs)
-                            {
-                                var t = tech;
-                                <button class="tech-matcher-item @(selectedTechs.Contains(t) ? "selected" : "")" @onclick="() => ToggleTech(t)">@t</button>
-                            }
-                        </div>
+            
+            <!-- کارت‌های تکنولوژی -->
+            <div class="ts-grid">
+                <!-- Backend -->
+                <div class="ts-card">
+                    <div class="ts-card-header">
+                        <h3>Backend</h3>
+                        <i class="fas fa-server" style="color: #ec4899;"></i>
                     </div>
-                }
+                    <div class="ts-card-body">
+                        @foreach (var item in BackendSkills)
+                        {
+                            <button class="ts-pill @(item.IsSelected ? "selected" : "")" @onclick="() => ToggleTech(item)">
+                                @item.Name
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Database -->
+                <div class="ts-card">
+                    <div class="ts-card-header">
+                        <h3>Database</h3>
+                        <i class="fas fa-database" style="color: #3b82f6;"></i>
+                    </div>
+                    <div class="ts-card-body">
+                        @foreach (var item in DatabaseSkills)
+                        {
+                            <button class="ts-pill @(item.IsSelected ? "selected" : "")" @onclick="() => ToggleTech(item)">
+                                @item.Name
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- DevOps -->
+                <div class="ts-card">
+                    <div class="ts-card-header">
+                        <h3>DevOps & Tools</h3>
+                        <i class="fas fa-infinity" style="color: #8b5cf6;"></i>
+                    </div>
+                    <div class="ts-card-body">
+                        @foreach (var item in DevOpsSkills)
+                        {
+                            <button class="ts-pill @(item.IsSelected ? "selected" : "")" @onclick="() => ToggleTech(item)">
+                                @item.Name
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Frontend (قرارگیری در ستون 3 ردیف 2 طبق تصویر) -->
+                <div class="ts-card frontend-card">
+                    <div class="ts-card-header">
+                        <h3>Frontend</h3>
+                        <i class="fas fa-code" style="color: #a78bfa;"></i>
+                    </div>
+                    <div class="ts-card-body">
+                        @foreach (var item in FrontendSkills)
+                        {
+                            <button class="ts-pill @(item.IsSelected ? "selected" : "")" @onclick="() => ToggleTech(item)">
+                                @item.Name
+                            </button>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -3469,21 +3502,25 @@
         {
             @foreach (var category in dbTechCategories)
             {
-                <div class="tech-category">
-                    <div class="tech-category-title">
-                        <i class="@(string.IsNullOrEmpty(category.Icon) ? "fas fa-layer-group" : category.Icon)"></i>
-                        @category.Title
+                var activeTechs = dbTechnologies.Where(t => t.CategoryId == category.Id).ToList();
+                @if (activeTechs.Any())
+                {
+                    <div class="tech-category">
+                        <div class="tech-category-title">
+                            <i class="@(string.IsNullOrEmpty(category.Icon) ? "fas fa-layer-group" : category.Icon)"></i>
+                            @category.Title
+                        </div>
+                        <div class="tech-grid">
+                            @foreach (var tech in activeTechs)
+                            {
+                                <div class="tech-item fade-up">
+                                    <i class="@(string.IsNullOrEmpty(tech.Icon) ? "fas fa-code" : tech.Icon)" style="@(tech.Icon != null && !tech.Icon.StartsWith("devicon") ? "color:#60a5fa;" : "")"></i>
+                                    <span>@tech.Title</span>
+                                </div>
+                            }
+                        </div>
                     </div>
-                    <div class="tech-grid">
-                        @foreach (var tech in dbTechnologies.Where(t => t.CategoryId == category.Id))
-                        {
-                            <div class="tech-item fade-up">
-                                <i class="@(string.IsNullOrEmpty(tech.Icon) ? "fas fa-code" : tech.Icon)" style="@(tech.Icon != null && !tech.Icon.StartsWith("devicon") ? "color:#60a5fa;" : "")"></i>
-                                <span>@tech.Title</span>
-                            </div>
-                        }
-                    </div>
-                </div>
+                }
             }
         }
         else
@@ -3505,52 +3542,6 @@
                     <div class="quality-header"><h3><i class="@q.Icon"></i> @q.Title</h3><span class="quality-pct">@q.Percent%</span></div>
                     <div class="quality-bar"><div class="bar-fill" style="width: @(q.Percent)%"></div></div>
                     <p>@q.Desc</p>
-                </div>
-            }
-        </div>
-    </div>
-</section>
-
-<!-- OPEN SOURCE -->
-<section class="section" id="open-source">
-    <div class="container">
-        <h2 class="section-title fade-up">پروژه‌های <span>متن‌باز</span></h2>
-        <p class="section-subtitle fade-up">پروژه‌های منتشرشده در GitHub</p>
-        <div class="opensource-grid">
-            @foreach (var repo in openSourceRepos)
-            {
-                <a class="repo-card fade-up" href="@repo.Link" target="_blank" rel="noopener noreferrer">
-                    <div class="repo-header"><div class="repo-icon"><i class="@repo.Icon"></i></div><div class="repo-name">@repo.Name</div></div>
-                    <p class="repo-desc">@repo.Description</p>
-                    <div class="repo-stats">
-                        <span class="repo-stat"><span class="repo-lang-dot" style="background:@repo.LangColor;"></span>@repo.Language</span>
-                        <span class="repo-stat"><i class="fas fa-star"></i> @repo.Stars</span>
-                        <span class="repo-stat"><i class="fas fa-code-branch"></i> @repo.Forks</span>
-                    </div>
-                </a>
-            }
-        </div>
-    </div>
-</section>
-
-<!-- EDUCATIONAL -->
-<section class="section" id="educational">
-    <div class="container">
-        <h2 class="section-title fade-up">پروژه‌های <span>آموزشی</span></h2>
-        <p class="section-subtitle fade-up">منابع متن‌باز برای یادگیری ASP.NET Core و Blazor</p>
-        <div class="edu-grid">
-            @foreach (var edu in educationalProjects)
-            {
-                <div class="edu-card fade-up">
-                    <span class="edu-type"><i class="@edu.TypeIcon"></i> @edu.TypeText</span>
-                    <h4>@edu.Title</h4>
-                    <p>@edu.Description</p>
-                    <div class="edu-meta">
-                        <span><i class="fas fa-star"></i> @edu.Stars ستاره</span>
-                        <span><i class="fas fa-signal"></i> @edu.Level</span>
-                        <span><i class="fas fa-language"></i> @edu.Language</span>
-                    </div>
-                    <a href="@edu.Link" target="_blank" rel="noopener noreferrer" class="btn-edu">مشاهده در GitHub <i class="fas fa-arrow-left"></i></a>
                 </div>
             }
         </div>
@@ -3590,76 +3581,6 @@
         </div>
     </section>
 }
-
-<!-- CASE STUDIES -->
-<section class="section" id="case-studies">
-    <div class="container">
-        <h2 class="section-title fade-up">پروژه‌های <span>شاخص</span></h2>
-        <p class="section-subtitle fade-up">پروژه‌ها با نتایج قابل اندازه‌گیری</p>
-        <div class="case-grid">
-            <div class="case-card fade-up">
-                <span class="case-badge"><i class="fas fa-fire"></i> فین‌تک</span>
-                <h3>سیستم پرداخت اشتراکی</h3>
-                <p class="case-desc">پلتفرم فروش اشتراک API با اتصال به زرین‌پال و آیدی‌پی. معماری میکروسرویس با MediatR و Rate Limiting.</p>
-                <div class="case-stack"><span>ASP.NET Core</span><span>Redis</span><span>PostgreSQL</span><span>Docker</span></div>
-                <div class="case-metrics">
-                    <div class="case-metric"><div class="case-metric-value">۴۰٪</div><div class="case-metric-label">افزایش سرعت</div></div>
-                    <div class="case-metric"><div class="case-metric-value">۱۰K</div><div class="case-metric-label">کاربر فعال</div></div>
-                    <div class="case-metric"><div class="case-metric-value">۹۹٪</div><div class="case-metric-label">Uptime</div></div>
-                </div>
-            </div>
-            <div class="case-card fade-up">
-                <span class="case-badge"><i class="fas fa-chart-line"></i> داشبورد</span>
-                <h3>داشبورد مدیریت و تحلیل داده</h3>
-                <p class="case-desc">داشبورد Real-time با SignalR. گزارش‌گیری پیشرفته، خروجی Excel/PDF و بهینه‌سازی Query با Dapper.</p>
-                <div class="case-stack"><span>Blazor</span><span>SignalR</span><span>SQL Server</span><span>Dapper</span></div>
-                <div class="case-metrics">
-                    <div class="case-metric"><div class="case-metric-value">۸۵٪</div><div class="case-metric-label">کاهش زمان</div></div>
-                    <div class="case-metric"><div class="case-metric-value">۲۰ms</div><div class="case-metric-label">پاسخ Query</div></div>
-                    <div class="case-metric"><div class="case-metric-value">۵۰K</div><div class="case-metric-label">رکورد روزانه</div></div>
-                </div>
-            </div>
-            <div class="case-card fade-up">
-                <span class="case-badge"><i class="fas fa-shield-halved"></i> امنیت</span>
-                <h3>سیستم احراز هویت چندلایه</h3>
-                <p class="case-desc">IdentityServer با JWT، 2FA و مدیریت نقش‌های پیچیده. Refresh Token و Audit Logging کامل.</p>
-                <div class="case-stack"><span>IdentityServer</span><span>JWT</span><span>OWASP</span><span>Redis</span></div>
-                <div class="case-metrics">
-                    <div class="case-metric"><div class="case-metric-value">۱۰۰٪</div><div class="case-metric-label">پوشش OWASP</div></div>
-                    <div class="case-metric"><div class="case-metric-value">۰</div><div class="case-metric-label">رخنه</div></div>
-                    <div class="case-metric"><div class="case-metric-value">۲FA</div><div class="case-metric-label">احراز</div></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ENTERPRISE -->
-<section class="section" id="enterprise">
-    <div class="container">
-        <h2 class="section-title fade-up">پروژه‌های <span>سازمانی</span></h2>
-        <p class="section-subtitle fade-up">قابلیت‌های مورد نیاز پروژه‌های سازمانی</p>
-        <div class="enterprise-grid">
-            @foreach (var e in enterpriseFeatures)
-            {
-                <div class="enterprise-card fade-up"><div class="enterprise-icon"><i class="@e.Icon"></i></div><h3>@e.Title</h3><p>@e.Desc</p></div>
-            }
-        </div>
-    </div>
-</section>
-
-<!-- PROJECTS -->
-<section class="section" id="projects">
-    <div class="container">
-        <h2 class="section-title fade-up">پروژه‌های <span>در حال اجرا</span></h2>
-        <p class="section-subtitle fade-up">آخرین پروژه‌های در حال اجرا</p>
-        <div class="project-list">
-            <div class="project-row fade-up"><div class="info"><h4>سیستم رزرواسیون آنلاین</h4><p>بک‌اند با Razor Page و PostgreSQL</p></div><span class="badge">فعال</span></div>
-            <div class="project-row fade-up"><div class="info"><h4>پلتفرم مدیریت خدمات فریلنسری</h4><p>ASP.NET Core + Blazor + SQL Server</p></div><span class="badge">در حال توسعه</span></div>
-            <div class="project-row fade-up"><div class="info"><h4>General JWT Utility</h4><p>ASP.NET Core CLI</p></div><span class="badge">در حال توسعه</span></div>
-        </div>
-    </div>
-</section>
 
 <!-- CURRENTLY BUILDING -->
 <section class="section" id="building">
@@ -3762,43 +3683,6 @@
     </div>
 </section>
 
-<!-- INTERVIEW SIM -->
-<section class="section" id="interview-sim">
-    <div class="container">
-        <h2 class="section-title fade-up">پاسخ به <span>سوالات فنی</span></h2>
-        <p class="section-subtitle fade-up">۸ سؤال کلیدی معماری و پاسخ‌های من</p>
-        <div class="interview-sim-wrapper fade-up">
-            <div class="interview-questions">
-                @for (int i = 0; i < interviewBank.Count; i++)
-                {
-                    var idx = i;
-                    var qNum = (i + 1).ToString();
-                    <button class="interview-q-btn @(intSelectedQuestion == idx ? "active" : "")" @onclick="() => intSelectedQuestion = idx">
-                        <span class="q-num">@qNum</span>
-                        <span>@interviewBank[idx].Question</span>
-                    </button>
-                }
-            </div>
-            @if (interviewBank.Any() && intSelectedQuestion < interviewBank.Count)
-            {
-                var current = interviewBank[intSelectedQuestion];
-                <div class="interview-answer">
-                    <div class="interview-answer-header"><div class="interview-answer-num">Q@(intSelectedQuestion + 1)</div><h3>@current.Question</h3></div>
-                    <span class="interview-answer-tag"><i class="fas fa-tag"></i> @current.Tag</span>
-                    <div class="interview-answer-body">
-                        <p>@current.AnswerIntro</p><ul>
-                        @foreach (var pt in current.BulletPoints)
-                        {
-                            <li>@pt</li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        }
-    </div>
-</div>
-</section>
-
 <!-- FIT QUIZ -->
 <section class="section" id="hiring-quiz">
     <div class="container">
@@ -3833,7 +3717,6 @@
                     <span class="quiz-result-emoji">@GetQuizEmoji()</span>
                     <div class="quiz-result-title" style="color: @GetQuizColor();">@GetQuizTitle()</div>
                     
-                    <!-- نوار پیشرفت داینامیک -->
                     <div style="max-width: 320px; margin: 0 auto 22px; background: rgba(255,255,255,0.08); height: 10px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
                         <div style="width: @(QuizPercentage)%; height: 100%; background: @GetQuizColor(); border-radius: 10px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px @(GetQuizColor() + "80");"></div>
                     </div>
@@ -3846,7 +3729,6 @@
                         <i class="fas fa-star"></i> @quizScore از @MaxQuizScore امتیاز (@QuizPercentage٪)
                     </div>
                     
-                    <!-- دکمه‌های عملیات (شروع دوباره و درخواست جلسه) -->
                     <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:20px;">
                         <button class="quiz-restart" @onclick="ResetQuiz"><i class="fas fa-redo"></i> شرکت دوباره در آزمون</button>
                         <a href="/#contact" class="btn-primary ripple" style="padding:11px 24px; border-radius:30px; font-size:0.88rem; text-decoration:none; background: @GetQuizColor(); border-color: @GetQuizColor();"><i class="fas fa-paper-plane"></i> درخواست جلسه</a>
@@ -3868,7 +3750,27 @@
                 @foreach (var qc in quickContactChannels)
                 {
                     <a href="@qc.Link" target="@qc.Target" rel="noopener noreferrer" style="display:flex; flex-direction:column; align-items:center; gap:10px; padding:22px 16px; border-radius:18px; text-decoration:none; transition:all 0.3s; @(qc.IsPrimary ? "background:linear-gradient(135deg, #3b82f6, #8b5cf6); border:1.5px solid transparent; color:#fff;" : "background:rgba(255,255,255,0.05); border:1.5px solid rgba(255,255,255,0.1); color:#fff;")">
-                        <div style="width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3rem; background:@(qc.IsPrimary ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.12)");"><i class="@qc.Icon"></i></div>
+                        
+                        <div style="width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3rem; background:@(qc.IsPrimary ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)");">
+                            @if (qc.Label == "بله")
+                            {
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+                                    <defs>
+                                        <linearGradient id="baleGrad" x1="2" y1="22" x2="22" y2="2" gradientUnits="userSpaceOnUse">
+                                            <stop offset="0%" stop-color="#293583" />
+                                            <stop offset="100%" stop-color="#20D1A1" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 9.88 2.66 7.91 3.78 6.33L2 2L6.33 3.78C7.91 2.66 9.88 2 12 2Z" fill="url(#baleGrad)" />
+                                    <path d="M7.2 12.3L10.3 15.4L16.8 8.9" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            }
+                            else
+                            {
+                                <i class="@qc.Icon"></i>
+                            }
+                        </div>
+                        
                         <div style="font-size:0.9rem; font-weight:700;">@qc.Label</div>
                         <div style="font-size:0.72rem; color:@(qc.IsPrimary ? "rgba(255,255,255,0.8)" : "#94a3b8");">@qc.Sub</div>
                     </a>
@@ -3998,30 +3900,6 @@
     </div>
 </section>
 
-<!-- POPULAR POSTS -->
-<section class="section" id="popular-posts">
-    <div class="container">
-        <h2 class="section-title fade-up">مقالات <span>پرطرفدار</span></h2>
-        <p class="section-subtitle fade-up">پرطرفدارترین مقالات</p>
-        <div class="popular-list">
-            @for (int i = 0; i < popularPosts.Count; i++)
-            {
-                var post = popularPosts[i];
-                var rank = i + 1;
-                <a href="@post.Link" class="popular-item fade-up">
-                    <div class="popular-rank">@rank</div>
-                    <div class="popular-body">
-                        <div class="popular-topic"><i class="fas fa-hashtag"></i> @post.Topic</div>
-                        <div class="popular-title">@post.Title</div>
-                        <div class="popular-meta"><span><i class="fas fa-eye"></i> @post.Views بازدید</span><span><i class="far fa-calendar"></i> @post.Date</span></div>
-                    </div>
-                    <div class="popular-arrow"><i class="fas fa-arrow-left"></i></div>
-                </a>
-            }
-        </div>
-    </div>
-</section>
-
 @code {
     private const string BaseUrl = "https://parsakarimidev.ir";
     private static readonly System.Text.Json.JsonSerializerOptions JsonOpts = new() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
@@ -4057,11 +3935,77 @@
     private bool quizFinished = false;
     private string liveResponseTime = "۱ ساعت و ۴۸ دقیقه";
     private int intSelectedQuestion = 0;
-    private HashSet<string> selectedTechs = new();
-    private readonly HashSet<string> myTechs = new() { "C#", "ASP.NET Core", "Blazor", "EF Core", "SQL Server", "PostgreSQL", "REST API", "SignalR", "Redis", "Docker", "Git", "Linux", "RabbitMQ", "GitHub", "Nginx", "HTML5", "CSS3", "JavaScript", "Bootstrap", "Azure" };
-    private int totalAvailableTechs => techMatchCategories.Sum(c => c.Techs.Count);
-    private int computedMatchScore => selectedTechs.Count == 0 ? 0 : (int)Math.Round((double)selectedTechs.Count(t => myTechs.Contains(t)) / selectedTechs.Count * 100);
-    private void ToggleTech(string tech) { if (selectedTechs.Contains(tech)) selectedTechs.Remove(tech); else selectedTechs.Add(tech); }
+    
+    // ===== بخش جدید: تطبیق استک فنی =====
+    public class TechItem
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsSelected { get; set; }
+        public bool IsKnown { get; set; } // آیا من این تکنولوژی را بلد هستم؟
+
+        public TechItem(string name, bool isKnown)
+        {
+            Name = name;
+            IsKnown = isKnown;
+            IsSelected = false;
+        }
+    }
+
+    // تکنولوژی‌هایی که بلد هستم (از رزومه) و بلد نیستم (برای انتخاب کاربر)
+    private List<TechItem> BackendSkills = new()
+    {
+        // بلد هستم
+        new("C#", true), new("ASP.NET Core", true), new("REST API", true), new("gRPC", true),
+        new("EF Core", true), new("Dapper", true), new("LINQ", true), new("CQRS", true),
+        new("DDD", true), new("Clean Architecture", true), new("Microservices", true), new("Multi-Tenant", true),
+        new("Identity", true), new("JWT", true), new("Repository Pattern", true), new("SOLID", true),
+        // بلد نیستم
+        new("Python", false), new("Node.js", false), new("Java", false)
+    };
+
+    private List<TechItem> DatabaseSkills = new()
+    {
+        // بلد هستم
+        new("SQL Server", true), new("MongoDB", true), new("Redis", true),
+        // بلد نیستم
+        new("PostgreSQL", true), new("MySQL", false), new("Oracle", false)
+    };
+
+    private List<TechItem> DevOpsSkills = new()
+    {
+        // بلد هستم
+        new("Git", true), new("GitHub", true), new("Docker", true), new("RabbitMQ", true),
+        new("Hangfire", true), new("Swagger", true), new("Postman", true),
+        new("xUnit Test", true), new("NBomber", true), new("Linux", true),
+        // بلد نیستم
+        new("Kubernetes", false), new("AWS", false), new("Azure", false), new("Azure DevOps", false)
+    };
+
+    private List<TechItem> FrontendSkills = new()
+    {
+        // بلد هستم
+        new("HTML5", true), new("CSS3", true), new("JavaScript", true),
+        new("Bootstrap", true), new("Razor Pages", true), new("ASP.NET MVC", true), new("Blazor", true),
+        // بلد نیستم
+        new("React", false), new("Vue.js", false), new("TypeScript", false), new("Tailwind", false)
+    };
+
+    // محاسبه تعداد تکنولوژی‌های انتخاب شده توسط کاربر
+    private int TotalSelected => BackendSkills.Count(x => x.IsSelected) +
+                                 DatabaseSkills.Count(x => x.IsSelected) +
+                                 DevOpsSkills.Count(x => x.IsSelected) +
+                                 FrontendSkills.Count(x => x.IsSelected);
+
+    // محاسبه تعداد تکنولوژی‌های انتخاب شده که من بلد هستم
+    private int TotalMatched => BackendSkills.Count(x => x.IsSelected && x.IsKnown) +
+                                DatabaseSkills.Count(x => x.IsSelected && x.IsKnown) +
+                                DevOpsSkills.Count(x => x.IsSelected && x.IsKnown) +
+                                FrontendSkills.Count(x => x.IsSelected && x.IsKnown);
+
+    // محاسبه درصد تطبیق (تعداد بلد بودن تقسیم بر کل انتخاب شده‌ها)
+    private int MatchPercentage => TotalSelected == 0 ? 0 : (int)Math.Round((double)TotalMatched / TotalSelected * 100);
+
+    private void ToggleTech(TechItem item) => item.IsSelected = !item.IsSelected;
 
     // محاسبات داینامیک آزمون
     private int MaxQuizScore => quizQuestions.Count * 3;
@@ -4124,7 +4068,7 @@
     private List<SpecializedQualification> dbQualifications = new();
     private List<ProgrammingServices> dbProgrammingServices = new();
     private List<SpecializedTechnologyCategory> dbTechCategories = new();
-    private List<SpecializedTechnology> dbTechnologies = new(); // برای حل مشکل lack of navigation property
+    private List<SpecializedTechnology> dbTechnologies = new();
     private List<Testimonial> testimonials = new();
 
     private List<KpiItem> workKpis = new()
@@ -4194,13 +4138,6 @@
         new() { Question = "چطور یک Query کند EF Core را Debug می‌کنید؟", Tag = "EF Core", AnswerIntro = "فرآیند سیستماتیک:", BulletPoints = new() { "Logging فعال برای دیدن SQL تولید شده", "ToQueryString() برای دیدن SQL قبل از اجرا", "N+1 Problem با Include و ThenInclude", "Queryهای پیچیده به Dapper مهاجرت", "SQL Profiler یا Application Insights برای تحلیل" } },
         new() { Question = "تفاوت Microservices و Modular Monolith چیست؟", Tag = "معماری", AnswerIntro = "انتخاب بستگی به مقیاس تیم و پروژه دارد:", BulletPoints = new() { "Modular Monolith: deployment واحد، ماژول مستقل منطقی", "Microservices: deployment مستقل، پیچیدگی عملیاتی بالا", "توصیه برای اکثر پروژه‌ها: Modular Monolith اول", "Microservices وقتی تیم حداقل ۳ تیم مستقل باشد", "زیرساخت باید از روز اول آماده باشد" } },
         new() { Question = "چطور با Legacy Code کار می‌کنید؟", Tag = "Legacy", AnswerIntro = "رویکرد در Legacy Refactoring:", BulletPoints = new() { "اول تست Characterization برای مستندسازی رفتار", "Strangler Fig Pattern: جایگزینی تدریجی", "Feature Flags برای کاهش ریسک", "تغییرات کوچک و مستمر", "مستندسازی مستمر" } }
-    };
-    private List<TechMatchCategory> techMatchCategories = new()
-    {
-        new() { Icon = "fas fa-server", Name = "Backend", Techs = new() { "C#", "ASP.NET Core", "Blazor", "EF Core", "REST API", "gRPC", "SignalR", "Python", "Node.js", "Java" } },
-        new() { Icon = "fas fa-database", Name = "Database", Techs = new() { "SQL Server", "PostgreSQL", "MySQL", "MongoDB", "Redis", "Oracle" } },
-        new() { Icon = "fas fa-cloud", Name = "DevOps", Techs = new() { "Docker", "Kubernetes", "Git", "GitHub Actions", "Azure DevOps", "Linux", "Nginx", "RabbitMQ", "AWS", "Azure" } },
-        new() { Icon = "fas fa-palette", Name = "Frontend", Techs = new() { "HTML5", "CSS3", "JavaScript", "TypeScript", "React", "Vue.js", "Bootstrap", "Tailwind" } }
     };
     private List<SecurityCategory> securityCategories = new()
     {
@@ -4300,7 +4237,7 @@
         new() { Icon = "fab fa-telegram", Label = "تلگرام", Sub = "پاسخ < ۲ ساعت", Link = "https://t.me/mohammad_Parsa_dev", Target = "_blank", IsPrimary = true },
         new() { Icon = "fas fa-phone-alt", Label = "تلفن", Sub = "۹ صبح تا ۱۰ شب", Link = "tel:+989368823398", Target = "_self", IsPrimary = false },
         new() { Icon = "fas fa-envelope", Label = "ایمیل", Sub = "پاسخ < ۲۴ ساعت", Link = "mailto:parsa9601m@gmail.com", Target = "_self", IsPrimary = false },
-        new() { Icon = "fab fa-whatsapp", Label = "واتساپ", Sub = "فقط پیام", Link = "https://wa.me/989368823398", Target = "_blank", IsPrimary = false }
+        new() { Icon = "fas fa-comment-dots", Label = "بله", Sub = "فقط پیام", Link = "https://ble.ir/MP_KARIMI", Target = "_blank", IsPrimary = false }
     };
     private List<PopularPost> popularPosts = new()
     {
@@ -4390,9 +4327,14 @@
             // 3. خدمات برنامه‌نویسی
             dbProgrammingServices = await db.ProgrammingServices.AsNoTracking().Where(s => s.IsActive).ToListAsync();
 
-            // 4. تکنولوژی‌های تخصصی
-            dbTechCategories = await db.SpecializedTechnologyCategories.AsNoTracking().ToListAsync();
-            dbTechnologies = await db.SpecializedTechnologies.AsNoTracking().ToListAsync();
+            // 4. تکنولوژی‌های تخصصی (فقط فعال‌ها)
+            dbTechCategories = await db.SpecializedTechnologyCategories.AsNoTracking()
+                .Where(c => c.IsActive)
+                .ToListAsync();
+                
+            dbTechnologies = await db.SpecializedTechnologies.AsNoTracking()
+                .Where(t => t.IsActive)
+                .ToListAsync();
         }
         catch (Exception ex)
         {

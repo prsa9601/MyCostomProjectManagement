@@ -136,6 +136,12 @@
             border-bottom: none;
         }
 
+        /* ردیف‌های غیرفعال */
+        .st-table tr.inactive td {
+            opacity: 0.4;
+            filter: grayscale(0.8);
+        }
+
     .badge-cat {
         background: rgba(130,100,200,0.15);
         color: #a78bfa;
@@ -180,6 +186,55 @@
             border-color: rgba(220,53,69,0.3);
         }
 
+    /* ===== سوییچ فعال/غیرفعال ===== */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        margin: 0;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255,255,255,0.1);
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #fff;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+    input:checked + .slider {
+        background-color: #52b788;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+    /* ===== مودال ===== */
     .modal-overlay {
         position: fixed;
         inset: 0;
@@ -233,7 +288,7 @@
                 color: #f87171;
             }
 
-        .form-field input, .form-field select {
+        .form-field input[type="text"], .form-field select {
             width: 100%;
             padding: 11px 14px;
             background: rgba(255,255,255,0.04);
@@ -245,7 +300,7 @@
             transition: 0.2s;
         }
 
-            .form-field input:focus, .form-field select:focus {
+            .form-field input[type="text"]:focus, .form-field select:focus {
                 outline: none;
                 border-color: #e8a838;
                 background: rgba(255,255,255,0.06);
@@ -386,6 +441,7 @@
                         <th>عنوان دسته</th>
                         <th>آیکون</th>
                         <th>تعداد تکنولوژی</th>
+                        <th>وضعیت</th>
                         <th style="width:100px;">عملیات</th>
                     </tr>
                 </thead>
@@ -393,10 +449,16 @@
                     @foreach (var cat in categories)
                     {
                         var techCount = technologies.Count(t => t.CategoryId == cat.Id);
-                        <tr @key="cat.Id">
+                        <tr class="@(cat.IsActive ? "" : "inactive")" @key="cat.Id">
                             <td><strong style="color:#fff;">@cat.Title</strong></td>
                             <td><span class="icon-preview"><i class="@cat.Icon"></i></span></td>
                             <td><span class="badge-cat">@techCount تکنولوژی</span></td>
+                            <td>
+                                <label class="switch" title="@(cat.IsActive ? "غیرفعال کردن" : "فعال کردن")">
+                                    <input type="checkbox" checked="@cat.IsActive" @onchange="() => ToggleCategoryStatus(cat)">
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
                             <td>
                                 <div class="action-btns">
                                     <button class="btn-icon edit" @onclick="() => OpenEditCategory(cat)" title="ویرایش">
@@ -433,6 +495,7 @@ else
                         <th>عنوان تکنولوژی</th>
                         <th>آیکون</th>
                         <th>دسته‌بندی</th>
+                        <th>وضعیت</th>
                         <th style="width:100px;">عملیات</th>
                     </tr>
                 </thead>
@@ -440,10 +503,16 @@ else
                     @foreach (var tech in technologies.OrderBy(t => t.Title))
                     {
                         var cat = categories.FirstOrDefault(c => c.Id == tech.CategoryId);
-                        <tr @key="tech.Id">
+                        <tr class="@(tech.IsActive ? "" : "inactive")" @key="tech.Id">
                             <td><strong style="color:#fff;">@tech.Title</strong></td>
                             <td><span class="icon-preview"><i class="@tech.Icon"></i></span></td>
                             <td><span class="badge-cat">@(cat?.Title ?? "بدون دسته")</span></td>
+                            <td>
+                                <label class="switch" title="@(tech.IsActive ? "غیرفعال کردن" : "فعال کردن")">
+                                    <input type="checkbox" checked="@tech.IsActive" @onchange="() => ToggleTechnologyStatus(tech)">
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
                             <td>
                                 <div class="action-btns">
                                     <button class="btn-icon edit" @onclick="() => OpenEditTechnology(tech)" title="ویرایش">
@@ -479,11 +548,11 @@ else
             </h3>
             <div class="form-field">
                 <label>عنوان <span class="req">*</span></label>
-                <input @bind="formTitle" placeholder="@(formMode == "category" ? "مثلاً: Backend" : "مثلاً: ASP.NET Core")" />
+                <input type="text" @bind="formTitle" placeholder="@(formMode == "category" ? "مثلاً: Backend" : "مثلاً: ASP.NET Core")" />
             </div>
             <div class="form-field">
                 <label>کلاس آیکون <span class="req">*</span></label>
-                <input @bind="formIcon" placeholder="مثلاً: devicon-dotnetcore-plain colored" />
+                <input type="text" @bind="formIcon" placeholder="مثلاً: devicon-dotnetcore-plain colored" />
                 <div style="margin-top:8px; font-size:0.78rem; color:#94a3b8;">
                     پیش‌نمایش: <span class="icon-preview" style="margin-right:8px;"><i class="@formIcon"></i></span>
                 </div>
@@ -501,6 +570,13 @@ else
                     </select>
                 </div>
             }
+            
+            <!-- چک‌باکس وضعیت -->
+            <div class="form-field" style="display:flex; align-items:center; gap:10px; margin-top:20px; padding:12px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.06);">
+                <input type="checkbox" id="isActiveCheckbox" @bind="formIsActive" style="width:20px; height:20px; accent-color:#e8a838; cursor:pointer;" />
+                <label for="isActiveCheckbox" style="margin-bottom:0; cursor:pointer; font-weight:600;">فعال باشد (نمایش در سایت)</label>
+            </div>
+
             <div class="modal-actions">
                 <button class="btn-secondary" @onclick="CloseForm">انصراف</button>
                 <button class="btn-gold" @onclick="SaveForm" disabled="@isSaving">
@@ -532,6 +608,7 @@ else
     private string formTitle = "";
     private string formIcon = "fas fa-code";
     private Guid formCategoryId = Guid.Empty;
+    private bool formIsActive = true; // وضعیت پیش‌فرض برای فرم
 
     protected override async Task OnInitializedAsync()
     {
@@ -567,6 +644,7 @@ else
         formTitle = "";
         formIcon = mode == "category" ? "fas fa-folder" : "fas fa-code";
         formCategoryId = Guid.Empty;
+        formIsActive = true; // پیش‌فرض فعال
         showForm = true;
         successMessage = "";
         errorMessage = "";
@@ -579,6 +657,7 @@ else
         formTitle = cat.Title ?? "";
         formIcon = cat.Icon ?? "fas fa-folder";
         formCategoryId = Guid.Empty;
+        formIsActive = cat.IsActive;
         showForm = true;
         successMessage = "";
         errorMessage = "";
@@ -591,6 +670,7 @@ else
         formTitle = tech.Title ?? "";
         formIcon = tech.Icon ?? "fas fa-code";
         formCategoryId = tech.CategoryId;
+        formIsActive = tech.IsActive;
         showForm = true;
         successMessage = "";
         errorMessage = "";
@@ -600,6 +680,50 @@ else
     {
         showForm = false;
         editingId = Guid.Empty;
+    }
+
+    // ===== تغییر وضعیت دسته‌بندی =====
+    private async Task ToggleCategoryStatus(SpecializedTechnologyCategory cat)
+    {
+        errorMessage = "";
+        successMessage = "";
+        try
+        {
+            var existing = await DbContext.SpecializedTechnologyCategories.FindAsync(cat.Id);
+            if (existing != null)
+            {
+                existing.IsActive = !existing.IsActive;
+                await DbContext.SaveChangesAsync();
+                cat.IsActive = existing.IsActive; // آپدیت وضعیت در UI
+                successMessage = existing.IsActive ? "✅ دسته‌بندی فعال شد." : "✅ دسته‌بندی غیرفعال شد.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"خطا در تغییر وضعیت: {ex.Message}";
+        }
+    }
+
+    // ===== تغییر وضعیت تکنولوژی =====
+    private async Task ToggleTechnologyStatus(SpecializedTechnology tech)
+    {
+        errorMessage = "";
+        successMessage = "";
+        try
+        {
+            var existing = await DbContext.SpecializedTechnologies.FindAsync(tech.Id);
+            if (existing != null)
+            {
+                existing.IsActive = !existing.IsActive;
+                await DbContext.SaveChangesAsync();
+                tech.IsActive = existing.IsActive; // آپدیت وضعیت در UI
+                successMessage = existing.IsActive ? "✅ تکنولوژی فعال شد." : "✅ تکنولوژی غیرفعال شد.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"خطا در تغییر وضعیت: {ex.Message}";
+        }
     }
 
     private async Task SaveForm()
@@ -628,7 +752,8 @@ else
                     {
                         Id = Guid.NewGuid(),
                         Title = formTitle.Trim(),
-                        Icon = formIcon.Trim()
+                        Icon = formIcon.Trim(),
+                        IsActive = formIsActive
                     };
                     DbContext.SpecializedTechnologyCategories.Add(newCat);
                     await DbContext.SaveChangesAsync();
@@ -640,6 +765,7 @@ else
                     if (existing == null) { errorMessage = "دسته پیدا نشد."; return; }
                     existing.Title = formTitle.Trim();
                     existing.Icon = formIcon.Trim();
+                    existing.IsActive = formIsActive;
                     await DbContext.SaveChangesAsync();
                     successMessage = "✅ دسته‌بندی به‌روزرسانی شد.";
                 }
@@ -653,7 +779,8 @@ else
                         Id = Guid.NewGuid(),
                         Title = formTitle.Trim(),
                         Icon = formIcon.Trim(),
-                        CategoryId = formCategoryId
+                        CategoryId = formCategoryId,
+                        IsActive = formIsActive
                     };
                     DbContext.SpecializedTechnologies.Add(newTech);
                     await DbContext.SaveChangesAsync();
@@ -666,6 +793,7 @@ else
                     existing.Title = formTitle.Trim();
                     existing.Icon = formIcon.Trim();
                     existing.CategoryId = formCategoryId;
+                    existing.IsActive = formIsActive;
                     await DbContext.SaveChangesAsync();
                     successMessage = "✅ تکنولوژی به‌روزرسانی شد.";
                 }
